@@ -1,0 +1,147 @@
+
+/* =========================================================
+   MOBILE VIEW
+   Everything in here only applies on screens 600px wide or
+   narrower, so the desktop layout is untouched.
+   Paste at the very bottom of style.css (it has to come last
+   so it can override the desktop rules above it).
+   ========================================================= */
+@media (max-width: 600px) {
+
+  /* Stop iPhones from resizing text on their own */
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  /* ----- Spacing: less side padding so content has room ----- */
+  .site-header {
+    padding: 1rem 1.25rem;
+  }
+
+  .hero {
+    margin: 3rem auto 4rem auto;
+    padding: 0 1.25rem;
+  }
+
+  .hero-actions .btn {
+    text-align: center;
+  }
+
+  .why {
+    padding: 3rem 1.25rem;
+  }
+
+  .auth-page {
+    padding: 1.5rem 1rem;
+  }
+
+  .auth-card {
+    padding: 1.5rem;
+  }
+
+  .feed-page {
+    margin: 1rem auto 3rem auto;
+    padding: 0 1rem;
+  }
+
+  .feed-page h1 {
+    font-size: 1.6rem;
+  }
+
+  .post-title {
+    font-size: 1.25rem;
+  }
+
+  .post-meta {
+    flex-wrap: wrap;
+    gap: 0.25rem 0.75rem;
+  }
+
+  /* ----- Hamburger menu: bigger button, menu spans the width ----- */
+  .hamburger-btn {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+
+  .nav-menu {
+    top: 4rem;
+    left: 1rem;
+    right: 1rem;
+    min-width: 0;
+  }
+
+  .nav-menu a.btn,
+  .nav-menu button.btn {
+    padding: 0.8rem 1rem;
+  }
+
+  /* ----- Tap targets: thumb-sized buttons ----- */
+  .post-actions {
+    flex-wrap: wrap;
+    gap: 0.25rem 1rem;
+  }
+
+  .action-btn {
+    min-height: 2.75rem;
+    padding: 0.5rem 0.25rem;
+    font-size: 0.95rem;
+  }
+
+  .comment-form-footer .btn {
+    padding: 0.65rem 1.25rem;
+  }
+
+  /* ----- Form fields: 16px text stops iPhones zooming in on tap ----- */
+  .comment-form textarea,
+  .dropdown-search,
+  .dropdown-btn,
+  .composer select {
+    font-size: 1rem;
+  }
+
+  /* Reset the phone's own default look for form controls, so our
+     styling is what shows up */
+  .dropdown-btn,
+  .composer select,
+  .composer textarea,
+  .composer-title,
+  .comment-form textarea,
+  .stacked-form input {
+    -webkit-appearance: none;
+    appearance: none;
+    border-radius: 6px;
+  }
+
+  .dropdown-btn {
+    min-height: 2.9rem;
+  }
+
+  /* ----- Dropdown lists: easier to tap, never taller than the screen ----- */
+  .dropdown-option {
+    padding: 0.8rem 0.8rem;
+  }
+
+  .dropdown-list {
+    max-height: 45vh;
+  }
+
+  /* ----- Leaf rating: bigger leaves to tap ----- */
+  .rating-leaves {
+    gap: 0.5rem;
+  }
+
+  .rating-leaf .leaf-icon {
+    width: 2.4rem;
+    height: 2.4rem;
+  }
+
+  /* ----- Comments: less indentation so replies don't get squeezed ----- */
+  .comments {
+    padding: 0.75rem;
+  }
+
+  .replies {
+    margin-left: 0.25rem;
+    padding-left: 0.6rem;
+  }
+}
