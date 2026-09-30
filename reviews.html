@@ -42,6 +42,20 @@
         <div id="rating-leaves" class="rating-leaves"></div>
         <p id="rating-label" class="rating-label" aria-live="polite"></p>
       </fieldset>
+      <div class="extras">
+        <fieldset class="extras-field">
+          <legend class="field-label">Would you repurchase? (optional)</legend>
+          <div class="toggle-group" id="repurchase-group">
+            <button type="button" class="toggle-btn" data-value="yes" aria-pressed="false">Yes</button>
+            <button type="button" class="toggle-btn" data-value="no" aria-pressed="false">No</button>
+          </div>
+        </fieldset>
+        <button type="button" id="holy-grail-btn" class="holy-grail-btn" aria-pressed="false" disabled>
+          <svg class="star-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2c.7 5.6 3.9 9.3 10 10-6.1.7-9.3 4.4-10 10-.7-5.6-3.9-9.3-10-10 6.1-.7 9.3-4.4 10-10z"/></svg>
+          Holy grail
+        </button>
+        <p class="extras-hint">Holy grail is only available with a 5-leaf rating. Save it for products you'd never be without.</p>
+      </div>
       <label for="review-title" class="visually-hidden">Review heading</label>
       <input type="text" id="review-title" class="composer-title" maxlength="100" required placeholder="Heading" />
       <label for="review-body" class="visually-hidden">Your review</label>

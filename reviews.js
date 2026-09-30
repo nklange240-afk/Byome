@@ -283,7 +283,7 @@ productSelect.addEventListener("change", () => {
 async function loadReviews() {
   const { data: reviews, error } = await supabaseClient
     .from("reviews")
-    .select("id, rating, title, body, variation, created_at, user_id, profiles!user_id(username), products!product_id(name, brand)")
+    .select("id, rating, title, body, variation, would_repurchase, holy_grail, created_at, user_id, profiles!user_id(username), products!product_id(name, brand, photo_url), review_likes(user_id)")
     .order("created_at", { ascending: false })
     .limit(50);
 
@@ -299,12 +299,119 @@ async function loadReviews() {
   reviews.forEach((r) => listEl.appendChild(buildReview(r)));
 }
 
+// Only allow normal web addresses for product photos
+function safeUrl(url) {
+  try {
+    const u = new URL(url);
+    return u.protocol === "https:" || u.protocol === "http:" ? u.href : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+// Four-point star used for "Holy grail"
+function starIcon() {
+  const ns = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(ns, "svg");
+  svg.setAttribute("viewBox", "0 0 24 24");
+  svg.setAttribute("class", "star-icon");
+  svg.setAttribute("aria-hidden", "true");
+  const path = document.createElementNS(ns, "path");
+  path.setAttribute("d", "M12 2c.7 5.6 3.9 9.3 10 10-6.1.7-9.3 4.4-10 10-.7-5.6-3.9-9.3-10-10 6.1-.7 9.3-4.4 10-10z");
+  svg.appendChild(path);
+  return svg;
+}
+
+// Leaf like button, same behavior as on the message board
+function buildLikeButton(table, idColumn, id, likes) {
+  let liked = likes.some((l) => l.user_id === currentUser.id);
+  let count = likes.length;
+
+  const btn = el("button", "action-btn like-btn");
+  btn.type = "button";
+
+  function paint() {
+    btn.innerHTML = "";
+    btn.append(leafIcon(), el("span", null, String(count)));
+    btn.setAttribute("aria-pressed", String(liked));
+    btn.setAttribute("aria-label", (liked ? "Unlike" : "Like") + " (" + count + " likes)");
+    btn.classList.toggle("is-liked", liked);
+  }
+  paint();
+
+  btn.addEventListener("click", async () => {
+    btn.disabled = true;
+    if (liked) {
+      const { error } = await supabaseClient
+        .from(table).delete().eq(idColumn, id).eq("user_id", currentUser.id);
+      if (!error) { liked = false; count--; }
+    } else {
+      const { error } = await supabaseClient
+        .from(table).insert({ [idColumn]: id, user_id: currentUser.id });
+      if (!error) { liked = true; count++; }
+    }
+    paint();
+    btn.disabled = false;
+  });
+  return btn;
+}
+
+// "Would you repurchase?" (yes / no / unanswered) and "Holy grail".
+// Clicking a selected Yes/No again clears it. Holy grail only unlocks
+// when the rating is 5 leaves, and clears itself if the rating drops.
+function buildExtras() {
+  const group = document.getElementById("repurchase-group");
+  const grailBtn = document.getElementById("holy-grail-btn");
+  let repurchase = null;
+  let grail = false;
+
+  function paint() {
+    group.querySelectorAll(".toggle-btn").forEach((b) => {
+      const pressed = repurchase !== null && (b.dataset.value === "yes") === repurchase;
+      b.setAttribute("aria-pressed", String(pressed));
+    });
+    const hasFive = form.elements["rating"].value === "5";
+    if (!hasFive) grail = false;
+    grailBtn.disabled = !hasFive;
+    grailBtn.setAttribute("aria-pressed", String(grail));
+  }
+
+  group.addEventListener("click", (e) => {
+    const b = e.target.closest(".toggle-btn");
+    if (!b) return;
+    const value = b.dataset.value === "yes";
+    repurchase = repurchase === value ? null : value;
+    paint();
+  });
+  grailBtn.addEventListener("click", () => { grail = !grail; paint(); });
+  form.addEventListener("change", (e) => { if (e.target.name === "rating") paint(); });
+  form.addEventListener("reset", () => { repurchase = null; grail = false; setTimeout(paint, 0); });
+  paint();
+
+  return { get: () => ({ would_repurchase: repurchase, holy_grail: grail }) };
+}
+
 function buildReview(r) {
   const article = el("article", "post");
   article.appendChild(el("h2", "post-title", r.title));
 
+  // Product photo (if it has one) beside the product name and rating
+  const productRow = el("div", "review-product-row");
+  const photo = r.products && r.products.photo_url ? safeUrl(r.products.photo_url) : null;
+  if (photo) {
+    const img = document.createElement("img");
+    img.className = "review-photo";
+    img.src = photo;
+    img.alt = r.products.name + " product photo";
+    img.loading = "lazy";
+    img.referrerPolicy = "no-referrer";
+    img.addEventListener("error", () => img.remove()); // broken link: just hide it
+    productRow.appendChild(img);
+  }
+
+  const info = el("div", "review-product-info");
   const product = r.products ? r.products.brand + " — " + r.products.name : "Unknown product";
-  article.appendChild(el("p", "review-product", r.variation ? product + " (" + r.variation + ")" : product));
+  info.appendChild(el("p", "review-product", r.variation ? product + " (" + r.variation + ")" : product));
 
   const rating = el("div", "review-rating");
   for (let i = 1; i <= 5; i++) {
@@ -314,7 +421,21 @@ function buildReview(r) {
   }
   rating.setAttribute("role", "img");
   rating.setAttribute("aria-label", r.rating + " out of 5");
-  article.appendChild(rating);
+  info.appendChild(rating);
+
+  const tags = el("div", "review-tags");
+  if (r.holy_grail) {
+    const tag = el("span", "review-tag holy-grail");
+    tag.append(starIcon(), document.createTextNode("Holy grail"));
+    tags.appendChild(tag);
+  }
+  if (r.would_repurchase !== null && r.would_repurchase !== undefined) {
+    tags.appendChild(el("span", "review-tag", r.would_repurchase ? "Would repurchase" : "Wouldn't repurchase"));
+  }
+  if (tags.children.length) info.appendChild(tags);
+
+  productRow.appendChild(info);
+  article.appendChild(productRow);
 
   const meta = el("div", "post-meta");
   const time = el("time", null, new Date(r.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }));
@@ -322,8 +443,10 @@ function buildReview(r) {
   meta.append(el("span", "post-author", r.profiles ? r.profiles.username : "Unknown"), time);
   article.append(meta, el("p", "post-body", r.body));
 
+  const actions = el("div", "post-actions");
+  actions.appendChild(buildLikeButton("review_likes", "review_id", r.id, r.review_likes || []));
+
   if (r.user_id === currentUser.id) {
-    const actions = el("div", "post-actions");
     const del = el("button", "action-btn", "Delete");
     del.type = "button";
     del.addEventListener("click", async () => {
@@ -332,8 +455,8 @@ function buildReview(r) {
       loadReviews();
     });
     actions.appendChild(del);
-    article.appendChild(actions);
   }
+  article.appendChild(actions);
   return article;
 }
 
@@ -349,6 +472,7 @@ form.addEventListener("submit", async (event) => {
     title: titleInput.value.trim(),
     body: bodyInput.value.trim(),
     variation: variationSelect.value || null,
+    ...extras.get(),
   });
 
   if (error) {
@@ -371,4 +495,5 @@ const brandDropdown = enhanceSelect(brandSelect);
 const productDropdown = enhanceSelect(productSelect);
 const variationDropdown = enhanceSelect(variationSelect);
 buildRatingWidget();
+const extras = buildExtras();
 init();
