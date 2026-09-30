@@ -4,8 +4,6 @@ const postTitle = document.getElementById("post-title");
 const postBody = document.getElementById("post-body");
 const postMessage = document.getElementById("post-message");
 const charCount = document.getElementById("char-count");
-const usernameEl = document.getElementById("header-username");
-const logoutBtn = document.getElementById("logout-btn");
 
 // After this many levels of replies, deeper replies stop indenting
 // so threads stay readable on small screens.
@@ -115,13 +113,6 @@ async function init() {
 
   currentUser = data.session.user;
 
-  const { data: profile } = await supabaseClient
-    .from("profiles")
-    .select("username")
-    .eq("id", currentUser.id)
-    .single();
-
-  usernameEl.textContent = profile ? profile.username : "";
   loadPosts();
 }
 
@@ -372,11 +363,6 @@ postForm.addEventListener("submit", async (event) => {
 
 postBody.addEventListener("input", () => {
   charCount.textContent = postBody.value.length + " / 1000";
-});
-
-logoutBtn.addEventListener("click", async () => {
-  await supabaseClient.auth.signOut();
-  window.location.href = "index.html";
 });
 
 init();

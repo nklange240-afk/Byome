@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reviews — byome</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="site-header">
+    <a href="feed.html" class="logo">by<span class="logo-accent">🌱</span>me</a>
+    <button id="menu-toggle" class="hamburger-btn" aria-expanded="false" aria-controls="nav-menu" aria-label="Open menu">
+      <span></span><span></span><span></span>
+    </button>
+
+    <nav id="nav-menu" class="nav-menu" hidden>
+      <a href="feed.html" class="btn btn-ghost">Community</a>
+      <a href="reviews.html" class="btn btn-ghost">Reviews</a>
+      <a href="profile.html" class="btn btn-ghost">Profile</a>
+      <a href="suggest-product.html" class="btn btn-ghost">Suggest a product</a>
+      <a href="moderate-products.html" id="moderate-link" class="btn btn-ghost" hidden>Moderate</a>
+      <hr />
+      <span id="header-username" class="header-username"></span>
+      <button id="logout-btn" class="btn btn-ghost" type="button">Log out</button>
+    </nav>
+  </header>
+  <main class="feed-page">
+    <h1>Reviews</h1>
+    <form id="review-form" class="composer">
+      <label for="review-brand" class="field-label">Brand</label>
+      <select id="review-brand"></select>
+      <label for="review-product" class="field-label">Product</label>
+      <select id="review-product" required></select>
+      <div id="variation-field" hidden>
+        <label for="review-variation" class="field-label">Variation</label>
+        <select id="review-variation"></select>
+      </div>
+      <fieldset class="rating-field">
+        <legend class="field-label">Rating</legend>
+        <div id="rating-leaves" class="rating-leaves"></div>
+        <p id="rating-label" class="rating-label" aria-live="polite"></p>
+      </fieldset>
+      <label for="review-title" class="visually-hidden">Review heading</label>
+      <input type="text" id="review-title" class="composer-title" maxlength="100" required placeholder="Heading" />
+      <label for="review-body" class="visually-hidden">Your review</label>
+      <textarea id="review-body" maxlength="2000" rows="4" required
+        placeholder="What worked, what didn't, and who it might suit."></textarea>
+      <div class="composer-footer">
+        <span id="review-count" class="char-count">0 / 2000</span>
+        <button type="submit" class="btn btn-solid">Post review</button>
+      </div>
+    </form>
+    <p id="review-message" class="auth-message"></p>
+    <p class="feed-empty">Can't find a product? <a href="suggest-product.html" class="inline-link">Suggest it</a>.</p>
+    <section id="reviews" class="feed" aria-live="polite">
+      <p class="feed-empty">Loading reviews...</p>
+    </section>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-client.js"></script>
+  <script src="nav-menu.js"></script>
+  <script src="reviews.js"></script>
+</body>
+</html>

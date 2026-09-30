@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Community — byome</title>
+  <title>Suggest a product — byome</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -13,6 +13,7 @@
 
   <header class="site-header">
     <a href="feed.html" class="logo">by<span class="logo-accent">🌱</span>me</a>
+
     <button id="menu-toggle" class="hamburger-btn" aria-expanded="false" aria-controls="nav-menu" aria-label="Open menu">
       <span></span><span></span><span></span>
     </button>
@@ -29,31 +30,40 @@
     </nav>
   </header>
 
-  <main class="feed-page">
-    <h1>Community</h1>
+  <main class="auth-page">
+    <div class="auth-card">
+      <a href="feed.html" class="back-link">← Back</a>
+      <h1>Suggest a product</h1>
+      <p class="auth-sub">
+        Don't see a product listed yet? Add it so reviews have somewhere
+        to live. A moderator will look it over before it goes live —
+        search first to avoid submitting a duplicate.
+      </p>
 
-    <form id="post-form" class="composer">
-      <label for="post-title" class="visually-hidden">Post heading</label>
-      <input type="text" id="post-title" class="composer-title" maxlength="100" required
-        placeholder="Heading" />
-      <label for="post-body" class="visually-hidden">Write a post</label>
-      <textarea id="post-body" maxlength="1000" rows="3"
-        placeholder="What's working for you lately? Ask a question or share a product."></textarea>
-      <div class="composer-footer">
-        <span id="char-count" class="char-count">0 / 1000</span>
-        <button type="submit" class="btn btn-solid">Post</button>
-      </div>
-    </form>
-    <p id="post-message" class="auth-message"></p>
+      <form id="suggest-form" class="stacked-form">
+        <label for="product-name">Product name</label>
+        <input type="text" id="product-name" required />
 
-    <section id="feed" class="feed" aria-live="polite">
-      <p class="feed-empty">Loading posts...</p>
-    </section>
+        <label for="product-brand">Brand</label>
+        <input type="text" id="product-brand" required />
+
+        <label for="product-photo">Photo URL (optional)</label>
+        <input type="url" id="product-photo" placeholder="https://..." />
+
+        <label for="product-variations">Variations (optional)</label>
+        <input type="text" id="product-variations" placeholder="e.g. Vanilla, Mint, Rose — separate with commas" />
+
+        <button type="submit" class="btn btn-solid">Submit for review</button>
+      </form>
+
+      <p id="suggest-message" class="auth-message"></p>
+      <a id="done-link" href="feed.html" class="btn btn-solid" hidden>Done</a>
+    </div>
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-client.js"></script>
   <script src="nav-menu.js"></script>
-  <script src="feed.js"></script>
+  <script src="suggest-product.js"></script>
 </body>
 </html>
