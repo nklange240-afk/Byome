@@ -10,18 +10,32 @@
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
 
   <!-- Our own stylesheet, kept in a separate file -->
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css?v=7" />
 </head>
 <body>
 
   <!-- ===== HEADER ===== -->
-  <!-- Log in / Sign up link to the real account pages we built. -->
   <header class="site-header">
-    <div class="logo">by<span class="logo-accent">🌱</span>me</div>
+    <a href="index.html" class="logo">by<span class="logo-accent">🌱</span>me</a>
 
-    <nav class="header-actions">
-      <a href="login.html" class="btn btn-ghost">Log in</a>
-      <a href="signup.html" class="btn btn-solid">Sign up</a>
+    <div class="header-right">
+      <a href="login.html" id="login-link" class="btn btn-ghost">Log in</a>
+      <a href="signup.html" id="signup-link" class="btn btn-solid">Sign up</a>
+
+      <button id="menu-toggle" class="hamburger-btn" aria-expanded="false" aria-controls="nav-menu" aria-label="Open menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+
+    <nav id="nav-menu" class="nav-menu" hidden>
+      <a href="feed.html" class="btn btn-ghost">Community</a>
+      <a href="reviews.html" class="btn btn-ghost">Reviews</a>
+      <a href="profile.html" class="btn btn-ghost">Profile</a>
+      <a href="suggest-product.html" class="btn btn-ghost">Suggest a product</a>
+      <a href="moderate-products.html" id="moderate-link" class="btn btn-ghost" hidden>Moderate</a>
+      <hr />
+      <span id="header-username" class="header-username"></span>
+      <button id="logout-btn" class="btn btn-ghost" type="button" hidden>Log out</button>
     </nav>
   </header>
 
@@ -34,8 +48,8 @@
         Unbiased and unincentivized. Just real experiences from real people.
       </p>
       <div class="hero-actions">
-        <a href="#" class="btn btn-solid">Browse reviews</a>
-        <a href="#" class="btn btn-ghost">Join the community</a>
+        <a href="reviews.html" class="btn btn-solid">Browse reviews</a>
+        <a href="signup.html" class="btn btn-ghost">Join the community</a>
       </div>
     </section>
 
@@ -61,5 +75,8 @@
     <p>byome — built by the community, for the community.</p>
   </footer>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-client.js?v=7"></script>
+  <script src="nav-menu.js?v=7"></script>
 </body>
 </html>

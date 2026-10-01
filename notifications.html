@@ -3,17 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Suggest a product — byome</title>
-
+  <title>Notifications — byome</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css?v=7" />
 </head>
 <body>
-
   <header class="site-header">
     <a href="feed.html" class="logo">by<span class="logo-accent">🌱</span>me</a>
-
     <button id="menu-toggle" class="hamburger-btn" aria-expanded="false" aria-controls="nav-menu" aria-label="Open menu">
       <span></span><span></span><span></span>
     </button>
@@ -29,41 +26,16 @@
       <button id="logout-btn" class="btn btn-ghost" type="button">Log out</button>
     </nav>
   </header>
-
-  <main class="auth-page">
-    <div class="auth-card">
-      <a href="feed.html" class="back-link">← Back</a>
-      <h1>Suggest a product</h1>
-      <p class="auth-sub">
-        Don't see a product listed yet? Add it so reviews have somewhere
-        to live. A moderator will look it over before it goes live —
-        search first to avoid submitting a duplicate.
-      </p>
-
-      <form id="suggest-form" class="stacked-form">
-        <label for="product-name">Product name</label>
-        <input type="text" id="product-name" required />
-
-        <label for="product-brand">Brand</label>
-        <input type="text" id="product-brand" required />
-
-        <label for="product-photo">Photo URL (optional)</label>
-        <input type="url" id="product-photo" placeholder="https://..." />
-
-        <label for="product-variations">Variations (optional)</label>
-        <input type="text" id="product-variations" placeholder="e.g. Vanilla, Mint, Rose — separate with commas" />
-
-        <button type="submit" class="btn btn-solid">Submit for review</button>
-      </form>
-
-      <p id="suggest-message" class="auth-message"></p>
-      <a id="done-link" href="feed.html" class="btn btn-solid" hidden>Done</a>
-    </div>
+  <main class="feed-page">
+    <h1>Notifications</h1>
+    <p><button id="mark-read-btn" class="action-btn" type="button" hidden>Mark all as read</button></p>
+    <section id="notification-list" class="feed" aria-live="polite">
+      <p class="feed-empty">Loading...</p>
+    </section>
   </main>
-
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-client.js?v=7"></script>
   <script src="nav-menu.js?v=7"></script>
-  <script src="suggest-product.js?v=7"></script>
+  <script src="notifications.js?v=7"></script>
 </body>
 </html>

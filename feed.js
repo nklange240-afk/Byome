@@ -20,6 +20,14 @@ function el(tag, className, text) {
   return node;
 }
 
+// A username that links to that member's profile
+function authorLink(username) {
+  if (!username) return el("span", "post-author", "Unknown");
+  const a = el("a", "post-author", username);
+  a.href = "profile.html?user=" + encodeURIComponent(username);
+  return a;
+}
+
 function formatDate(iso) {
   return new Date(iso).toLocaleDateString(undefined, {
     month: "short",
@@ -28,11 +36,16 @@ function formatDate(iso) {
   });
 }
 
-function buildMeta(username, createdAt) {
+function buildMeta(username, createdAt, editedAt) {
   const meta = el("div", "post-meta");
   const time = el("time", null, formatDate(createdAt));
   time.dateTime = createdAt;
-  meta.append(el("span", "post-author", username || "Unknown"), time);
+  meta.append(authorLink(username), time);
+  if (editedAt) {
+    const tag = el("span", "edited-tag", "edited");
+    tag.title = "Edited " + formatDate(editedAt);
+    meta.appendChild(tag);
+  }
   return meta;
 }
 
@@ -121,7 +134,7 @@ async function init() {
 async function loadPosts() {
   const { data: posts, error } = await supabaseClient
     .from("posts")
-    .select("id, title, body, created_at, user_id, profiles!user_id(username), likes(user_id), comments(count)")
+    .select("id, title, body, created_at, edited_at, user_id, profiles!user_id(username), likes(user_id), comments(count)")
     .order("created_at", { ascending: false })
     .limit(50);
 
@@ -146,7 +159,7 @@ function buildPost(post) {
 
   // Older posts made before headings existed have no title
   if (post.title) article.appendChild(el("h2", "post-title", post.title));
-  article.appendChild(buildMeta(post.profiles && post.profiles.username, post.created_at));
+  article.appendChild(buildMeta(post.profiles && post.profiles.username, post.created_at, post.edited_at));
   article.appendChild(el("p", "post-body", post.body));
 
   const likeBtn = buildLikeButton("likes", "post_id", post.id, post.likes);
@@ -190,6 +203,18 @@ function buildPost(post) {
   actions.append(likeBtn, commentsBtn);
 
   if (post.user_id === currentUser.id) {
+    const edit = actionButton("Edit");
+    edit.addEventListener("click", () => {
+      if (article.querySelector(".edit-form")) return;
+      const titleEl = article.querySelector(".post-title");
+      const bodyEl = article.querySelector(".post-body");
+      const show = (visible) => { if (titleEl) titleEl.hidden = !visible; bodyEl.hidden = !visible; };
+      show(false);
+      const editForm = buildPostEditForm(post, loadPosts, () => { editForm.remove(); show(true); });
+      article.insertBefore(editForm, actions);
+    });
+    actions.appendChild(edit);
+
     const del = actionButton("Delete");
     del.addEventListener("click", async () => {
       if (!confirm("Delete this post?")) return;
@@ -201,6 +226,59 @@ function buildPost(post) {
 
   article.append(actions, commentsSection);
   return article;
+}
+
+// Edit your own post's heading and text
+function buildPostEditForm(post, onSaved, onCancel) {
+  const form = el("form", "edit-form");
+
+  const titleInput = el("input", "composer-title");
+  titleInput.type = "text";
+  titleInput.maxLength = 100;
+  titleInput.required = Boolean(post.title); // older posts may have no heading
+  titleInput.value = post.title || "";
+  titleInput.setAttribute("aria-label", "Post heading");
+
+  const bodyInput = el("textarea");
+  bodyInput.rows = 4;
+  bodyInput.maxLength = 1000;
+  bodyInput.required = true;
+  bodyInput.value = post.body;
+  bodyInput.setAttribute("aria-label", "Post text");
+
+  const footer = el("div", "comment-form-footer");
+  const message = el("span", "auth-message");
+  const buttons = el("div", "edit-buttons");
+  const cancel = actionButton("Cancel");
+  cancel.addEventListener("click", onCancel);
+  const save = el("button", "btn btn-solid", "Save");
+  save.type = "submit";
+  buttons.append(cancel, save);
+  footer.append(message, buttons);
+  form.append(titleInput, bodyInput, footer);
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const body = bodyInput.value.trim();
+    if (!body) return;
+
+    save.disabled = true;
+    const { data, error } = await supabaseClient
+      .from("posts")
+      .update({ title: titleInput.value.trim() || null, body: body, edited_at: new Date().toISOString() })
+      .eq("id", post.id)
+      .select("id");
+
+    if (error || !data || data.length === 0) {
+      message.textContent = error ? error.message : "Couldn't save your changes.";
+      message.style.color = "#E07A5F";
+      save.disabled = false;
+      return;
+    }
+    onSaved();
+  });
+
+  return form;
 }
 
 // ---------- Comments ----------

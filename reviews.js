@@ -1,5 +1,4 @@
 const form = document.getElementById("review-form");
-const brandSelect = document.getElementById("review-brand");
 const productSelect = document.getElementById("review-product");
 const variationField = document.getElementById("variation-field");
 const variationSelect = document.getElementById("review-variation");
@@ -10,6 +9,7 @@ const messageEl = document.getElementById("review-message");
 const listEl = document.getElementById("reviews");
 
 let currentUser = null;
+let isModerator = false;
 let products = [];
 
 function el(tag, className, text) {
@@ -206,6 +206,9 @@ async function init() {
   const { data } = await supabaseClient.auth.getSession();
   if (!data.session) { window.location.href = "login.html"; return; }
   currentUser = data.session.user;
+  const { data: me } = await supabaseClient
+    .from("profiles").select("is_moderator").eq("id", currentUser.id).single();
+  isModerator = Boolean(me && me.is_moderator);
   await loadProducts();
   loadReviews();
 }
@@ -216,10 +219,8 @@ async function loadProducts() {
     .eq("status", "approved").order("name");
   products = error ? [] : data;
 
-  brandSelect.innerHTML = "";
   if (products.length === 0) {
-    brandSelect.appendChild(option("", "No approved products yet"));
-    brandDropdown.refresh();
+    brandSearch.setBrands([]);
     showProductsForBrand("");
     form.querySelector("button[type=submit]").disabled = true;
     return;
@@ -233,12 +234,11 @@ async function loadProducts() {
     if (!brands.has(key)) brands.set(key, p.brand.trim());
   });
 
-  brandSelect.appendChild(option("", "Choose a brand..."));
-  Array.from(brands.entries())
-    .sort((a, b) => a[1].localeCompare(b[1]))
-    .forEach(([key, label]) => brandSelect.appendChild(option(key, label)));
-
-  brandDropdown.refresh();
+  brandSearch.setBrands(
+    Array.from(brands.entries())
+      .map(([key, label]) => ({ key, label }))
+      .sort((x, y) => x.label.localeCompare(y.label))
+  );
   showProductsForBrand("");
 }
 
@@ -254,7 +254,7 @@ function showProductsForBrand(key) {
 
   products
     .filter((p) => key && brandKey(p.brand) === key)
-    .sort((a, b) => a.name.localeCompare(b.name))
+    .sort((x, y) => x.name.localeCompare(y.name))
     .forEach((p) => productSelect.appendChild(option(p.id, p.name)));
 
   productSelect.value = "";
@@ -263,8 +263,119 @@ function showProductsForBrand(key) {
   productDropdown.refresh();
 }
 
-brandSelect.addEventListener("change", () => showProductsForBrand(brandSelect.value));
 form.addEventListener("reset", () => setTimeout(() => showProductsForBrand(""), 0));
+
+// Brand search: type a few letters, click a suggestion underneath.
+// Scales to hundreds of brands because it only ever shows the top 8 matches.
+function buildBrandSearch() {
+  const input = document.getElementById("review-brand");
+  const list = document.getElementById("brand-list");
+  let brands = [];
+  let shown = [];
+  let active = -1;
+  let selectedKey = "";
+
+  function close() {
+    list.hidden = true;
+    input.setAttribute("aria-expanded", "false");
+    input.removeAttribute("aria-activedescendant");
+    active = -1;
+  }
+
+  function choose(brand) {
+    selectedKey = brand.key;
+    input.value = brand.label;
+    close();
+    showProductsForBrand(brand.key);
+  }
+
+  function paintActive() {
+    Array.from(list.children).forEach((li, i) => {
+      li.classList.toggle("is-active", i === active);
+      if (li.getAttribute("role") === "option") li.setAttribute("aria-selected", String(i === active));
+    });
+    const li = list.children[active];
+    if (active >= 0 && li) {
+      input.setAttribute("aria-activedescendant", li.id);
+      li.scrollIntoView({ block: "nearest" });
+    } else {
+      input.removeAttribute("aria-activedescendant");
+    }
+  }
+
+  function render() {
+    const q = input.value.trim().toLowerCase();
+    // brands that START with what you typed come first
+    shown = brands
+      .filter((b) => b.label.toLowerCase().includes(q))
+      .sort((x, y) => Number(y.label.toLowerCase().startsWith(q)) - Number(x.label.toLowerCase().startsWith(q)))
+      .slice(0, 8);
+
+    list.innerHTML = "";
+    if (shown.length === 0) {
+      const li = el("li", "combo-empty", "No brand matches that. ");
+      const link = el("a", "inline-link", "Suggest a product");
+      link.href = "suggest-product.html";
+      li.appendChild(link);
+      list.appendChild(li);
+    }
+    shown.forEach((b, i) => {
+      const li = el("li", "combo-option", b.label);
+      li.id = "brand-opt-" + i;
+      li.setAttribute("role", "option");
+      li.addEventListener("click", () => choose(b));
+      list.appendChild(li);
+    });
+
+    active = q && shown.length ? 0 : -1;
+    list.hidden = false;
+    input.setAttribute("aria-expanded", "true");
+    paintActive();
+  }
+
+  // If the typed text exactly matches a brand, treat it as chosen
+  function matchExact() {
+    const q = input.value.trim().toLowerCase();
+    const hit = brands.find((b) => b.label.toLowerCase() === q);
+    if (hit && selectedKey !== hit.key) choose(hit);
+  }
+
+  input.addEventListener("input", () => {
+    // typing again means the earlier brand choice no longer applies
+    if (selectedKey) { selectedKey = ""; showProductsForBrand(""); }
+    render();
+  });
+  input.addEventListener("focus", () => { if (brands.length) render(); });
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      e.preventDefault();
+      if (list.hidden) { render(); return; }
+      if (!shown.length) return;
+      const step = e.key === "ArrowDown" ? 1 : -1;
+      active = (active + step + shown.length) % shown.length;
+      paintActive();
+    } else if (e.key === "Enter") {
+      e.preventDefault(); // Enter here should pick a brand, not submit the form
+      if (!list.hidden && active >= 0) choose(shown[active]);
+      else matchExact();
+    } else if (e.key === "Escape" || e.key === "Tab") {
+      close();
+    }
+  });
+  input.addEventListener("blur", () => setTimeout(() => { if (!selectedKey) matchExact(); }, 150));
+  document.addEventListener("click", (e) => {
+    if (!list.hidden && !input.parentNode.contains(e.target)) close();
+  });
+  form.addEventListener("reset", () => { selectedKey = ""; close(); });
+
+  return {
+    setBrands(list) {
+      brands = list;
+      input.disabled = list.length === 0;
+      input.placeholder = list.length ? "Start typing a brand..." : "No approved products yet";
+    },
+  };
+}
 
 // Show the variation picker only for products that have variations
 productSelect.addEventListener("change", () => {
@@ -283,7 +394,7 @@ productSelect.addEventListener("change", () => {
 async function loadReviews() {
   const { data: reviews, error } = await supabaseClient
     .from("reviews")
-    .select("id, rating, title, body, variation, would_repurchase, holy_grail, created_at, user_id, profiles!user_id(username), products!product_id(name, brand, photo_url), review_likes(user_id)")
+    .select("id, rating, title, body, variation, would_repurchase, holy_grail, created_at, edited_at, user_id, profiles!user_id(username), products!product_id(name, brand, photo_url), review_likes(user_id), review_updates(id, body, created_at), review_standouts(review_id)")
     .order("created_at", { ascending: false })
     .limit(50);
 
@@ -391,9 +502,214 @@ function buildExtras() {
   return { get: () => ({ would_repurchase: repurchase, holy_grail: grail }) };
 }
 
+function formatDate(iso) {
+  return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+}
+
+// A username that links to that member's profile
+function authorLink(username) {
+  if (!username) return el("span", "post-author", "Unknown");
+  const a = el("a", "post-author", username);
+  a.href = "profile.html?user=" + encodeURIComponent(username);
+  return a;
+}
+
+function actionButton(label) {
+  const btn = el("button", "action-btn", label);
+  btn.type = "button";
+  return btn;
+}
+
+// Gap between a review and a follow-up, e.g. "3 weeks later"
+function describeGap(start, end) {
+  const days = Math.floor((new Date(end) - new Date(start)) / 86400000);
+  if (days < 1) return "Same day";
+  if (days < 14) return days + (days === 1 ? " day later" : " days later");
+  if (days < 60) return Math.round(days / 7) + " weeks later";
+  return Math.round(days / 30) + " months later";
+}
+
+// A follow-up the author added later, shown in its own highlighted box
+function buildUpdate(u, r) {
+  const box = el("div", "review-update");
+  const label = el("p", "review-update-label");
+  label.append(
+    el("strong", null, "Update"),
+    document.createTextNode(" · " + describeGap(r.created_at, u.created_at) + " · " + formatDate(u.created_at))
+  );
+  box.append(label, el("p", "review-update-body", u.body));
+
+  if (r.user_id === currentUser.id) {
+    const del = actionButton("Delete update");
+    del.addEventListener("click", async () => {
+      if (!confirm("Delete this update?")) return;
+      await supabaseClient.from("review_updates").delete().eq("id", u.id);
+      loadReviews();
+    });
+    box.appendChild(del);
+  }
+  return box;
+}
+
+function buildUpdateForm(r, onSaved, onCancel) {
+  const form = el("form", "comment-form update-form");
+  form.appendChild(el("p", "field-label", "Add an update to this review"));
+
+  const textarea = el("textarea");
+  textarea.rows = 3;
+  textarea.maxLength = 1000;
+  textarea.required = true;
+  textarea.placeholder = "What's changed since your review? For example, how it held up over time, or a reaction you had.";
+  textarea.setAttribute("aria-label", "Review update");
+
+  const footer = el("div", "comment-form-footer");
+  const message = el("span", "auth-message");
+  const buttons = el("div", "edit-buttons");
+  const cancel = actionButton("Cancel");
+  cancel.addEventListener("click", onCancel);
+  const submit = el("button", "btn btn-solid", "Post update");
+  submit.type = "submit";
+  buttons.append(cancel, submit);
+  footer.append(message, buttons);
+  form.append(textarea, footer);
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const body = textarea.value.trim();
+    if (!body) return;
+    submit.disabled = true;
+    const { error } = await supabaseClient
+      .from("review_updates")
+      .insert({ review_id: r.id, user_id: currentUser.id, body: body });
+    if (error) {
+      message.textContent = error.message;
+      message.style.color = "#E07A5F";
+      submit.disabled = false;
+      return;
+    }
+    onSaved();
+  });
+  return form;
+}
+
+// Edit your own review: rating, heading, text, repurchase and holy grail.
+// (The product can't be changed, and updates are added separately.)
+function buildReviewEditForm(r, productText, onSaved, onCancel) {
+  const form = el("form", "edit-form");
+  let rating = r.rating;
+  let repurchase = r.would_repurchase === undefined ? null : r.would_repurchase;
+  let grail = Boolean(r.holy_grail);
+
+  form.appendChild(el("p", "review-product", productText));
+
+  form.appendChild(el("p", "field-label", "Rating"));
+  const leavesBox = el("div", "rating-leaves");
+  const ratingLabel = el("p", "rating-label");
+  const leafBtns = [];
+  for (let n = 1; n <= 5; n++) {
+    const btn = el("button", "rating-leaf");
+    btn.type = "button";
+    btn.appendChild(leafIcon());
+    btn.setAttribute("aria-label", n + " out of 5: " + RATING_LABELS[n]);
+    btn.addEventListener("click", () => { rating = n; paint(); });
+    leafBtns.push(btn);
+    leavesBox.appendChild(btn);
+  }
+  form.append(leavesBox, ratingLabel);
+
+  const extras = el("div", "extras");
+  const repField = el("fieldset", "extras-field");
+  const group = el("div", "toggle-group");
+  const yes = el("button", "toggle-btn", "Yes");
+  const no = el("button", "toggle-btn", "No");
+  yes.type = "button";
+  no.type = "button";
+  group.append(yes, no);
+  repField.append(el("legend", "field-label", "Would you repurchase? (optional)"), group);
+  const grailBtn = el("button", "holy-grail-btn");
+  grailBtn.type = "button";
+  grailBtn.append(starIcon(), document.createTextNode("Holy grail"));
+  extras.append(repField, grailBtn);
+  form.appendChild(extras);
+
+  function paint() {
+    leafBtns.forEach((btn, i) => {
+      btn.classList.toggle("on", i < rating);
+      btn.setAttribute("aria-pressed", String(i + 1 === rating));
+    });
+    ratingLabel.textContent = RATING_LABELS[rating];
+    if (rating !== 5) grail = false;
+    grailBtn.disabled = rating !== 5;
+    grailBtn.setAttribute("aria-pressed", String(grail));
+    yes.setAttribute("aria-pressed", String(repurchase === true));
+    no.setAttribute("aria-pressed", String(repurchase === false));
+  }
+  yes.addEventListener("click", () => { repurchase = repurchase === true ? null : true; paint(); });
+  no.addEventListener("click", () => { repurchase = repurchase === false ? null : false; paint(); });
+  grailBtn.addEventListener("click", () => { grail = !grail; paint(); });
+
+  const titleInput = el("input", "composer-title");
+  titleInput.type = "text";
+  titleInput.maxLength = 100;
+  titleInput.required = true;
+  titleInput.value = r.title;
+  titleInput.setAttribute("aria-label", "Review heading");
+
+  const bodyInput = el("textarea");
+  bodyInput.rows = 5;
+  bodyInput.maxLength = 2000;
+  bodyInput.required = true;
+  bodyInput.value = r.body;
+  bodyInput.setAttribute("aria-label", "Your review");
+
+  const footer = el("div", "comment-form-footer");
+  const message = el("span", "auth-message");
+  const buttons = el("div", "edit-buttons");
+  const cancel = actionButton("Cancel");
+  cancel.addEventListener("click", onCancel);
+  const save = el("button", "btn btn-solid", "Save");
+  save.type = "submit";
+  buttons.append(cancel, save);
+  footer.append(message, buttons);
+  form.append(titleInput, bodyInput, footer);
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const title = titleInput.value.trim();
+    const body = bodyInput.value.trim();
+    if (!title || !body) return;
+
+    save.disabled = true;
+    const { data, error } = await supabaseClient
+      .from("reviews")
+      .update({
+        rating: rating,
+        title: title,
+        body: body,
+        would_repurchase: repurchase,
+        holy_grail: rating === 5 && grail,
+        edited_at: new Date().toISOString(),
+      })
+      .eq("id", r.id)
+      .select("id");
+
+    if (error || !data || data.length === 0) {
+      message.textContent = error ? error.message : "Couldn't save your changes.";
+      message.style.color = "#E07A5F";
+      save.disabled = false;
+      return;
+    }
+    onSaved();
+  });
+
+  paint();
+  return form;
+}
+
 function buildReview(r) {
   const article = el("article", "post");
-  article.appendChild(el("h2", "post-title", r.title));
+  const titleEl = el("h2", "post-title", r.title);
+  article.appendChild(titleEl);
 
   // Product photo (if it has one) beside the product name and rating
   const productRow = el("div", "review-product-row");
@@ -424,6 +740,8 @@ function buildReview(r) {
   info.appendChild(rating);
 
   const tags = el("div", "review-tags");
+  const isStandout = Boolean(r.review_standouts && r.review_standouts.length);
+  if (isStandout) tags.appendChild(el("span", "review-tag standout", "Standout review"));
   if (r.holy_grail) {
     const tag = el("span", "review-tag holy-grail");
     tag.append(starIcon(), document.createTextNode("Holy grail"));
@@ -438,23 +756,67 @@ function buildReview(r) {
   article.appendChild(productRow);
 
   const meta = el("div", "post-meta");
-  const time = el("time", null, new Date(r.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }));
+  const time = el("time", null, formatDate(r.created_at));
   time.dateTime = r.created_at;
-  meta.append(el("span", "post-author", r.profiles ? r.profiles.username : "Unknown"), time);
-  article.append(meta, el("p", "post-body", r.body));
+  meta.append(authorLink(r.profiles && r.profiles.username), time);
+  if (r.edited_at) {
+    const tag = el("span", "edited-tag", "edited");
+    tag.title = "Edited " + formatDate(r.edited_at);
+    meta.appendChild(tag);
+  }
+  const bodyEl = el("p", "post-body", r.body);
+  article.append(meta, bodyEl);
+
+  // Follow-up updates, oldest first
+  const updates = (r.review_updates || []).slice()
+    .sort((x, y) => new Date(x.created_at) - new Date(y.created_at));
+  if (updates.length) {
+    const box = el("div", "review-updates");
+    updates.forEach((u) => box.appendChild(buildUpdate(u, r)));
+    article.appendChild(box);
+  }
 
   const actions = el("div", "post-actions");
   actions.appendChild(buildLikeButton("review_likes", "review_id", r.id, r.review_likes || []));
 
   if (r.user_id === currentUser.id) {
-    const del = el("button", "action-btn", "Delete");
-    del.type = "button";
+    const edit = actionButton("Edit");
+    edit.addEventListener("click", () => {
+      if (article.querySelector(".edit-form")) return;
+      const hide = (hidden) => { titleEl.hidden = hidden; productRow.hidden = hidden; bodyEl.hidden = hidden; };
+      hide(true);
+      const editForm = buildReviewEditForm(r, product, loadReviews, () => { editForm.remove(); hide(false); });
+      article.insertBefore(editForm, actions);
+    });
+
+    const addUpdate = actionButton("Add update");
+    addUpdate.addEventListener("click", () => {
+      const existing = article.querySelector(".update-form");
+      if (existing) { existing.remove(); return; }
+      const updateForm = buildUpdateForm(r, loadReviews, () => updateForm.remove());
+      article.insertBefore(updateForm, actions);
+      updateForm.querySelector("textarea").focus();
+    });
+
+    const del = actionButton("Delete");
     del.addEventListener("click", async () => {
       if (!confirm("Delete this review?")) return;
       await supabaseClient.from("reviews").delete().eq("id", r.id);
       loadReviews();
     });
-    actions.appendChild(del);
+    actions.append(edit, addUpdate, del);
+  }
+
+  // Moderators can mark other people's reviews as standout (bonus points)
+  if (isModerator && r.user_id !== currentUser.id && !isStandout) {
+    const mark = actionButton("Mark standout");
+    mark.addEventListener("click", async () => {
+      mark.disabled = true;
+      const { data: result, error } = await supabaseClient.rpc("grant_standout", { p_review_id: r.id });
+      if (error) { mark.textContent = "Couldn't mark: " + error.message; return; }
+      mark.textContent = result === "granted" ? "Marked standout ✓" : "Already standout";
+    });
+    actions.appendChild(mark);
   }
   article.appendChild(actions);
   return article;
@@ -491,7 +853,7 @@ bodyInput.addEventListener("input", () => {
   countEl.textContent = bodyInput.value.length + " / 2000";
 });
 
-const brandDropdown = enhanceSelect(brandSelect);
+const brandSearch = buildBrandSearch();
 const productDropdown = enhanceSelect(productSelect);
 const variationDropdown = enhanceSelect(variationSelect);
 buildRatingWidget();

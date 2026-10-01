@@ -6,7 +6,7 @@
   <title>Reviews — byome</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css?v=7" />
 </head>
 <body>
   <header class="site-header">
@@ -30,7 +30,12 @@
     <h1>Reviews</h1>
     <form id="review-form" class="composer">
       <label for="review-brand" class="field-label">Brand</label>
-      <select id="review-brand"></select>
+      <div class="combo">
+        <input type="text" id="review-brand" class="combo-input" role="combobox" autocomplete="off"
+          aria-autocomplete="list" aria-expanded="false" aria-controls="brand-list"
+          placeholder="Start typing a brand..." />
+        <ul id="brand-list" class="combo-list" role="listbox" aria-label="Matching brands" hidden></ul>
+      </div>
       <label for="review-product" class="field-label">Product</label>
       <select id="review-product" required></select>
       <div id="variation-field" hidden>
@@ -54,7 +59,7 @@
           <svg class="star-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2c.7 5.6 3.9 9.3 10 10-6.1.7-9.3 4.4-10 10-.7-5.6-3.9-9.3-10-10 6.1-.7 9.3-4.4 10-10z"/></svg>
           Holy grail
         </button>
-        <p class="extras-hint">Holy grail is only available with a 5-leaf rating. Save it for products you can't live without.</p>
+        <p class="extras-hint">Holy grail is only available with a 5-leaf rating. Save it for products you'd never be without.</p>
       </div>
       <label for="review-title" class="visually-hidden">Review heading</label>
       <input type="text" id="review-title" class="composer-title" maxlength="100" required placeholder="Heading" />
@@ -73,8 +78,8 @@
     </section>
   </main>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase-client.js"></script>
-  <script src="nav-menu.js"></script>
-  <script src="reviews.js"></script>
+  <script src="supabase-client.js?v=7"></script>
+  <script src="nav-menu.js?v=7"></script>
+  <script src="reviews.js?v=7"></script>
 </body>
 </html>

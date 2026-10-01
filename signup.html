@@ -7,14 +7,28 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css?v=7" />
 </head>
 <body>
 
   <header class="site-header">
     <a href="index.html" class="logo">by<span class="logo-accent">🌱</span>me</a>
-    <nav class="header-actions">
-      <a href="login.html" class="btn btn-ghost">Log in</a>
+
+    <button id="menu-toggle" class="hamburger-btn" aria-expanded="false" aria-controls="nav-menu" aria-label="Open menu">
+      <span></span><span></span><span></span>
+    </button>
+
+    <nav id="nav-menu" class="nav-menu" hidden>
+      <a href="feed.html" class="btn btn-ghost">Community</a>
+      <a href="reviews.html" class="btn btn-ghost">Reviews</a>
+      <a href="profile.html" class="btn btn-ghost">Profile</a>
+      <a href="suggest-product.html" class="btn btn-ghost">Suggest a product</a>
+      <a href="moderate-products.html" id="moderate-link" class="btn btn-ghost" hidden>Moderate</a>
+      <hr />
+      <span id="header-username" class="header-username"></span>
+      <button id="logout-btn" class="btn btn-ghost" type="button" hidden>Log out</button>
+      <a href="login.html" id="login-link" class="btn btn-ghost">Log in</a>
+      <a href="signup.html" id="signup-link" class="btn btn-solid">Sign up</a>
     </nav>
   </header>
 
@@ -47,8 +61,10 @@
   <!-- Supabase's own code library, loaded from their servers -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <!-- Our shared connection setup -->
-  <script src="supabase-client.js"></script>
+  <script src="supabase-client.js?v=7"></script>
+  <!-- Hamburger menu behavior -->
+  <script src="nav-menu.js?v=7"></script>
   <!-- The logic specific to this page -->
-  <script src="signup.js"></script>
+  <script src="signup.js?v=7"></script>
 </body>
 </html>
