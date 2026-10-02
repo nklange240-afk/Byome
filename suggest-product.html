@@ -47,6 +47,22 @@
         <label for="product-brand">Brand</label>
         <input type="text" id="product-brand" required />
 
+        <label for="product-category">Category</label>
+        <select id="product-category" required>
+          <option value="">Choose a category...</option>
+          <option value="Hair Care">Hair Care</option>
+          <option value="Body Care">Body Care</option>
+          <option value="Makeup">Makeup</option>
+          <option value="Skincare">Skincare</option>
+          <option value="Fragrance">Fragrance</option>
+          <option value="Nail Products">Nail Products</option>
+        </select>
+
+        <label for="product-subcategory">Subcategory</label>
+        <select id="product-subcategory" required disabled>
+          <option value="">Choose a category first</option>
+        </select>
+
         <label for="product-photo">Photo URL (optional)</label>
         <input type="url" id="product-photo" placeholder="https://..." />
 

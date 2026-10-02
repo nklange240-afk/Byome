@@ -1,0 +1,75 @@
+
+/* =========================================================
+   ROUND 7: CATEGORIES
+   Paste at the very bottom of style.css (below everything else).
+   ========================================================= */
+
+#post-category,
+.category-filter {
+  width: 100%;
+  margin-bottom: 0.6rem;
+  background-color: var(--forest-dark);
+  border: 1px solid var(--moss);
+  border-radius: 6px;
+  padding: 0.6rem 0.8rem;
+  color: var(--cream);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+}
+
+#post-category:hover,
+.category-filter:hover {
+  border-color: var(--gold);
+}
+
+#post-category:focus-visible,
+.category-filter:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+.category-filter {
+  margin: 0;
+  max-width: 220px;
+}
+
+.filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.post-title-row {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.post-title-row .post-title {
+  margin-bottom: 0;
+}
+
+/* Reusing the review-tag pill style for a post's category badge */
+.post-category-tag {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.8rem;
+  padding: 0.15rem 0.65rem;
+  border: 1px solid var(--moss);
+  border-radius: 999px;
+  margin-left: 0.6rem;
+}
+
+.product-category-tag {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.8rem;
+  padding: 0.15rem 0.65rem;
+  border: 1px solid var(--moss);
+  border-radius: 999px;
+}

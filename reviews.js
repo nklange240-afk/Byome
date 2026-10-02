@@ -7,10 +7,32 @@ const bodyInput = document.getElementById("review-body");
 const countEl = document.getElementById("review-count");
 const messageEl = document.getElementById("review-message");
 const listEl = document.getElementById("reviews");
+const categoryFilter = document.getElementById("category-filter");
+const subcategoryFilter = document.getElementById("subcategory-filter");
 
 let currentUser = null;
 let isModerator = false;
 let products = [];
+
+const SUBCATEGORIES = {
+  "Hair Care": ["Shampoo & Conditioner", "Styling", "Treatments & Masks", "Scalp Care", "Tools & Accessories"],
+  "Body Care": ["Body Wash & Soap", "Lotion & Moisturizer", "Exfoliants", "Sun Care", "Deodorant"],
+  "Makeup": ["Eyes", "Lips", "Complexion", "Cheeks", "Brows", "Tools & Brushes"],
+  "Skincare": ["Cleansers", "Moisturizers", "Serums & Treatments", "Masks", "Eye Care", "Sun Care"],
+  "Fragrance": ["Perfume", "Body Spray", "Rollerballs & Travel"],
+  "Nail Products": ["Polish", "Care & Treatment", "Tools", "Nail Art"],
+};
+
+categoryFilter.addEventListener("change", () => {
+  const options = SUBCATEGORIES[categoryFilter.value] || [];
+  subcategoryFilter.innerHTML = "";
+  subcategoryFilter.appendChild(new Option("All subcategories", ""));
+  options.forEach((label) => subcategoryFilter.appendChild(new Option(label, label)));
+  subcategoryFilter.disabled = options.length === 0;
+  loadReviews();
+});
+
+subcategoryFilter.addEventListener("change", loadReviews);
 
 function el(tag, className, text) {
   const node = document.createElement(tag);
@@ -403,11 +425,24 @@ productSelect.addEventListener("change", () => {
 });
 
 async function loadReviews() {
-  const { data: reviews, error } = await supabaseClient
+  // products!inner lets us filter reviews by a column on the joined
+  // product (category/subcategory) — every review has a product, so
+  // switching to an inner join never hides a review that would
+  // otherwise have shown up.
+  let query = supabaseClient
     .from("reviews")
-    .select("id, rating, title, body, variation, would_repurchase, holy_grail, created_at, edited_at, user_id, profiles!user_id(username), products!product_id(name, brand, photo_url), review_likes(user_id), review_updates(id, body, created_at), review_standouts(review_id)")
+    .select("id, rating, title, body, variation, would_repurchase, holy_grail, created_at, edited_at, user_id, profiles!user_id(username), products!product_id!inner(name, brand, photo_url, category, subcategory), review_likes(user_id), review_updates(id, body, created_at), review_standouts(review_id)")
     .order("created_at", { ascending: false })
     .limit(50);
+
+  if (categoryFilter.value) {
+    query = query.eq("products.category", categoryFilter.value);
+  }
+  if (subcategoryFilter.value) {
+    query = query.eq("products.subcategory", subcategoryFilter.value);
+  }
+
+  const { data: reviews, error } = await query;
 
   listEl.innerHTML = "";
   if (error) {
@@ -740,6 +775,10 @@ function buildReview(r) {
   const info = el("div", "review-product-info");
   const product = r.products ? r.products.brand + " — " + r.products.name : "Unknown product";
   info.appendChild(el("p", "review-product", r.variation ? product + " (" + r.variation + ")" : product));
+  if (r.products && r.products.category) {
+    const catText = r.products.subcategory ? r.products.category + " · " + r.products.subcategory : r.products.category;
+    info.appendChild(el("span", "product-category-tag", catText));
+  }
 
   const rating = el("div", "review-rating");
   for (let i = 1; i <= 5; i++) {

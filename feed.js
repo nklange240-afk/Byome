@@ -4,6 +4,8 @@ const postTitle = document.getElementById("post-title");
 const postBody = document.getElementById("post-body");
 const postMessage = document.getElementById("post-message");
 const charCount = document.getElementById("char-count");
+const postCategory = document.getElementById("post-category");
+const categoryFilter = document.getElementById("category-filter");
 
 // After this many levels of replies, deeper replies stop indenting
 // so threads stay readable on small screens.
@@ -132,11 +134,17 @@ async function init() {
 // ---------- Posts ----------
 
 async function loadPosts() {
-  const { data: posts, error } = await supabaseClient
+  let query = supabaseClient
     .from("posts")
-    .select("id, title, body, created_at, edited_at, user_id, profiles!user_id(username), likes(user_id), comments(count)")
+    .select("id, title, body, category, created_at, edited_at, user_id, profiles!user_id(username), likes(user_id), comments(count)")
     .order("created_at", { ascending: false })
     .limit(50);
+
+  if (categoryFilter.value) {
+    query = query.eq("category", categoryFilter.value);
+  }
+
+  const { data: posts, error } = await query;
 
   feedEl.innerHTML = "";
 
@@ -158,7 +166,14 @@ function buildPost(post) {
   const article = el("article", "post");
 
   // Older posts made before headings existed have no title
-  if (post.title) article.appendChild(el("h2", "post-title", post.title));
+  if (post.title) {
+    const titleRow = el("div", "post-title-row");
+    titleRow.appendChild(el("h2", "post-title", post.title));
+    if (post.category) titleRow.appendChild(el("span", "post-category-tag", post.category));
+    article.appendChild(titleRow);
+  } else if (post.category) {
+    article.appendChild(el("span", "post-category-tag", post.category));
+  }
   article.appendChild(buildMeta(post.profiles && post.profiles.username, post.created_at, post.edited_at));
   article.appendChild(el("p", "post-body", post.body));
 
@@ -418,14 +433,15 @@ postForm.addEventListener("submit", async (event) => {
 
   const title = postTitle.value.trim();
   const body = postBody.value.trim();
-  if (!title || !body) return;
+  const category = postCategory.value;
+  if (!title || !body || !category) return;
 
   postMessage.textContent = "Posting...";
   postMessage.style.color = "var(--cream)";
 
   const { error } = await supabaseClient
     .from("posts")
-    .insert({ title: title, body: body, user_id: currentUser.id });
+    .insert({ title: title, body: body, category: category, user_id: currentUser.id });
 
   if (error) {
     postMessage.textContent = error.message;
@@ -442,5 +458,7 @@ postForm.addEventListener("submit", async (event) => {
 postBody.addEventListener("input", () => {
   charCount.textContent = postBody.value.length + " / 1000";
 });
+
+categoryFilter.addEventListener("change", loadPosts);
 
 init();

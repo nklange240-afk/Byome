@@ -36,6 +36,19 @@
       <label for="post-title" class="visually-hidden">Post heading</label>
       <input type="text" id="post-title" class="composer-title" maxlength="100" required
         placeholder="Heading" />
+      <label for="post-category" class="visually-hidden">Category</label>
+      <select id="post-category" required>
+        <option value="">Choose a category...</option>
+        <option value="SOTD">SOTD</option>
+        <option value="Makeup">Makeup</option>
+        <option value="Skincare">Skincare</option>
+        <option value="Fragrance">Fragrance</option>
+        <option value="Body Care">Body Care</option>
+        <option value="Nails">Nails</option>
+        <option value="Just for Fun">Just for Fun</option>
+        <option value="Introductions">Introductions</option>
+        <option value="Personal Wins">Personal Wins</option>
+      </select>
       <label for="post-body" class="visually-hidden">Write a post</label>
       <textarea id="post-body" maxlength="1000" rows="3"
         placeholder="What's working for you lately? Ask a question or share a product."></textarea>
@@ -45,6 +58,22 @@
       </div>
     </form>
     <p id="post-message" class="auth-message"></p>
+
+    <div class="filter-row">
+      <label for="category-filter" class="visually-hidden">Filter by category</label>
+      <select id="category-filter" class="category-filter">
+        <option value="">All categories</option>
+        <option value="SOTD">SOTD</option>
+        <option value="Makeup">Makeup</option>
+        <option value="Skincare">Skincare</option>
+        <option value="Fragrance">Fragrance</option>
+        <option value="Body Care">Body Care</option>
+        <option value="Nails">Nails</option>
+        <option value="Just for Fun">Just for Fun</option>
+        <option value="Introductions">Introductions</option>
+        <option value="Personal Wins">Personal Wins</option>
+      </select>
+    </div>
 
     <section id="feed" class="feed" aria-live="polite">
       <p class="feed-empty">Loading posts...</p>

@@ -73,6 +73,24 @@
     </form>
     <p id="review-message" class="auth-message"></p>
     <p class="feed-empty">Can't find a product? <a href="suggest-product.html" class="inline-link">Suggest it</a>.</p>
+
+    <div class="filter-row">
+      <label for="category-filter" class="visually-hidden">Filter by category</label>
+      <select id="category-filter" class="category-filter">
+        <option value="">All categories</option>
+        <option value="Hair Care">Hair Care</option>
+        <option value="Body Care">Body Care</option>
+        <option value="Makeup">Makeup</option>
+        <option value="Skincare">Skincare</option>
+        <option value="Fragrance">Fragrance</option>
+        <option value="Nail Products">Nail Products</option>
+      </select>
+      <label for="subcategory-filter" class="visually-hidden">Filter by subcategory</label>
+      <select id="subcategory-filter" class="category-filter" disabled>
+        <option value="">All subcategories</option>
+      </select>
+    </div>
+
     <section id="reviews" class="feed" aria-live="polite">
       <p class="feed-empty">Loading reviews...</p>
     </section>
