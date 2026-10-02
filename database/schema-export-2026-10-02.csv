@@ -1,0 +1,612 @@
+ord,kind,name,definition
+1,table,biome_slots,"user_id uuid not null
+slot integer not null
+pot_key text not null
+updated_at timestamp with time zone not null default now()"
+1,table,comment_likes,"comment_id uuid not null
+user_id uuid not null
+created_at timestamp with time zone not null default now()"
+1,table,comments,"id uuid not null default gen_random_uuid()
+post_id uuid not null
+parent_id uuid
+user_id uuid not null
+body text not null
+created_at timestamp with time zone not null default now()"
+1,table,likes,"post_id uuid not null
+user_id uuid not null
+created_at timestamp with time zone not null default now()"
+1,table,notifications,"id uuid not null default gen_random_uuid()
+user_id uuid not null
+actor_id uuid
+type text not null
+ref_id uuid
+message text not null
+link text
+created_at timestamp with time zone not null default now()
+read_at timestamp with time zone"
+1,table,point_ledger,"id uuid not null default gen_random_uuid()
+user_id uuid not null
+action text not null
+community_points integer not null
+biome_points integer not null
+ref_type text
+ref_id uuid
+created_at timestamp with time zone not null default now()
+available_at timestamp with time zone not null default now()
+revoked_at timestamp with time zone"
+1,table,point_rules,"action text not null
+label text not null
+community_points integer not null default 0
+biome_points integer not null default 0
+delay_hours integer not null default 0
+daily_cap integer
+min_chars integer
+threshold integer
+description text"
+1,table,posts,"id uuid not null default gen_random_uuid()
+user_id uuid not null
+body text not null
+created_at timestamp with time zone not null default now()
+title text
+edited_at timestamp with time zone
+category text"
+1,table,products,"id uuid not null default gen_random_uuid()
+name text not null
+brand text not null
+photo_url text
+variations text[]
+status text not null default 'pending'::text
+suggested_by uuid
+created_at timestamp with time zone default now()
+rejection_reason text
+category text
+subcategory text"
+1,table,profiles,"id uuid not null
+username text not null
+created_at timestamp with time zone default now()
+is_moderator boolean not null default false"
+1,table,review_likes,"review_id uuid not null
+user_id uuid not null
+created_at timestamp with time zone not null default now()"
+1,table,review_standouts,"review_id uuid not null
+granted_by uuid
+created_at timestamp with time zone not null default now()"
+1,table,review_updates,"id uuid not null default gen_random_uuid()
+review_id uuid not null
+user_id uuid not null
+body text not null
+created_at timestamp with time zone not null default now()"
+1,table,reviews,"id uuid not null default gen_random_uuid()
+product_id uuid not null
+user_id uuid not null
+rating integer not null
+title text not null
+body text not null
+variation text
+created_at timestamp with time zone not null default now()
+would_repurchase boolean
+holy_grail boolean not null default false
+edited_at timestamp with time zone"
+2,constraint,biome_slots.biome_slots_pkey,"PRIMARY KEY (user_id, slot)"
+2,constraint,biome_slots.biome_slots_slot_check,CHECK (((slot >= 0) AND (slot <= 10)))
+2,constraint,biome_slots.biome_slots_user_id_fkey,FOREIGN KEY (user_id) REFERENCES profiles(id) ON DELETE CASCADE
+2,constraint,comment_likes.comment_likes_comment_id_fkey,FOREIGN KEY (comment_id) REFERENCES comments(id) ON DELETE CASCADE
+2,constraint,comment_likes.comment_likes_pkey,"PRIMARY KEY (comment_id, user_id)"
+2,constraint,comment_likes.comment_likes_user_id_fkey,FOREIGN KEY (user_id) REFERENCES profiles(id) ON DELETE CASCADE
+2,constraint,comments.comments_body_check,CHECK (((char_length(body) >= 1) AND (char_length(body) <= 500)))
+2,constraint,comments.comments_parent_id_fkey,FOREIGN KEY (parent_id) REFERENCES comments(id) ON DELETE CASCADE
+2,constraint,comments.comments_pkey,PRIMARY KEY (id)
+2,constraint,comments.comments_post_id_fkey,FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE
+2,constraint,comments.comments_user_id_fkey,FOREIGN KEY (user_id) REFERENCES profiles(id) ON DELETE CASCADE
+2,constraint,likes.likes_pkey,"PRIMARY KEY (post_id, user_id)"
+2,constraint,likes.likes_post_id_fkey,FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE
+2,constraint,likes.likes_user_id_fkey,FOREIGN KEY (user_id) REFERENCES profiles(id) ON DELETE CASCADE
+2,constraint,notifications.notifications_actor_id_fkey,FOREIGN KEY (actor_id) REFERENCES profiles(id) ON DELETE SET NULL
+2,constraint,notifications.notifications_pkey,PRIMARY KEY (id)
+2,constraint,notifications.notifications_user_id_fkey,FOREIGN KEY (user_id) REFERENCES profiles(id) ON DELETE CASCADE
+2,constraint,point_ledger.point_ledger_action_fkey,FOREIGN KEY (action) REFERENCES point_rules(action)
+2,constraint,point_ledger.point_ledger_pkey,PRIMARY KEY (id)
+2,constraint,point_ledger.point_ledger_user_id_fkey,FOREIGN KEY (user_id) REFERENCES profiles(id) ON DELETE CASCADE
+2,constraint,point_rules.point_rules_pkey,PRIMARY KEY (action)
+2,constraint,posts.posts_body_check,CHECK (((char_length(body) >= 1) AND (char_length(body) <= 1000)))
+2,constraint,posts.posts_pkey,PRIMARY KEY (id)
+2,constraint,posts.posts_title_check,CHECK (((char_length(title) >= 1) AND (char_length(title) <= 100)))
+2,constraint,posts.posts_user_id_fkey,FOREIGN KEY (user_id) REFERENCES profiles(id) ON DELETE CASCADE
+2,constraint,products.products_pkey,PRIMARY KEY (id)
+2,constraint,products.products_rejection_reason_check,CHECK ((char_length(rejection_reason) <= 500))
+2,constraint,products.products_status_check,"CHECK ((status = ANY (ARRAY['pending'::text, 'approved'::text, 'rejected'::text])))"
+2,constraint,products.products_suggested_by_fkey,FOREIGN KEY (suggested_by) REFERENCES profiles(id) ON DELETE SET NULL
+2,constraint,profiles.profiles_id_fkey,FOREIGN KEY (id) REFERENCES auth.users(id) ON DELETE CASCADE
+2,constraint,profiles.profiles_pkey,PRIMARY KEY (id)
+2,constraint,profiles.profiles_username_key,UNIQUE (username)
+2,constraint,review_likes.review_likes_pkey,"PRIMARY KEY (review_id, user_id)"
+2,constraint,review_likes.review_likes_review_id_fkey,FOREIGN KEY (review_id) REFERENCES reviews(id) ON DELETE CASCADE
+2,constraint,review_likes.review_likes_user_id_fkey,FOREIGN KEY (user_id) REFERENCES profiles(id) ON DELETE CASCADE
+2,constraint,review_standouts.review_standouts_granted_by_fkey,FOREIGN KEY (granted_by) REFERENCES profiles(id) ON DELETE SET NULL
+2,constraint,review_standouts.review_standouts_pkey,PRIMARY KEY (review_id)
+2,constraint,review_standouts.review_standouts_review_id_fkey,FOREIGN KEY (review_id) REFERENCES reviews(id) ON DELETE CASCADE
+2,constraint,review_updates.review_updates_body_check,CHECK (((char_length(body) >= 1) AND (char_length(body) <= 1000)))
+2,constraint,review_updates.review_updates_pkey,PRIMARY KEY (id)
+2,constraint,review_updates.review_updates_review_id_fkey,FOREIGN KEY (review_id) REFERENCES reviews(id) ON DELETE CASCADE
+2,constraint,review_updates.review_updates_user_id_fkey,FOREIGN KEY (user_id) REFERENCES profiles(id) ON DELETE CASCADE
+2,constraint,reviews.holy_grail_needs_five,CHECK (((NOT holy_grail) OR (rating = 5)))
+2,constraint,reviews.reviews_body_check,CHECK (((char_length(body) >= 1) AND (char_length(body) <= 2000)))
+2,constraint,reviews.reviews_pkey,PRIMARY KEY (id)
+2,constraint,reviews.reviews_product_id_fkey,FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
+2,constraint,reviews.reviews_rating_check,CHECK (((rating >= 1) AND (rating <= 5)))
+2,constraint,reviews.reviews_title_check,CHECK (((char_length(title) >= 1) AND (char_length(title) <= 100)))
+2,constraint,reviews.reviews_user_id_fkey,FOREIGN KEY (user_id) REFERENCES profiles(id) ON DELETE CASCADE
+3,index,biome_slots.biome_slots_pkey,"CREATE UNIQUE INDEX biome_slots_pkey ON public.biome_slots USING btree (user_id, slot)"
+3,index,comment_likes.comment_likes_pkey,"CREATE UNIQUE INDEX comment_likes_pkey ON public.comment_likes USING btree (comment_id, user_id)"
+3,index,comments.comments_pkey,CREATE UNIQUE INDEX comments_pkey ON public.comments USING btree (id)
+3,index,comments.comments_post_id_idx,CREATE INDEX comments_post_id_idx ON public.comments USING btree (post_id)
+3,index,likes.likes_pkey,"CREATE UNIQUE INDEX likes_pkey ON public.likes USING btree (post_id, user_id)"
+3,index,notifications.notifications_pkey,CREATE UNIQUE INDEX notifications_pkey ON public.notifications USING btree (id)
+3,index,notifications.notifications_user_idx,"CREATE INDEX notifications_user_idx ON public.notifications USING btree (user_id, created_at DESC)"
+3,index,point_ledger.point_ledger_once,"CREATE UNIQUE INDEX point_ledger_once ON public.point_ledger USING btree (user_id, action, ref_id) WHERE ((revoked_at IS NULL) AND (ref_id IS NOT NULL))"
+3,index,point_ledger.point_ledger_pkey,CREATE UNIQUE INDEX point_ledger_pkey ON public.point_ledger USING btree (id)
+3,index,point_ledger.point_ledger_user_idx,"CREATE INDEX point_ledger_user_idx ON public.point_ledger USING btree (user_id, created_at DESC)"
+3,index,point_rules.point_rules_pkey,CREATE UNIQUE INDEX point_rules_pkey ON public.point_rules USING btree (action)
+3,index,posts.posts_pkey,CREATE UNIQUE INDEX posts_pkey ON public.posts USING btree (id)
+3,index,products.products_pkey,CREATE UNIQUE INDEX products_pkey ON public.products USING btree (id)
+3,index,profiles.profiles_pkey,CREATE UNIQUE INDEX profiles_pkey ON public.profiles USING btree (id)
+3,index,profiles.profiles_username_key,CREATE UNIQUE INDEX profiles_username_key ON public.profiles USING btree (username)
+3,index,review_likes.review_likes_pkey,"CREATE UNIQUE INDEX review_likes_pkey ON public.review_likes USING btree (review_id, user_id)"
+3,index,review_standouts.review_standouts_pkey,CREATE UNIQUE INDEX review_standouts_pkey ON public.review_standouts USING btree (review_id)
+3,index,review_updates.review_updates_pkey,CREATE UNIQUE INDEX review_updates_pkey ON public.review_updates USING btree (id)
+3,index,reviews.reviews_created_at_idx,CREATE INDEX reviews_created_at_idx ON public.reviews USING btree (created_at DESC)
+3,index,reviews.reviews_pkey,CREATE UNIQUE INDEX reviews_pkey ON public.reviews USING btree (id)
+4,security,biome_slots,RLS ON
+4,security,comment_likes,RLS ON
+4,security,comments,RLS ON
+4,security,likes,RLS ON
+4,security,notifications,RLS ON
+4,security,point_ledger,RLS ON
+4,security,point_rules,RLS ON
+4,security,posts,RLS ON
+4,security,products,RLS ON
+4,security,profiles,RLS ON
+4,security,review_likes,RLS ON
+4,security,review_standouts,RLS ON
+4,security,review_updates,RLS ON
+4,security,reviews,RLS ON
+5,policy,public.biome_slots.Members can view biomes,PERMISSIVE for SELECT to authenticated using (true) with check (-)
+5,policy,public.comment_likes.Members can like comments as themselves,PERMISSIVE for INSERT to authenticated using (-) with check ((auth.uid() = user_id))
+5,policy,public.comment_likes.Members can read comment likes,PERMISSIVE for SELECT to authenticated using (true) with check (-)
+5,policy,public.comment_likes.Members can remove their own comment likes,PERMISSIVE for DELETE to authenticated using ((auth.uid() = user_id)) with check (-)
+5,policy,public.comments.Members can delete their own comments,PERMISSIVE for DELETE to authenticated using ((auth.uid() = user_id)) with check (-)
+5,policy,public.comments.Members can read comments,PERMISSIVE for SELECT to authenticated using (true) with check (-)
+5,policy,public.comments.Members can write their own comments,PERMISSIVE for INSERT to authenticated using (-) with check ((auth.uid() = user_id))
+5,policy,public.likes.Members can like as themselves,PERMISSIVE for INSERT to authenticated using (-) with check ((auth.uid() = user_id))
+5,policy,public.likes.Members can read likes,PERMISSIVE for SELECT to authenticated using (true) with check (-)
+5,policy,public.likes.Members can remove their own likes,PERMISSIVE for DELETE to authenticated using ((auth.uid() = user_id)) with check (-)
+5,policy,public.notifications.Members can read their notifications,PERMISSIVE for SELECT to authenticated using ((auth.uid() = user_id)) with check (-)
+5,policy,public.point_ledger.Members can read their own ledger,PERMISSIVE for SELECT to authenticated using ((auth.uid() = user_id)) with check (-)
+5,policy,public.point_ledger.Moderators can read the whole ledger,"PERMISSIVE for SELECT to authenticated using ((EXISTS ( SELECT 1
+   FROM profiles p
+  WHERE ((p.id = auth.uid()) AND p.is_moderator)))) with check (-)"
+5,policy,public.point_rules.Members can read point rules,PERMISSIVE for SELECT to authenticated using (true) with check (-)
+5,policy,public.posts.Members can delete their own posts,PERMISSIVE for DELETE to authenticated using ((auth.uid() = user_id)) with check (-)
+5,policy,public.posts.Members can edit their own posts,PERMISSIVE for UPDATE to authenticated using ((auth.uid() = user_id)) with check ((auth.uid() = user_id))
+5,policy,public.posts.Members can read posts,PERMISSIVE for SELECT to authenticated using (true) with check (-)
+5,policy,public.posts.Members can write their own posts,PERMISSIVE for INSERT to authenticated using (-) with check ((auth.uid() = user_id))
+5,policy,public.products.Logged-in users can suggest a product,PERMISSIVE for INSERT to public using (-) with check (((auth.uid() = suggested_by) AND (status = 'pending'::text)))
+5,policy,public.products.Members can read approved products,PERMISSIVE for SELECT to authenticated using ((status = 'approved'::text)) with check (-)
+5,policy,public.products.Moderators can update product status,"PERMISSIVE for UPDATE to public using ((EXISTS ( SELECT 1
+   FROM profiles
+  WHERE ((profiles.id = auth.uid()) AND (profiles.is_moderator = true))))) with check (-)"
+5,policy,public.products.Moderators can update products,"PERMISSIVE for UPDATE to authenticated using ((EXISTS ( SELECT 1
+   FROM profiles p
+  WHERE ((p.id = auth.uid()) AND p.is_moderator)))) with check ((EXISTS ( SELECT 1
+   FROM profiles p
+  WHERE ((p.id = auth.uid()) AND p.is_moderator))))"
+5,policy,"public.products.View approved products, or your own pending ones","PERMISSIVE for SELECT to public using (((status = 'approved'::text) OR (suggested_by = auth.uid()) OR (EXISTS ( SELECT 1
+   FROM profiles
+  WHERE ((profiles.id = auth.uid()) AND (profiles.is_moderator = true)))))) with check (-)"
+5,policy,public.profiles.Members can read profiles,PERMISSIVE for SELECT to authenticated using (true) with check (-)
+5,policy,public.profiles.Profiles are viewable by everyone,PERMISSIVE for SELECT to public using (true) with check (-)
+5,policy,public.review_likes.Members can like reviews as themselves,PERMISSIVE for INSERT to authenticated using (-) with check ((auth.uid() = user_id))
+5,policy,public.review_likes.Members can read review likes,PERMISSIVE for SELECT to authenticated using (true) with check (-)
+5,policy,public.review_likes.Members can remove their own review likes,PERMISSIVE for DELETE to authenticated using ((auth.uid() = user_id)) with check (-)
+5,policy,public.review_likes.Review likes are publicly readable,PERMISSIVE for SELECT to public using (true) with check (-)
+5,policy,public.review_standouts.Members can read standouts,PERMISSIVE for SELECT to authenticated using (true) with check (-)
+5,policy,public.review_standouts.Review standouts are publicly readable,PERMISSIVE for SELECT to public using (true) with check (-)
+5,policy,public.review_updates.Authors can add updates to their reviews,"PERMISSIVE for INSERT to authenticated using (-) with check (((auth.uid() = user_id) AND (EXISTS ( SELECT 1
+   FROM reviews r
+  WHERE ((r.id = review_updates.review_id) AND (r.user_id = auth.uid()))))))"
+5,policy,public.review_updates.Authors can delete their review updates,PERMISSIVE for DELETE to authenticated using ((auth.uid() = user_id)) with check (-)
+5,policy,public.review_updates.Members can read review updates,PERMISSIVE for SELECT to authenticated using (true) with check (-)
+5,policy,public.review_updates.Review updates are publicly readable,PERMISSIVE for SELECT to public using (true) with check (-)
+5,policy,public.reviews.Members can delete their own reviews,PERMISSIVE for DELETE to authenticated using ((auth.uid() = user_id)) with check (-)
+5,policy,public.reviews.Members can edit their own reviews,PERMISSIVE for UPDATE to authenticated using ((auth.uid() = user_id)) with check ((auth.uid() = user_id))
+5,policy,public.reviews.Members can read reviews,PERMISSIVE for SELECT to authenticated using (true) with check (-)
+5,policy,public.reviews.Members can review approved products,"PERMISSIVE for INSERT to authenticated using (-) with check (((auth.uid() = user_id) AND (EXISTS ( SELECT 1
+   FROM products p
+  WHERE ((p.id = reviews.product_id) AND (p.status = 'approved'::text))))))"
+5,policy,public.reviews.Reviews are publicly readable,PERMISSIVE for SELECT to public using (true) with check (-)
+6,view,user_points," SELECT user_id,
+    (COALESCE(sum(community_points) FILTER (WHERE (available_at <= now())), (0)::bigint))::integer AS community,
+    (COALESCE(sum(biome_points) FILTER (WHERE (available_at <= now())), (0)::bigint))::integer AS biome,
+    (COALESCE(sum(community_points) FILTER (WHERE (available_at > now())), (0)::bigint))::integer AS pending_community,
+    (COALESCE(sum(biome_points) FILTER (WHERE (available_at > now())), (0)::bigint))::integer AS pending_biome
+   FROM point_ledger
+  WHERE (revoked_at IS NULL)
+  GROUP BY user_id;"
+7,function,award_points,"CREATE OR REPLACE FUNCTION public.award_points(p_user uuid, p_action text, p_ref_type text, p_ref uuid)
+ RETURNS boolean
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare
+  rule point_rules%rowtype;
+  today_count int;
+  new_id uuid;
+  msg text;
+begin
+  select * into rule from point_rules where action = p_action;
+  if not found then return false; end if;
+
+  if rule.daily_cap is not null then
+    select count(*) into today_count from point_ledger
+    where user_id = p_user and action = p_action and revoked_at is null
+      and created_at >= date_trunc('day', now());
+    if today_count >= rule.daily_cap then return false; end if;
+  end if;
+
+  insert into point_ledger (user_id, action, community_points, biome_points, ref_type, ref_id, available_at)
+  values (p_user, p_action, rule.community_points, rule.biome_points, p_ref_type, p_ref,
+          now() + make_interval(hours => rule.delay_hours))
+  on conflict (user_id, action, ref_id) where revoked_at is null and ref_id is not null do nothing
+  returning id into new_id;
+
+  if new_id is null then return false; end if;
+
+  msg := 'You earned ' || rule.community_points || ' community points and ' || rule.biome_points
+      || ' biome points: ' || rule.label || '.';
+  if rule.delay_hours > 0 then
+    msg := msg || ' They''ll be available in ' || rule.delay_hours || ' hours.';
+  end if;
+  perform create_notification(p_user, null, 'points', new_id, msg, 'profile.html');
+  return true;
+end $function$
+"
+7,function,check_comment_engagement,"CREATE OR REPLACE FUNCTION public.check_comment_engagement(p_comment uuid)
+ RETURNS void
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare author uuid; rule point_rules%rowtype; engaged int;
+begin
+  select user_id into author from comments where id = p_comment;
+  if author is null then return; end if;
+  select * into rule from point_rules where action = 'comment_liked';
+  if not found then return; end if;
+
+  select count(distinct user_id) into engaged from comment_likes
+  where comment_id = p_comment and user_id <> author;
+
+  if engaged >= coalesce(rule.threshold, 3) then
+    perform award_points(author, 'comment_liked', 'comment', p_comment);
+  end if;
+end $function$
+"
+7,function,check_post_engagement,"CREATE OR REPLACE FUNCTION public.check_post_engagement(p_post uuid)
+ RETURNS void
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare
+  author uuid;
+  rule point_rules%rowtype;
+  engaged int;
+begin
+  select user_id into author from posts where id = p_post;
+  if author is null then return; end if;
+  select * into rule from point_rules where action = 'post_engaged';
+  if not found then return; end if;
+
+  -- different people who liked or commented (you can't engage with your own post)
+  select count(distinct u) into engaged from (
+    select user_id as u from likes where post_id = p_post
+    union
+    select user_id from comments where post_id = p_post
+  ) s where u <> author;
+
+  if engaged >= coalesce(rule.threshold, 5) then
+    perform award_points(author, 'post_engaged', 'post', p_post);
+  end if;
+end $function$
+"
+7,function,check_review_engagement,"CREATE OR REPLACE FUNCTION public.check_review_engagement(p_review uuid)
+ RETURNS void
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare author uuid; rule point_rules%rowtype; engaged int;
+begin
+  select user_id into author from reviews where id = p_review;
+  if author is null then return; end if;
+  select * into rule from point_rules where action = 'review_liked';
+  if not found then return; end if;
+
+  -- only reviews that earned points for quality are eligible
+  if not exists (select 1 from point_ledger
+                 where action = 'review' and ref_type = 'review' and ref_id = p_review and revoked_at is null) then
+    return;
+  end if;
+
+  select count(distinct user_id) into engaged from review_likes
+  where review_id = p_review and user_id <> author;
+
+  if engaged >= coalesce(rule.threshold, 5) then
+    perform award_points(author, 'review_liked', 'review', p_review);
+  end if;
+end $function$
+"
+7,function,create_notification,"CREATE OR REPLACE FUNCTION public.create_notification(p_user uuid, p_actor uuid, p_type text, p_ref uuid, p_message text, p_link text, p_once boolean DEFAULT false)
+ RETURNS void
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+begin
+  if p_user is null then return; end if;
+  if p_actor is not null and p_user = p_actor then return; end if;   -- never notify yourself
+  if p_once and exists (
+    select 1 from notifications
+    where user_id = p_user and actor_id = p_actor and type = p_type and ref_id = p_ref
+  ) then return; end if;                                              -- like/unlike/like won't spam
+  insert into notifications (user_id, actor_id, type, ref_id, message, link)
+  values (p_user, p_actor, p_type, p_ref, p_message, p_link);
+end $function$
+"
+7,function,grant_standout,"CREATE OR REPLACE FUNCTION public.grant_standout(p_review_id uuid)
+ RETURNS text
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare author uuid; is_mod boolean;
+begin
+  select is_moderator into is_mod from profiles where id = auth.uid();
+  if not coalesce(is_mod, false) then raise exception 'Moderators only'; end if;
+
+  select user_id into author from reviews where id = p_review_id;
+  if author is null then raise exception 'Review not found'; end if;
+  if author = auth.uid() then raise exception 'You can''t mark your own review as standout'; end if;
+  if exists (select 1 from review_standouts where review_id = p_review_id) then return 'already'; end if;
+
+  insert into review_standouts (review_id, granted_by) values (p_review_id, auth.uid());
+  perform award_points(author, 'review_standout', 'review', p_review_id);
+  return 'granted';
+end $function$
+"
+7,function,handle_new_user,"CREATE OR REPLACE FUNCTION public.handle_new_user()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+begin
+  insert into public.profiles (id, username)
+  values (new.id, new.raw_user_meta_data->>'username');
+  return new;
+end;
+$function$
+"
+7,function,handle_product_status,"CREATE OR REPLACE FUNCTION public.handle_product_status()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+begin
+  if new.status is distinct from old.status then
+    if new.status = 'approved' then
+      perform create_notification(new.suggested_by, null, 'moderation', new.id,
+        'Your product suggestion ""' || new.brand || ' — ' || new.name || '"" was approved. You can review it now!', 'reviews.html');
+      perform award_points(new.suggested_by, 'product_approved', 'product', new.id);
+    elsif new.status = 'rejected' then
+      perform create_notification(new.suggested_by, null, 'moderation', new.id,
+        'Your product suggestion ""' || new.brand || ' — ' || new.name || '"" wasn''t approved.'
+        || case when coalesce(new.rejection_reason, '') <> '' then ' Reason: ' || new.rejection_reason else '' end,
+        'suggest-product.html');
+    end if;
+  end if;
+  return new;
+end $function$
+"
+7,function,handle_review_points,"CREATE OR REPLACE FUNCTION public.handle_review_points()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare rule point_rules%rowtype; dup boolean; first_one boolean;
+begin
+  select * into rule from point_rules where action = 'review';
+  if not found then return new; end if;
+
+  if review_is_quality(new.body, coalesce(rule.min_chars, 0)) then
+    select exists (
+      select 1 from point_ledger l join reviews r2 on r2.id = l.ref_id
+      where l.user_id = new.user_id and l.action = 'review' and l.ref_type = 'review'
+        and l.revoked_at is null and r2.product_id = new.product_id and r2.id <> new.id
+    ) into dup;
+
+    if not dup then
+      if award_points(new.user_id, 'review', 'review', new.id) then
+        select not exists (
+          select 1 from reviews r2
+          where r2.product_id = new.product_id and r2.id <> new.id and r2.created_at < new.created_at
+        ) into first_one;
+        if first_one then perform award_points(new.user_id, 'first_review', 'review', new.id); end if;
+      end if;
+    end if;
+  else
+    update point_ledger set revoked_at = now()
+    where ref_type = 'review' and ref_id = new.id and revoked_at is null
+      and action in ('review', 'first_review', 'review_liked', 'review_update', 'review_standout');
+  end if;
+  return new;
+end $function$
+"
+7,function,mark_notifications_read,"CREATE OR REPLACE FUNCTION public.mark_notifications_read()
+ RETURNS void
+ LANGUAGE sql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+  update notifications set read_at = now() where user_id = auth.uid() and read_at is null
+$function$
+"
+7,function,on_comment,"CREATE OR REPLACE FUNCTION public.on_comment()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare post_author uuid; parent_author uuid; t text;
+begin
+  select user_id, title into post_author, t from posts where id = new.post_id;
+  if new.parent_id is not null then
+    select user_id into parent_author from comments where id = new.parent_id;
+    perform create_notification(parent_author, new.user_id, 'reply', new.id,
+      username_of(new.user_id) || ' replied to your comment', 'feed.html');
+  end if;
+  if post_author is distinct from parent_author then   -- avoid two notices for one reply
+    perform create_notification(post_author, new.user_id, 'comment', new.id,
+      username_of(new.user_id) || ' commented on your post' || coalesce(' ""' || t || '""', ''), 'feed.html');
+  end if;
+  perform check_post_engagement(new.post_id);
+  return new;
+end $function$
+"
+7,function,on_comment_like,"CREATE OR REPLACE FUNCTION public.on_comment_like()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare author uuid;
+begin
+  select user_id into author from comments where id = new.comment_id;
+  perform create_notification(author, new.user_id, 'comment_like', new.comment_id,
+    username_of(new.user_id) || ' liked your comment', 'feed.html', true);
+  perform check_comment_engagement(new.comment_id);
+  return new;
+end $function$
+"
+7,function,on_post_like,"CREATE OR REPLACE FUNCTION public.on_post_like()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare author uuid; t text;
+begin
+  select user_id, title into author, t from posts where id = new.post_id;
+  perform create_notification(author, new.user_id, 'post_like', new.post_id,
+    username_of(new.user_id) || ' liked your post' || coalesce(' ""' || t || '""', ''), 'feed.html', true);
+  perform check_post_engagement(new.post_id);
+  return new;
+end $function$
+"
+7,function,on_profile_created,"CREATE OR REPLACE FUNCTION public.on_profile_created()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+begin
+  begin
+    perform award_points(new.id, 'welcome', 'profile', new.id);
+  exception when others then
+    null;
+  end;
+  return new;
+end $function$
+"
+7,function,on_review_like,"CREATE OR REPLACE FUNCTION public.on_review_like()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare author uuid; pname text;
+begin
+  select r.user_id, p.brand || ' — ' || p.name into author, pname
+  from reviews r join products p on p.id = r.product_id where r.id = new.review_id;
+  perform create_notification(author, new.user_id, 'review_like', new.review_id,
+    username_of(new.user_id) || ' liked your review of ' || coalesce(pname, 'a product'), 'reviews.html', true);
+  perform check_review_engagement(new.review_id);
+  return new;
+end $function$
+"
+7,function,on_review_update_added,"CREATE OR REPLACE FUNCTION public.on_review_update_added()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare rule point_rules%rowtype;
+begin
+  select * into rule from point_rules where action = 'review_update';
+  if not found then return new; end if;
+  if char_length(trim(new.body)) < coalesce(rule.min_chars, 0) then return new; end if;
+  if new.body ~ '(.)\1{9,}' then return new; end if;   -- keyboard-mashing
+  if not exists (select 1 from point_ledger
+                 where action = 'review' and ref_type = 'review' and ref_id = new.review_id and revoked_at is null) then
+    return new;
+  end if;
+  perform award_points(new.user_id, 'review_update', 'review', new.review_id);   -- once per review
+  return new;
+end $function$
+"
+7,function,review_is_quality,"CREATE OR REPLACE FUNCTION public.review_is_quality(p_body text, p_min integer)
+ RETURNS boolean
+ LANGUAGE sql
+ IMMUTABLE
+AS $function$
+  select char_length(trim(p_body)) >= p_min
+     and p_body !~ '(.)\1{9,}'
+     and (select count(distinct w) from regexp_split_to_table(lower(p_body), '\s+') w) >= 20
+$function$
+"
+7,function,revoke_on_delete,"CREATE OR REPLACE FUNCTION public.revoke_on_delete()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+begin
+  update point_ledger set revoked_at = now()
+  where ref_id = old.id and ref_type = tg_argv[0] and revoked_at is null;
+  return old;
+end $function$
+"
+7,function,username_of,"CREATE OR REPLACE FUNCTION public.username_of(p uuid)
+ RETURNS text
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+  select username from profiles where id = p
+$function$
+"
+8,trigger,auth.users.on_auth_user_created,CREATE TRIGGER on_auth_user_created AFTER INSERT ON auth.users FOR EACH ROW EXECUTE FUNCTION handle_new_user()
+8,trigger,public.comment_likes.comment_likes_notify,CREATE TRIGGER comment_likes_notify AFTER INSERT ON public.comment_likes FOR EACH ROW EXECUTE FUNCTION on_comment_like()
+8,trigger,public.comments.comments_notify,CREATE TRIGGER comments_notify AFTER INSERT ON public.comments FOR EACH ROW EXECUTE FUNCTION on_comment()
+8,trigger,public.comments.comments_revoke,CREATE TRIGGER comments_revoke BEFORE DELETE ON public.comments FOR EACH ROW EXECUTE FUNCTION revoke_on_delete('comment')
+8,trigger,public.likes.likes_notify,CREATE TRIGGER likes_notify AFTER INSERT ON public.likes FOR EACH ROW EXECUTE FUNCTION on_post_like()
+8,trigger,public.posts.posts_revoke,CREATE TRIGGER posts_revoke BEFORE DELETE ON public.posts FOR EACH ROW EXECUTE FUNCTION revoke_on_delete('post')
+8,trigger,public.products.products_status,CREATE TRIGGER products_status AFTER UPDATE OF status ON public.products FOR EACH ROW EXECUTE FUNCTION handle_product_status()
+8,trigger,public.profiles.profiles_welcome,CREATE TRIGGER profiles_welcome AFTER INSERT ON public.profiles FOR EACH ROW EXECUTE FUNCTION on_profile_created()
+8,trigger,public.review_likes.review_likes_notify,CREATE TRIGGER review_likes_notify AFTER INSERT ON public.review_likes FOR EACH ROW EXECUTE FUNCTION on_review_like()
+8,trigger,public.review_updates.review_updates_points,CREATE TRIGGER review_updates_points AFTER INSERT ON public.review_updates FOR EACH ROW EXECUTE FUNCTION on_review_update_added()
+8,trigger,public.reviews.reviews_points,CREATE TRIGGER reviews_points AFTER INSERT OR UPDATE OF body ON public.reviews FOR EACH ROW EXECUTE FUNCTION handle_review_points()
+8,trigger,public.reviews.reviews_revoke,CREATE TRIGGER reviews_revoke BEFORE DELETE ON public.reviews FOR EACH ROW EXECUTE FUNCTION revoke_on_delete('review')
