@@ -275,7 +275,7 @@ async function showBiome(profileId, isMe) {
     btn.setAttribute("aria-pressed", String(pressed));
     if (image) {
       const i = document.createElement("img");
-      i.src = image;
+      i.src = BIOME.src(image);
       i.alt = "";
       btn.appendChild(i);
     } else {
