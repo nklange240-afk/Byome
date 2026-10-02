@@ -59,22 +59,73 @@ function metaRow(createdAt, editedAt) {
   return meta;
 }
 
-function buildPostCard(p) {
+// ---------- Editing your own posts and reviews from your profile ----------
+// Same forms as the feed and reviews pages (edit-forms.js).
+
+function heldNotice() {
+  return el("p", "held-notice", "Waiting for a moderator to review. Only you and moderators can see this for now.");
+}
+
+// Edit / Delete buttons. `parts` are the bits of the card hidden while editing.
+function ownerActions(article, parts, table, id, label, makeForm, reload) {
+  const actions = el("div", "post-actions");
+  const message = el("span", "auth-message");
+  const show = (visible) => parts.forEach((node) => { node.hidden = !visible; });
+
+  const edit = el("button", "action-btn", "Edit");
+  edit.type = "button";
+  edit.addEventListener("click", () => {
+    if (article.querySelector(".edit-form")) return;
+    show(false);
+    actions.hidden = true;
+    const form = makeForm(reload, () => { form.remove(); show(true); actions.hidden = false; });
+    article.appendChild(form);
+    const first = form.querySelector("input, textarea");
+    if (first) first.focus();
+  });
+
+  const del = el("button", "action-btn", "Delete");
+  del.type = "button";
+  del.addEventListener("click", async () => {
+    if (!confirm("Delete this " + label + "? This can't be undone.")) return;
+    const { error } = await supabaseClient.from(table).delete().eq("id", id);
+    if (error) {
+      message.textContent = "Couldn't delete: " + error.message;
+      message.style.color = "#E07A5F";
+      return;
+    }
+    reload();
+  });
+
+  actions.append(edit, del, message);
+  return actions;
+}
+
+function buildPostCard(p, isMe, reload) {
   const article = el("article", "post");
-  if (p.title) article.appendChild(el("h2", "post-title", p.title));
-  article.append(metaRow(p.created_at, p.edited_at), el("p", "post-body", p.body));
+  const parts = [];
+  if (p.title) parts.push(el("h2", "post-title", p.title));
+  parts.push(metaRow(p.created_at, p.edited_at));
+  if (p.held_at) parts.push(heldNotice());
+  parts.push(el("p", "post-body", p.body));
   const likes = p.likes ? p.likes.length : 0;
   const comments = p.comments && p.comments.length ? p.comments[0].count : 0;
-  article.appendChild(el("p", "profile-counts", plural(likes, "like") + " · " + plural(comments, "comment")));
+  parts.push(el("p", "profile-counts", plural(likes, "like") + " \u00b7 " + plural(comments, "comment")));
+  article.append(...parts);
+  if (isMe) {
+    article.appendChild(ownerActions(article, parts, "posts", p.id, "post",
+      (onSaved, onCancel) => EDIT_FORMS.post(p, onSaved, onCancel), reload));
+  }
   return article;
 }
 
-function buildReviewCard(r) {
+function buildReviewCard(r, isMe, reload) {
   const article = el("article", "post");
   article.appendChild(el("h2", "post-title", r.title));
 
   const product = r.products ? r.products.brand + " — " + r.products.name : "Unknown product";
-  article.appendChild(el("p", "review-product", r.variation ? product + " (" + r.variation + ")" : product));
+  const productText = r.variation ? product + " (" + r.variation + ")" : product;
+  article.appendChild(el("p", "review-product", productText));
 
   const rating = el("div", "review-rating");
   for (let i = 1; i <= 5; i++) {
@@ -98,9 +149,17 @@ function buildReviewCard(r) {
   }
   if (tags.children.length) article.appendChild(tags);
 
-  article.append(metaRow(r.created_at, r.edited_at), el("p", "post-body", r.body));
+  article.appendChild(metaRow(r.created_at, r.edited_at));
+  if (r.held_at) article.appendChild(heldNotice());
+  article.appendChild(el("p", "post-body", r.body));
   const likes = r.review_likes ? r.review_likes.length : 0;
   article.appendChild(el("p", "profile-counts", plural(likes, "like")));
+  if (isMe) {
+    // Everything above the buttons hides while the edit form is open
+    const parts = Array.from(article.children);
+    article.appendChild(ownerActions(article, parts, "reviews", r.id, "review",
+      (onSaved, onCancel) => EDIT_FORMS.review(r, productText, onSaved, onCancel), reload));
+  }
   return article;
 }
 
@@ -458,25 +517,34 @@ async function showAchievements(profileId) {
   showBiome(profile.id, profile.id === me);
   showAchievements(profile.id);
 
+  loadContent(profile, profile.id === me);
+})();
+
+// The member's reviews and posts. Reloaded after you edit or delete one.
+async function loadContent(profile, isMe) {
+  const reviewsEl = document.getElementById("profile-reviews");
+  const postsEl = document.getElementById("profile-posts");
+  const reload = () => loadContent(profile, isMe);
+
   const [reviewsRes, postsRes] = await Promise.all([
     supabaseClient.from("reviews")
-      .select("id, rating, title, body, variation, would_repurchase, holy_grail, created_at, edited_at, products!product_id(name, brand), review_likes(user_id), review_standouts(review_id)", { count: "exact" })
+      .select("id, rating, title, body, variation, would_repurchase, holy_grail, created_at, edited_at, held_at, products!product_id(name, brand), review_likes(user_id), review_standouts(review_id)", { count: "exact" })
       .eq("user_id", profile.id).order("created_at", { ascending: false }).limit(30),
     supabaseClient.from("posts")
-      .select("id, title, body, created_at, edited_at, likes(user_id), comments(count)", { count: "exact" })
+      .select("id, title, body, created_at, edited_at, held_at, likes(user_id), comments(count)", { count: "exact" })
       .eq("user_id", profile.id).order("created_at", { ascending: false }).limit(30),
   ]);
 
   document.getElementById("profile-stats").textContent =
-    plural(reviewsRes.count || 0, "review") + " · " + plural(postsRes.count || 0, "post");
+    plural(reviewsRes.count || 0, "review") + " \u00b7 " + plural(postsRes.count || 0, "post");
 
   reviewsEl.innerHTML = "";
   if (reviewsRes.error) showMessage(reviewsEl, "Couldn't load reviews: " + reviewsRes.error.message);
   else if (!reviewsRes.data.length) showMessage(reviewsEl, "No reviews yet.");
-  else reviewsRes.data.forEach((r) => reviewsEl.appendChild(buildReviewCard(r)));
+  else reviewsRes.data.forEach((r) => reviewsEl.appendChild(buildReviewCard(r, isMe, reload)));
 
   postsEl.innerHTML = "";
   if (postsRes.error) showMessage(postsEl, "Couldn't load posts: " + postsRes.error.message);
   else if (!postsRes.data.length) showMessage(postsEl, "No posts yet.");
-  else postsRes.data.forEach((p) => postsEl.appendChild(buildPostCard(p)));
-})();
+  else postsRes.data.forEach((p) => postsEl.appendChild(buildPostCard(p, isMe, reload)));
+}

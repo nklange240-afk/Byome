@@ -710,120 +710,6 @@ function buildUpdateForm(r, onSaved, onCancel) {
   return form;
 }
 
-// Edit your own review: rating, heading, text, repurchase and holy grail.
-// (The product can't be changed, and updates are added separately.)
-function buildReviewEditForm(r, productText, onSaved, onCancel) {
-  const form = el("form", "edit-form");
-  let rating = r.rating;
-  let repurchase = r.would_repurchase === undefined ? null : r.would_repurchase;
-  let grail = Boolean(r.holy_grail);
-
-  form.appendChild(el("p", "review-product", productText));
-
-  form.appendChild(el("p", "field-label", "Rating"));
-  const leavesBox = el("div", "rating-leaves");
-  const ratingLabel = el("p", "rating-label");
-  const leafBtns = [];
-  for (let n = 1; n <= 5; n++) {
-    const btn = el("button", "rating-leaf");
-    btn.type = "button";
-    btn.appendChild(leafIcon());
-    btn.setAttribute("aria-label", n + " out of 5: " + RATING_LABELS[n]);
-    btn.addEventListener("click", () => { rating = n; paint(); });
-    leafBtns.push(btn);
-    leavesBox.appendChild(btn);
-  }
-  form.append(leavesBox, ratingLabel);
-
-  const extras = el("div", "extras");
-  const repField = el("fieldset", "extras-field");
-  const group = el("div", "toggle-group");
-  const yes = el("button", "toggle-btn", "Yes");
-  const no = el("button", "toggle-btn", "No");
-  yes.type = "button";
-  no.type = "button";
-  group.append(yes, no);
-  repField.append(el("legend", "field-label", "Would you repurchase? (optional)"), group);
-  const grailBtn = el("button", "holy-grail-btn");
-  grailBtn.type = "button";
-  grailBtn.append(starIcon(), document.createTextNode("Holy grail"));
-  extras.append(repField, grailBtn);
-  form.appendChild(extras);
-
-  function paint() {
-    leafBtns.forEach((btn, i) => {
-      btn.classList.toggle("on", i < rating);
-      btn.setAttribute("aria-pressed", String(i + 1 === rating));
-    });
-    ratingLabel.textContent = RATING_LABELS[rating];
-    if (rating !== 5) grail = false;
-    grailBtn.disabled = rating !== 5;
-    grailBtn.setAttribute("aria-pressed", String(grail));
-    yes.setAttribute("aria-pressed", String(repurchase === true));
-    no.setAttribute("aria-pressed", String(repurchase === false));
-  }
-  yes.addEventListener("click", () => { repurchase = repurchase === true ? null : true; paint(); });
-  no.addEventListener("click", () => { repurchase = repurchase === false ? null : false; paint(); });
-  grailBtn.addEventListener("click", () => { grail = !grail; paint(); });
-
-  const titleInput = el("input", "composer-title");
-  titleInput.type = "text";
-  titleInput.maxLength = 100;
-  titleInput.required = true;
-  titleInput.value = r.title;
-  titleInput.setAttribute("aria-label", "Review heading");
-
-  const bodyInput = el("textarea");
-  bodyInput.rows = 5;
-  bodyInput.maxLength = 2000;
-  bodyInput.required = true;
-  bodyInput.value = r.body;
-  bodyInput.setAttribute("aria-label", "Your review");
-
-  const footer = el("div", "comment-form-footer");
-  const message = el("span", "auth-message");
-  const buttons = el("div", "edit-buttons");
-  const cancel = actionButton("Cancel");
-  cancel.addEventListener("click", onCancel);
-  const save = el("button", "btn btn-solid", "Save");
-  save.type = "submit";
-  buttons.append(cancel, save);
-  footer.append(message, buttons);
-  form.append(titleInput, bodyInput, footer);
-
-  form.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    const title = titleInput.value.trim();
-    const body = bodyInput.value.trim();
-    if (!title || !body) return;
-
-    save.disabled = true;
-    const { data, error } = await supabaseClient
-      .from("reviews")
-      .update({
-        rating: rating,
-        title: title,
-        body: body,
-        would_repurchase: repurchase,
-        holy_grail: rating === 5 && grail,
-        edited_at: new Date().toISOString(),
-      })
-      .eq("id", r.id)
-      .select("id");
-
-    if (error || !data || data.length === 0) {
-      message.textContent = error ? error.message : "Couldn't save your changes.";
-      message.style.color = "#E07A5F";
-      save.disabled = false;
-      return;
-    }
-    onSaved();
-  });
-
-  paint();
-  return form;
-}
-
 function buildReview(r) {
   const article = el("article", "post");
   const titleEl = el("h2", "post-title", r.title);
@@ -909,7 +795,7 @@ function buildReview(r) {
       if (article.querySelector(".edit-form")) return;
       const hide = (hidden) => { titleEl.hidden = hidden; productRow.hidden = hidden; bodyEl.hidden = hidden; };
       hide(true);
-      const editForm = buildReviewEditForm(r, product, loadReviews, () => { editForm.remove(); hide(false); });
+      const editForm = EDIT_FORMS.review(r, product, loadReviews, () => { editForm.remove(); hide(false); });
       article.insertBefore(editForm, actions);
     });
 
