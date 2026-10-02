@@ -6,3 +6,7 @@ byome's database lives in Supabase. These files are a backup and a history of ch
   To make a new one, run `export-schema-query.sql` in the Supabase SQL Editor and export the result as CSV.
 - `YYYY-MM-DD-*.sql`: changes that were run in the SQL Editor, oldest first.
   (The export taken on 2026-10-02 is from *before* `2026-10-02-security-fix.sql` was run.)
+
+## Change log
+- `2026-10-02-security-fix.sql`: stop members calling point/notification functions directly; lock review/post fields after posting.
+- `2026-10-02-automod.sql`: word filter that holds flagged posts, comments, reviews and review updates for moderator review; username rules. **Run this before publishing the site update that came with it**, because the pages now ask the database for `held_at`.

@@ -7,7 +7,7 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=7" />
+  <link rel="stylesheet" href="style.css?v=9" />
 </head>
 <body>
 
@@ -39,7 +39,8 @@
 
       <form id="signup-form" class="stacked-form">
         <label for="username">Username</label>
-        <input type="text" id="username" required minlength="3" maxlength="20" />
+        <input type="text" id="username" required minlength="3" maxlength="20" pattern="[A-Za-z0-9_.\-]+"
+          title="Letters, numbers, and _ . or - (no spaces)" />
 
         <label for="email">Email</label>
         <input type="email" id="email" required />
@@ -61,10 +62,10 @@
   <!-- Supabase's own code library, loaded from their servers -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <!-- Our shared connection setup -->
-  <script src="supabase-client.js?v=7"></script>
+  <script src="supabase-client.js?v=9"></script>
   <!-- Hamburger menu behavior -->
-  <script src="nav-menu.js?v=7"></script>
+  <script src="nav-menu.js?v=9"></script>
   <!-- The logic specific to this page -->
-  <script src="signup.js?v=7"></script>
+  <script src="signup.js?v=9"></script>
 </body>
 </html>

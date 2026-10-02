@@ -1875,3 +1875,95 @@ css
   border: 1px solid var(--moss);
   border-radius: 999px;
 }
+
+/* =========================================================
+   CATEGORY FILTER BUTTONS (community feed)
+   One pill per category. The chosen one fills leaf-green.
+   ========================================================= */
+.category-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.75rem 0 1.25rem;
+}
+
+.category-chip {
+  -webkit-appearance: none;
+  appearance: none;
+  padding: 0.35rem 0.95rem;
+  background-color: transparent;
+  color: var(--cream);
+  border: 1px solid var(--moss);
+  border-radius: 999px;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  line-height: 1.3;
+  cursor: pointer;
+}
+
+.category-chip:hover {
+  border-color: var(--gold);
+}
+
+.category-chip[aria-pressed="true"] {
+  background-color: var(--leaf);
+  border-color: var(--leaf);
+  color: var(--forest-dark);
+  font-weight: 600;
+}
+
+.category-chip:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+/* =========================================================
+   REVIEW SEARCH
+   ========================================================= */
+.review-search {
+  margin-bottom: 0.75rem;
+}
+
+.search-input {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  background-color: var(--forest-dark);
+  border: 1px solid var(--moss);
+  border-radius: 999px;
+  padding: 0.65rem 1.1rem;
+  color: var(--cream);
+  font-family: var(--font-body);
+  font-size: 1rem;
+}
+
+.search-input::placeholder {
+  color: var(--cream);
+  opacity: 0.6;
+}
+
+.search-input:hover {
+  border-color: var(--gold);
+}
+
+.search-input:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+.search-status {
+  font-size: 0.9rem;
+  opacity: 0.8;
+  margin-bottom: 0.75rem;
+}
+
+/* =========================================================
+   AUTOMOD: "waiting for review" note on held content
+   ========================================================= */
+.held-notice {
+  font-size: 0.85rem;
+  color: var(--gold);
+  border-left: 3px solid var(--gold);
+  padding: 0.2rem 0 0.2rem 0.6rem;
+  margin: 0.4rem 0 0.6rem;
+}

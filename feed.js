@@ -12,6 +12,7 @@ const categoryFilter = document.getElementById("category-filter");
 const MAX_INDENT_DEPTH = 4;
 
 let currentUser = null;
+let selectedCategory = ""; // "" means all categories
 
 // Small helper: create an element with a class and text in one line.
 // It uses textContent, so user-written text can never inject HTML.
@@ -49,6 +50,11 @@ function buildMeta(username, createdAt, editedAt) {
     meta.appendChild(tag);
   }
   return meta;
+}
+
+// Shown (to the author and moderators only) on anything automod is holding
+function heldNotice() {
+  return el("p", "held-notice", "Waiting for a moderator to review. Only you and moderators can see this for now.");
 }
 
 function actionButton(label) {
@@ -136,12 +142,12 @@ async function init() {
 async function loadPosts() {
   let query = supabaseClient
     .from("posts")
-    .select("id, title, body, category, created_at, edited_at, user_id, profiles!user_id(username), likes(user_id), comments(count)")
+    .select("id, title, body, category, created_at, edited_at, held_at, user_id, profiles!user_id(username), likes(user_id), comments(count)")
     .order("created_at", { ascending: false })
     .limit(50);
 
-  if (categoryFilter.value) {
-    query = query.eq("category", categoryFilter.value);
+  if (selectedCategory) {
+    query = query.eq("category", selectedCategory);
   }
 
   const { data: posts, error } = await query;
@@ -155,7 +161,10 @@ async function loadPosts() {
   }
 
   if (posts.length === 0) {
-    feedEl.appendChild(el("p", "feed-empty", "No posts yet. Write the first one above."));
+    const text = selectedCategory
+      ? "No " + selectedCategory + " posts yet. Write the first one above."
+      : "No posts yet. Write the first one above.";
+    feedEl.appendChild(el("p", "feed-empty", text));
     return;
   }
 
@@ -175,6 +184,7 @@ function buildPost(post) {
     article.appendChild(el("span", "post-category-tag", post.category));
   }
   article.appendChild(buildMeta(post.profiles && post.profiles.username, post.created_at, post.edited_at));
+  if (post.held_at) article.appendChild(heldNotice());
   article.appendChild(el("p", "post-body", post.body));
 
   const likeBtn = buildLikeButton("likes", "post_id", post.id, post.likes);
@@ -301,7 +311,7 @@ function buildPostEditForm(post, onSaved, onCancel) {
 async function fetchComments(postId) {
   const { data, error } = await supabaseClient
     .from("comments")
-    .select("id, parent_id, body, created_at, user_id, profiles!user_id(username), comment_likes(user_id)")
+    .select("id, parent_id, body, created_at, held_at, user_id, profiles!user_id(username), comment_likes(user_id)")
     .eq("post_id", postId)
     .order("created_at", { ascending: true });
 
@@ -337,6 +347,7 @@ function buildComment(comment, depth, postId, refresh) {
   const wrap = el("div", "comment");
 
   wrap.appendChild(buildMeta(comment.profiles && comment.profiles.username, comment.created_at));
+  if (comment.held_at) wrap.appendChild(heldNotice());
   wrap.appendChild(el("p", "comment-body", comment.body));
 
   const replyHolder = el("div", "reply-holder");
@@ -439,9 +450,11 @@ postForm.addEventListener("submit", async (event) => {
   postMessage.textContent = "Posting...";
   postMessage.style.color = "var(--cream)";
 
-  const { error } = await supabaseClient
+  const { data: saved, error } = await supabaseClient
     .from("posts")
-    .insert({ title: title, body: body, category: category, user_id: currentUser.id });
+    .insert({ title: title, body: body, category: category, user_id: currentUser.id })
+    .select("held_at")
+    .single();
 
   if (error) {
     postMessage.textContent = error.message;
@@ -449,7 +462,12 @@ postForm.addEventListener("submit", async (event) => {
     return;
   }
 
-  postMessage.textContent = "";
+  if (saved && saved.held_at) {
+    postMessage.textContent = "Thanks! Your post is waiting for a quick check by a moderator before everyone can see it.";
+    postMessage.style.color = "var(--gold)";
+  } else {
+    postMessage.textContent = "";
+  }
   postForm.reset();
   charCount.textContent = "0 / 1000";
   loadPosts();
@@ -459,6 +477,34 @@ postBody.addEventListener("input", () => {
   charCount.textContent = postBody.value.length + " / 1000";
 });
 
-categoryFilter.addEventListener("change", loadPosts);
+// One button per category, using the same list as the "new post" form,
+// so a category only ever needs adding in one place (feed.html).
+function buildCategoryButtons() {
+  const choices = [{ value: "", label: "All" }].concat(
+    Array.from(postCategory.options)
+      .filter((o) => o.value)
+      .map((o) => ({ value: o.value, label: o.textContent }))
+  );
+
+  choices.forEach((c) => {
+    const btn = el("button", "category-chip", c.label);
+    btn.type = "button";
+    btn.dataset.value = c.value;
+    btn.setAttribute("aria-pressed", String(c.value === selectedCategory));
+    categoryFilter.appendChild(btn);
+  });
+
+  categoryFilter.addEventListener("click", (e) => {
+    const btn = e.target.closest(".category-chip");
+    if (!btn || btn.dataset.value === selectedCategory) return;
+    selectedCategory = btn.dataset.value;
+    categoryFilter.querySelectorAll(".category-chip").forEach((b) => {
+      b.setAttribute("aria-pressed", String(b === btn));
+    });
+    loadPosts();
+  });
+}
+
+buildCategoryButtons();
 
 init();

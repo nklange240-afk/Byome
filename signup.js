@@ -6,12 +6,26 @@ const messageEl = document.getElementById("signup-message");
 signupForm.addEventListener("submit", async (event) => {
   event.preventDefault(); // stops the page from reloading, which is the browser's default
 
-  const username = document.getElementById("username").value;
+  const username = document.getElementById("username").value.trim();
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
 
   messageEl.textContent = "Creating your account...";
   messageEl.style.color = "var(--cream)";
+
+  // Check the username first, so problems get a clear message.
+  // (The database checks again when the account is created.)
+  const USERNAME_PROBLEMS = {
+    invalid: "Usernames are 3–20 characters: letters, numbers, and _ . or - (no spaces).",
+    taken: "That username is already taken — try another.",
+    not_allowed: "That username isn't allowed. Please choose a different one.",
+  };
+  const { data: usernameCheck } = await supabaseClient.rpc("check_username", { p_username: username });
+  if (usernameCheck && USERNAME_PROBLEMS[usernameCheck]) {
+    messageEl.textContent = USERNAME_PROBLEMS[usernameCheck];
+    messageEl.style.color = "#E07A5F";
+    return;
+  }
 
   // Ask Supabase to create the account. Supabase handles password
   // security and automatically rejects duplicate emails — we don't
@@ -29,8 +43,9 @@ signupForm.addEventListener("submit", async (event) => {
   if (error) {
     // A duplicate username surfaces here as a database error from
     // the trigger, so we check for that specifically.
-    if (error.message.toLowerCase().includes("duplicate")) {
-      messageEl.textContent = "That username is already taken — try another.";
+    const msg = error.message.toLowerCase();
+    if (msg.includes("duplicate") || msg.includes("database error saving new user")) {
+      messageEl.textContent = "That username can't be used — try another.";
     } else {
       messageEl.textContent = error.message;
     }

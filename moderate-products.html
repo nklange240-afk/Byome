@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Moderate products — byome</title>
+  <title>Moderation — byome</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=8" />
+  <link rel="stylesheet" href="style.css?v=9" />
 </head>
 <body>
 
@@ -31,15 +31,23 @@
   </header>
 
   <main class="feed-page">
-    <h1>Pending product suggestions</h1>
+    <h1>Moderation</h1>
+
+    <h2 class="section-title">Held by automod</h2>
+    <p class="feed-empty">Posts, comments and reviews that tripped the word filter. Only the author and moderators can see them until you decide.</p>
+    <section id="held-queue" class="feed" aria-live="polite">
+      <p class="feed-empty">Loading...</p>
+    </section>
+
+    <h2 class="section-title">Pending product suggestions</h2>
     <section id="queue" class="feed" aria-live="polite">
       <p class="feed-empty">Loading...</p>
     </section>
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase-client.js?v=8"></script>
-  <script src="nav-menu.js?v=8"></script>
-  <script src="moderate-products.js?v=8"></script>
+  <script src="supabase-client.js?v=9"></script>
+  <script src="nav-menu.js?v=9"></script>
+  <script src="moderate-products.js?v=9"></script>
 </body>
 </html>

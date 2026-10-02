@@ -9,6 +9,8 @@ const messageEl = document.getElementById("review-message");
 const listEl = document.getElementById("reviews");
 const categoryFilter = document.getElementById("category-filter");
 const subcategoryFilter = document.getElementById("subcategory-filter");
+const searchInput = document.getElementById("review-search");
+const searchStatus = document.getElementById("search-status");
 
 let currentUser = null;
 let isModerator = false;
@@ -33,6 +35,39 @@ categoryFilter.addEventListener("change", () => {
 });
 
 subcategoryFilter.addEventListener("change", loadReviews);
+
+// ---------- Search ----------
+// Type a product or brand; the list shows reviews of every matching
+// product. Each word only has to appear somewhere in "brand + name",
+// so "cerave cleanser" finds "CeraVe — Hydrating Facial Cleanser".
+
+// Lowercase and strip accents, so "lancome" matches "Lancôme"
+function normalize(text) {
+  return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+}
+
+function matchingProducts(q) {
+  const words = normalize(q).split(/\s+/).filter(Boolean);
+  return products.filter((p) => {
+    const haystack = normalize(p.brand + " " + p.name);
+    return words.every((w) => haystack.includes(w));
+  });
+}
+
+// Links like reviews.html?q=cerave open with that search filled in
+searchInput.value = new URLSearchParams(window.location.search).get("q") || "";
+
+let searchTimer = null;
+searchInput.addEventListener("input", () => {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => {
+    const url = new URL(window.location.href);
+    const q = searchInput.value.trim();
+    if (q) url.searchParams.set("q", q); else url.searchParams.delete("q");
+    history.replaceState(null, "", url);
+    loadReviews();
+  }, 250); // wait until typing pauses
+});
 
 function el(tag, className, text) {
   const node = document.createElement(tag);
@@ -424,6 +459,8 @@ productSelect.addEventListener("change", () => {
   variationDropdown.refresh();
 });
 
+let latestReviewsRequest = 0;
+
 async function loadReviews() {
   // products!inner lets us filter reviews by a column on the joined
   // product (category/subcategory) — every review has a product, so
@@ -431,7 +468,7 @@ async function loadReviews() {
   // otherwise have shown up.
   let query = supabaseClient
     .from("reviews")
-    .select("id, rating, title, body, variation, would_repurchase, holy_grail, created_at, edited_at, user_id, profiles!user_id(username), products!product_id!inner(name, brand, photo_url, category, subcategory), review_likes(user_id), review_updates(id, body, created_at), review_standouts(review_id)")
+    .select("id, rating, title, body, variation, would_repurchase, holy_grail, created_at, edited_at, held_at, user_id, profiles!user_id(username), products!product_id!inner(name, brand, photo_url, category, subcategory), review_likes(user_id), review_updates(id, body, created_at, held_at), review_standouts(review_id)")
     .order("created_at", { ascending: false })
     .limit(50);
 
@@ -442,7 +479,30 @@ async function loadReviews() {
     query = query.eq("products.subcategory", subcategoryFilter.value);
   }
 
+  const q = searchInput.value.trim();
+  searchStatus.hidden = !q;
+  if (q) {
+    const matches = matchingProducts(q);
+    if (matches.length === 0) {
+      searchStatus.textContent = "";
+      listEl.innerHTML = "";
+      const empty = el("p", "feed-empty", "No products match \u201c" + q + "\u201d. ");
+      const link = el("a", "inline-link", "Suggest it");
+      link.href = "suggest-product.html";
+      empty.appendChild(link);
+      listEl.appendChild(empty);
+      return;
+    }
+    searchStatus.textContent = matches.length === 1
+      ? "Reviews of " + matches[0].brand + " \u2014 " + matches[0].name
+      : matches.length + " products match \u201c" + q + "\u201d";
+    query = query.in("product_id", matches.slice(0, 200).map((p) => p.id));
+  }
+
+  // Typing quickly starts several searches; only show the newest one
+  const thisRequest = ++latestReviewsRequest;
   const { data: reviews, error } = await query;
+  if (thisRequest !== latestReviewsRequest) return;
 
   listEl.innerHTML = "";
   if (error) {
@@ -450,7 +510,10 @@ async function loadReviews() {
     return;
   }
   if (reviews.length === 0) {
-    listEl.appendChild(el("p", "feed-empty", "No reviews yet. Write the first one above."));
+    const filtered = q || categoryFilter.value;
+    listEl.appendChild(el("p", "feed-empty", filtered
+      ? "No reviews match yet. Be the first to write one above."
+      : "No reviews yet. Write the first one above."));
     return;
   }
   reviews.forEach((r) => listEl.appendChild(buildReview(r)));
@@ -561,6 +624,11 @@ function authorLink(username) {
   return a;
 }
 
+// Shown (to the author and moderators only) on anything automod is holding
+function heldNotice() {
+  return el("p", "held-notice", "Waiting for a moderator to review. Only you and moderators can see this for now.");
+}
+
 function actionButton(label) {
   const btn = el("button", "action-btn", label);
   btn.type = "button";
@@ -584,7 +652,9 @@ function buildUpdate(u, r) {
     el("strong", null, "Update"),
     document.createTextNode(" · " + describeGap(r.created_at, u.created_at) + " · " + formatDate(u.created_at))
   );
-  box.append(label, el("p", "review-update-body", u.body));
+  box.append(label);
+  if (u.held_at) box.appendChild(heldNotice());
+  box.append(el("p", "review-update-body", u.body));
 
   if (currentUser && r.user_id === currentUser.id) {
     const del = actionButton("Delete update");
@@ -816,7 +886,9 @@ function buildReview(r) {
     meta.appendChild(tag);
   }
   const bodyEl = el("p", "post-body", r.body);
-  article.append(meta, bodyEl);
+  article.append(meta);
+  if (r.held_at) article.appendChild(heldNotice());
+  article.append(bodyEl);
 
   // Follow-up updates, oldest first
   const updates = (r.review_updates || []).slice()
@@ -879,7 +951,7 @@ form.addEventListener("submit", async (event) => {
   messageEl.textContent = "Posting...";
   messageEl.style.color = "var(--cream)";
 
-  const { error } = await supabaseClient.from("reviews").insert({
+  const { data: saved, error } = await supabaseClient.from("reviews").insert({
     product_id: productSelect.value,
     user_id: currentUser.id,
     rating: Number(form.elements["rating"].value),
@@ -887,14 +959,19 @@ form.addEventListener("submit", async (event) => {
     body: bodyInput.value.trim(),
     variation: variationSelect.value || null,
     ...extras.get(),
-  });
+  }).select("held_at").single();
 
   if (error) {
     messageEl.textContent = error.message;
     messageEl.style.color = "#E07A5F";
     return;
   }
-  messageEl.textContent = "";
+  if (saved && saved.held_at) {
+    messageEl.textContent = "Thanks! Your review is waiting for a quick check by a moderator before everyone can see it.";
+    messageEl.style.color = "var(--gold)";
+  } else {
+    messageEl.textContent = "";
+  }
   form.reset();
   variationField.hidden = true;
   countEl.textContent = "0 / 2000";
