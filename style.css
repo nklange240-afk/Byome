@@ -2447,3 +2447,31 @@ button.biome-slot {
   font-style: italic;
   opacity: 0.85;
 }
+
+/* =========================================================
+   ACHIEVEMENTS (profile page)
+   ========================================================= */
+.achievements {
+  margin: -0.5rem 0 2rem;
+}
+
+.achievement-list {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.4rem;
+}
+
+.achievement {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.75rem;
+  border: 1px solid var(--gold);
+  border-radius: 999px;
+  color: var(--gold);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: default;
+}

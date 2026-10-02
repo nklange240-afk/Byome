@@ -291,11 +291,16 @@ async function showBiome(profileId, isMe) {
     return !error;
   }
 
+  async function reloadSlots() {
+    const { data } = await supabaseClient.from("biome_slots").select("slot, pot_key, plant_key").eq("user_id", profileId);
+    Object.keys(placed).forEach((n) => delete placed[n]);
+    (data || []).forEach((row) => { placed[row.slot] = { pot: row.pot_key, plant: row.plant_key }; });
+  }
+
+  // A plant chosen for an empty spot goes in the default terra cotta pot
+  // (the database picks it); the pot can be swapped afterwards.
   async function setSlot(slot, pot, plant) {
-    if (await save("set_biome_slot", { p_slot: slot, p_pot: pot, p_plant: plant })) {
-      if (pot) placed[slot] = { pot: pot, plant: plant };
-      else delete placed[slot];
-    }
+    if (await save("set_biome_slot", { p_slot: slot, p_pot: pot, p_plant: plant })) await reloadSlots();
     render();
   }
 
@@ -333,25 +338,24 @@ async function showBiome(profileId, isMe) {
       const size = BIOME.sizeOfSlot(selected);
       const here = placed[selected] || {};
 
-      editorEl.appendChild(el("h3", null, "Pot for this " + size + " spot"));
-      const pots = itemTiles("pot", size, selected, here.pot, (key) => setSlot(selected, key, here.plant || null));
-      pots.prepend(tile("Empty", null, null, !here.pot, () => setSlot(selected, null, null)));
-      editorEl.appendChild(pots);
-      if (pots.children.length === 1) {
+      // Plant first: plants come in a terra cotta pot, which can be swapped below
+      editorEl.appendChild(el("h3", null, "Plant for this " + size + " spot"));
+      const plants = itemTiles("plant", size, selected, here.plant, (key) => setSlot(selected, here.pot || null, key));
+      if (plants.children.length === 0) {
         editorEl.appendChild(el("p", "feed-empty", size === "medium"
-          ? "Medium pots for the bottom shelf are coming soon."
-          : "You don't have a spare pot for this spot."));
+          ? "Plants for the bottom shelf are coming soon."
+          : "No spare plants. To move a plant here, empty its current spot first."));
+      } else {
+        if (here.pot) plants.prepend(tile("No plant", null, null, !here.plant, () => setSlot(selected, here.pot, null)));
+        editorEl.appendChild(plants);
       }
 
-      if (here.pot) {
-        editorEl.appendChild(el("h3", null, "Plant"));
-        const plants = itemTiles("plant", size, selected, here.plant, (key) => setSlot(selected, here.pot, key));
-        if (plants.children.length === 0) {
-          editorEl.appendChild(el("p", "feed-empty", "No plants yet. They're on their way!"));
-        } else {
-          plants.prepend(tile("No plant", null, null, !here.plant, () => setSlot(selected, here.pot, null)));
-          editorEl.appendChild(plants);
-        }
+      editorEl.appendChild(el("h3", null, "Pot"));
+      const pots = itemTiles("pot", size, selected, here.pot, (key) => setSlot(selected, key, here.plant || null));
+      pots.prepend(tile("Empty spot", null, null, !here.pot, () => setSlot(selected, null, null)));
+      editorEl.appendChild(pots);
+      if (pots.children.length === 1 && size === "medium") {
+        editorEl.appendChild(el("p", "feed-empty", "Medium pots for the bottom shelf are coming soon."));
       }
     }
 
@@ -396,6 +400,29 @@ async function showBiome(profileId, isMe) {
   section.hidden = false;
 }
 
+// Achievements earned, shown on every profile under the shelf
+async function showAchievements(profileId) {
+  const box = document.getElementById("achievements");
+  const { data, error } = await supabaseClient
+    .from("user_achievements")
+    .select("earned_at, achievement:achievements!achievement_key(name, description, sort_order)")
+    .eq("user_id", profileId)
+    .order("earned_at", { ascending: true });
+  if (error || !data.length) return;
+
+  box.innerHTML = "";
+  box.appendChild(el("h3", "points-subtitle", "Achievements"));
+  const list = el("ul", "achievement-list");
+  data.forEach((row) => {
+    const li = el("li", "achievement");
+    li.append(starIcon(), el("span", "achievement-name", row.achievement.name));
+    li.title = row.achievement.description + " Earned " + formatDate(row.earned_at) + ".";
+    list.appendChild(li);
+  });
+  box.appendChild(list);
+  box.hidden = false;
+}
+
 (async function () {
   const { data } = await supabaseClient.auth.getSession();
   if (!data.session) { window.location.href = "login.html"; return; }
@@ -426,6 +453,7 @@ async function showBiome(profileId, isMe) {
 
   if (profile.id === me) showPoints(profile.id);
   showBiome(profile.id, profile.id === me);
+  showAchievements(profile.id);
 
   const [reviewsRes, postsRes] = await Promise.all([
     supabaseClient.from("reviews")
