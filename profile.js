@@ -126,11 +126,13 @@ function coinIcon() {
   return svg;
 }
 
-// "+10" pills: gold for community points, green for biome points. Zeros are hidden.
+// "+10" pills: gold for community points, green for biome points. Zeros are
+// hidden. Spending (a negative number) shows as "−40".
 function chips(community, biome) {
   const wrap = el("div", "chips");
-  if (community) wrap.appendChild(el("span", "chip chip-community", "+" + community));
-  if (biome) wrap.appendChild(el("span", "chip chip-biome", "+" + biome));
+  const label = (n) => (n < 0 ? "\u2212" + Math.abs(n) : "+" + n);
+  if (community) wrap.appendChild(el("span", "chip chip-community" + (community < 0 ? " chip-spent" : ""), label(community)));
+  if (biome) wrap.appendChild(el("span", "chip chip-biome" + (biome < 0 ? " chip-spent" : ""), label(biome)));
   return wrap;
 }
 
@@ -178,14 +180,19 @@ async function showPoints(userId) {
     statTile("biome", "Biome points", totals.biome, totals.pending_biome, leafIcon())
   );
   panel.appendChild(stats);
-  panel.appendChild(el("p", "points-note",
-    "Community points are for future real-world rewards. Biome points will buy plants and pots for your biome (coming soon). Pending points become available after a short waiting period."));
+  const note = el("p", "points-note",
+    "Community points are for future real-world rewards. Biome points buy pots, plants and shelves in the ");
+  const shopLink = el("a", "inline-link", "Biome shop");
+  shopLink.href = "biome-shop.html";
+  note.append(shopLink, document.createTextNode(". Pending points become available after a short waiting period."));
+  panel.appendChild(note);
 
-  if (rules.length) {
+  const earnable = rules.filter((r) => r.community_points || r.biome_points);
+  if (earnable.length) {
     const earn = el("details", "points-earn");
     earn.appendChild(el("summary", null, "How to earn points"));
     const list = el("ul", "earn-list");
-    rules.forEach((r) => {
+    earnable.forEach((r) => {
       const li = el("li", "earn-item");
       const main = el("div", "earn-main");
       main.appendChild(el("div", "earn-title", r.label));
@@ -217,6 +224,178 @@ async function showPoints(userId) {
   panel.hidden = false;
 }
 
+// ---------- Biome shelf ----------
+// Everyone's profile shows their shelf. On your own profile, "Arrange"
+// lets you pick a pot (and plant) for each spot, and which shelf to use.
+// All the rules (owning enough, right size) are checked by the database.
+async function showBiome(profileId, isMe) {
+  const section = document.getElementById("biome-section");
+  const shelfEl = document.getElementById("biome-shelf");
+  const hintEl = document.getElementById("biome-hint");
+  const editorEl = document.getElementById("biome-editor");
+  const arrangeBtn = document.getElementById("biome-arrange");
+
+  const [itemsRes, slotsRes, shelfRes, ownedRes] = await Promise.all([
+    supabaseClient.from("biome_items").select("key, kind, size, name, rarity, image, starter, sort_order").order("sort_order"),
+    supabaseClient.from("biome_slots").select("slot, pot_key, plant_key").eq("user_id", profileId),
+    supabaseClient.from("profiles").select("biome_shelf").eq("id", profileId).single(),
+    isMe ? supabaseClient.from("biome_inventory").select("item_key").eq("user_id", profileId) : Promise.resolve({ data: [] }),
+  ]);
+  if (itemsRes.error || slotsRes.error || shelfRes.error) return; // biome isn't set up in the database yet
+
+  const items = {};
+  itemsRes.data.forEach((it) => { items[it.key] = it; });
+  const placed = {};
+  slotsRes.data.forEach((row) => { placed[row.slot] = { pot: row.pot_key, plant: row.plant_key }; });
+  let shelfKey = shelfRes.data.biome_shelf;
+  const owned = {};
+  (ownedRes.data || []).forEach((row) => { owned[row.item_key] = (owned[row.item_key] || 0) + 1; });
+
+  let editing = false;
+  let selected = null;
+  let message = "";
+
+  // How many more of this item could go in this spot (Infinity for starter items)
+  function spare(key, slot) {
+    const it = items[key];
+    if (it.starter) return Infinity;
+    let used = 0;
+    Object.keys(placed).forEach((n) => {
+      if (Number(n) !== slot && (placed[n].pot === key || placed[n].plant === key)) used++;
+    });
+    return (owned[key] || 0) - used;
+  }
+
+  function tile(label, meta, image, pressed, onClick) {
+    const btn = el("button", "biome-tile");
+    btn.type = "button";
+    btn.setAttribute("aria-pressed", String(pressed));
+    if (image) {
+      const i = document.createElement("img");
+      i.src = image;
+      i.alt = "";
+      btn.appendChild(i);
+    } else {
+      btn.appendChild(el("span", "biome-tile-empty", "∅"));
+    }
+    btn.appendChild(el("span", null, label));
+    if (meta) btn.appendChild(el("span", "biome-tile-meta", meta));
+    btn.addEventListener("click", onClick);
+    return btn;
+  }
+
+  async function save(call, args) {
+    message = "";
+    const { error } = await supabaseClient.rpc(call, args);
+    if (error) message = error.message;
+    return !error;
+  }
+
+  async function setSlot(slot, pot, plant) {
+    if (await save("set_biome_slot", { p_slot: slot, p_pot: pot, p_plant: plant })) {
+      if (pot) placed[slot] = { pot: pot, plant: plant };
+      else delete placed[slot];
+    }
+    render();
+  }
+
+  function itemTiles(kind, size, slot, current, onPick) {
+    const wrap = el("div", "biome-tiles");
+    Object.values(items)
+      .filter((it) => it.kind === kind && it.size === size)
+      .filter((it) => it.key === current || spare(it.key, slot) > 0)
+      .forEach((it) => {
+        const left = spare(it.key, slot);
+        const meta = it.starter ? "Free" : (left === Infinity ? "" : left + " spare");
+        wrap.appendChild(tile(it.name, it.key === current ? "In this spot" : meta, it.image, it.key === current, () => onPick(it.key)));
+      });
+    return wrap;
+  }
+
+  function renderEditor() {
+    editorEl.innerHTML = "";
+
+    // Which shelf
+    editorEl.appendChild(el("h3", null, "Shelf"));
+    const shelves = el("div", "biome-tiles");
+    Object.values(items)
+      .filter((it) => it.kind === "shelf" && (it.starter || owned[it.key]))
+      .forEach((it) => shelves.appendChild(tile(it.name, null, it.image, it.key === shelfKey, async () => {
+        if (it.key === shelfKey) return;
+        if (await save("set_biome_shelf", { p_key: it.key })) shelfKey = it.key;
+        render();
+      })));
+    editorEl.appendChild(shelves);
+
+    if (selected === null) {
+      editorEl.appendChild(el("p", "feed-empty", "Tap a spot on the shelf to choose what goes there."));
+    } else {
+      const size = BIOME.sizeOfSlot(selected);
+      const here = placed[selected] || {};
+
+      editorEl.appendChild(el("h3", null, "Pot for this " + size + " spot"));
+      const pots = itemTiles("pot", size, selected, here.pot, (key) => setSlot(selected, key, here.plant || null));
+      pots.prepend(tile("Empty", null, null, !here.pot, () => setSlot(selected, null, null)));
+      editorEl.appendChild(pots);
+      if (pots.children.length === 1) {
+        editorEl.appendChild(el("p", "feed-empty", size === "medium"
+          ? "Medium pots for the bottom shelf are coming soon."
+          : "You don't have a spare pot for this spot."));
+      }
+
+      if (here.pot) {
+        editorEl.appendChild(el("h3", null, "Plant"));
+        const plants = itemTiles("plant", size, selected, here.plant, (key) => setSlot(selected, here.pot, key));
+        if (plants.children.length === 0) {
+          editorEl.appendChild(el("p", "feed-empty", "No plants yet. They're on their way!"));
+        } else {
+          plants.prepend(tile("No plant", null, null, !here.plant, () => setSlot(selected, here.pot, null)));
+          editorEl.appendChild(plants);
+        }
+      }
+    }
+
+    if (message) {
+      const m = el("p", "auth-message", message);
+      m.style.color = "#E07A5F";
+      editorEl.appendChild(m);
+    }
+    const more = el("p", "feed-empty");
+    const link = el("a", "inline-link", "Biome shop");
+    link.href = "biome-shop.html";
+    more.append(document.createTextNode("Want more? Visit the "), link, document.createTextNode("."));
+    editorEl.appendChild(more);
+  }
+
+  function render() {
+    shelfEl.replaceChildren(BIOME.build(items, shelfKey, placed, editing ? {
+      editable: true,
+      selected: selected,
+      onSelect: (slot) => { selected = slot; message = ""; render(); },
+    } : null));
+
+    const empty = Object.keys(placed).length === 0;
+    hintEl.hidden = editing || !empty;
+    hintEl.textContent = isMe ? "Your shelf is empty. Tap Arrange to add pots." : "Nothing on this shelf yet.";
+
+    editorEl.hidden = !editing;
+    if (editing) renderEditor();
+    arrangeBtn.textContent = editing ? "Done" : "Arrange";
+  }
+
+  if (isMe) {
+    arrangeBtn.hidden = false;
+    arrangeBtn.addEventListener("click", () => {
+      editing = !editing;
+      selected = null;
+      message = "";
+      render();
+    });
+  }
+  render();
+  section.hidden = false;
+}
+
 (async function () {
   const { data } = await supabaseClient.auth.getSession();
   if (!data.session) { window.location.href = "login.html"; return; }
@@ -246,6 +425,7 @@ async function showPoints(userId) {
   }
 
   if (profile.id === me) showPoints(profile.id);
+  showBiome(profile.id, profile.id === me);
 
   const [reviewsRes, postsRes] = await Promise.all([
     supabaseClient.from("reviews")
