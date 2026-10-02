@@ -13,3 +13,4 @@ byome's database lives in Supabase. These files are a backup and a history of ch
 - `2026-10-02-biome-shop.sql`: biome item catalogue, inventories, the Biome shop (buy with biome points) and arranging your shelf; balances made private. **Run before publishing** the site update that came with it (biome-shop.html, the profile shelf).
 - `2026-10-02-reports.sql`: members can report posts, comments and reviews (nothing is hidden; reports go to the Moderate page). **Run before publishing** the site update that came with it.
 - `2026-10-02-achievements.sql`: achievements system; "Welcome to byome" gives every member (new and existing) a Welcome sprout, placed on their shelf in a terra cotta pot. Choosing a plant for an empty spot uses the terra cotta pot by default.
+- `2026-10-02-sprout-story.sql`: the Welcome sprout's description (shown in the shelf info box).

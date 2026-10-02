@@ -2039,13 +2039,81 @@ button.biome-slot {
   height: 100%;
 }
 
-/* Plant sits in front of the pot, its base inside the pot opening */
+/* A potted plant: complete pot, then the plant, then the pot's front
+   overlay, so the plant grows out of the pot. Positions match biome.js
+   (the plant's y=462 lines up with the pot's y=110). */
+.biome-pot {
+  position: relative;
+  z-index: 0;
+}
+
 .biome-plant {
   position: absolute;
   left: 0;
-  top: -74.609%;
+  top: -68.75%;
   width: 100%;
+  z-index: 1;
+}
+
+.biome-pot-front {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
   pointer-events: none;
+}
+
+/* Viewing (not arranging): items show an info box on hover, tap or focus */
+div.biome-slot {
+  cursor: help;
+}
+
+div.biome-slot:focus-visible,
+.biome-shelf:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+.biome-tip {
+  position: absolute;
+  z-index: 5;
+  width: max-content;
+  max-width: min(240px, 90%);
+  padding: 0.55rem 0.7rem;
+  background-color: rgba(42, 31, 22, 0.94);
+  color: var(--cream);
+  border: 1px solid var(--moss);
+  border-radius: 8px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+  font-size: 0.82rem;
+  line-height: 1.35;
+  pointer-events: none; /* never gets in the way of tapping or clicking */
+}
+
+.biome-tip-item + .biome-tip-item {
+  margin-top: 0.45rem;
+  padding-top: 0.45rem;
+  border-top: 1px solid rgba(243, 237, 224, 0.2);
+}
+
+.biome-tip-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+.biome-tip-text {
+  margin-top: 0.2rem;
+}
+
+.biome-tip-earned {
+  margin-top: 0.2rem;
+  color: var(--gold);
+  font-style: italic;
 }
 
 /* While arranging: outline around each spot's pot area */
@@ -2058,7 +2126,7 @@ button.biome-slot {
   border: 2px dashed transparent;
   border-radius: 10px;
   pointer-events: none;
-  z-index: 2;
+  z-index: 3;
 }
 
 .biome-slot.is-empty .biome-slot-ring {
