@@ -1477,6 +1477,18 @@ a.post-author:focus-visible {
   color: var(--gold);
 }
 
+/* Coin (community) and leaf (biome) icons: same size, matching their numbers */
+.points-stat .points-icon {
+  width: 1.5rem;
+  height: 1.5rem;
+  margin-bottom: 0.2rem;
+  color: var(--gold);
+}
+
+.points-stat.biome .points-icon {
+  color: var(--leaf);
+}
+
 .points-stat:last-child .points-number {
   color: var(--leaf);
 }
