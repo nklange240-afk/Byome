@@ -6,7 +6,7 @@
   <title>Profile — byome</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=14" />
+  <link rel="stylesheet" href="style.css?v=15" />
 </head>
 <body>
   <header class="site-header">
@@ -28,7 +28,12 @@
     </nav>
   </header>
   <main class="feed-page">
-    <h1 id="profile-name">Profile</h1>
+    <div class="profile-head">
+      <span id="profile-avatar"></span>
+      <h1 id="profile-name">Profile</h1>
+      <div id="profile-head-actions" class="profile-head-actions"></div>
+    </div>
+    <div id="profile-traits" class="profile-traits" hidden></div>
     <p id="profile-since" class="feed-empty"></p>
     <p id="profile-stats" class="feed-empty"></p>
 
@@ -54,10 +59,12 @@
     <section id="profile-posts" class="feed"><p class="feed-empty">Loading...</p></section>
   </main>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase-client.js?v=14"></script>
-  <script src="nav-menu.js?v=14"></script>
-  <script src="edit-forms.js?v=14"></script>
-  <script src="biome.js?v=14"></script>
-  <script src="profile.js?v=14"></script>
+  <script src="supabase-client.js?v=15"></script>
+  <script src="profile-fields.js?v=15"></script>
+  <script src="nav-menu.js?v=15"></script>
+  <script src="edit-forms.js?v=15"></script>
+  <script src="biome.js?v=15"></script>
+  <script src="report.js?v=15"></script>
+  <script src="profile.js?v=15"></script>
 </body>
 </html>

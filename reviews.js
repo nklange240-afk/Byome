@@ -482,7 +482,7 @@ async function loadReviews(more) {
   // otherwise have shown up.
   let query = supabaseClient
     .from("reviews")
-    .select("id, rating, title, body, variation, would_repurchase, holy_grail, created_at, edited_at, held_at, user_id, profiles!user_id(username), products!product_id!inner(name, brand, photo_url, category, subcategory), review_likes(user_id), review_updates(id, body, created_at, held_at), review_standouts(review_id)")
+    .select("id, rating, title, body, variation, would_repurchase, holy_grail, created_at, edited_at, held_at, user_id, profiles!user_id(username, avatar_path), products!product_id!inner(name, brand, photo_url, category, subcategory), review_likes(user_id), review_updates(id, body, created_at, held_at), review_standouts(review_id)")
     .order("created_at", { ascending: false })
     .order("id")
     .range(from, to);
@@ -641,11 +641,8 @@ function formatDate(iso) {
 }
 
 // A username that links to that member's profile
-function authorLink(username) {
-  if (!username) return el("span", "post-author", "Unknown");
-  const a = el("a", "post-author", username);
-  a.href = "profile.html?user=" + encodeURIComponent(username);
-  return a;
+function authorLink(profile) {
+  return PROFILES.authorLink(profile);
 }
 
 // Shown (to the author and moderators only) on anything automod is holding
@@ -789,7 +786,7 @@ function buildReview(r) {
   const meta = el("div", "post-meta");
   const time = el("time", null, formatDate(r.created_at));
   time.dateTime = r.created_at;
-  meta.append(authorLink(r.profiles && r.profiles.username), time);
+  meta.append(authorLink(r.profiles), time);
   if (r.edited_at) {
     const tag = el("span", "edited-tag", "edited");
     tag.title = "Edited " + formatDate(r.edited_at);

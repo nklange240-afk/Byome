@@ -21,9 +21,9 @@ const REPORTS = (function () {
   async function loadMine(userId) {
     const { data } = await supabaseClient
       .from("content_reports")
-      .select("kind, post_id, comment_id, review_id")
+      .select("kind, post_id, comment_id, review_id, profile_id")
       .eq("reporter_id", userId);
-    (data || []).forEach((r) => reported.add(r.kind + ":" + (r.post_id || r.comment_id || r.review_id)));
+    (data || []).forEach((r) => reported.add(r.kind + ":" + (r.post_id || r.comment_id || r.review_id || r.profile_id)));
   }
 
   function flagIcon() {
@@ -118,7 +118,7 @@ const REPORTS = (function () {
     return dialog;
   }
 
-  // The flag button. kind: "post", "comment" or "review"
+  // The flag button. kind: "post", "comment", "review" or "profile"
   function button(kind, id) {
     const btn = el("button", "action-btn report-btn");
     btn.type = "button";

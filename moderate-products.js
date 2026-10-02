@@ -397,7 +397,8 @@ async function loadReports() {
     .select("id, kind, reason, details, created_at, reporter:profiles!reporter_id(username), " +
       "post:posts!post_id(id, title, body, author:profiles!user_id(username)), " +
       "comment:comments!comment_id(id, body, author:profiles!user_id(username), post:posts!post_id(title)), " +
-      "review:reviews!review_id(id, title, body, author:profiles!user_id(username), product:products!product_id(brand, name))")
+      "review:reviews!review_id(id, title, body, author:profiles!user_id(username), product:products!product_id(brand, name)), " +
+      "profile:profiles!profile_id(id, username, avatar_path)")
     .is("resolved_at", null)
     .order("created_at", { ascending: true });
 
@@ -429,21 +430,24 @@ async function loadReports() {
 
 function buildReportedItem(group) {
   const c = group.content;
-  const label = { post: "Post", comment: "Comment", review: "Review" }[group.kind];
+  const label = { post: "Post", comment: "Comment", review: "Review", profile: "Profile" }[group.kind];
   const article = el("article", "post");
+  const isProfile = group.kind === "profile";
 
   const meta = el("div", "post-meta");
   meta.append(
     el("span", "review-tag", label),
-    el("span", "post-author", c.author ? c.author.username : "Unknown"),
+    isProfile ? PROFILES.authorLink(c) : el("span", "post-author", c.author ? c.author.username : "Unknown"),
     el("span", null, group.reports.length === 1 ? "1 report" : group.reports.length + " reports")
   );
   article.appendChild(meta);
+  // A reported profile: show the picture big enough to judge
+  if (isProfile) article.appendChild(PROFILES.avatar(c, "xl"));
 
   if (group.kind === "comment" && c.post) article.appendChild(el("p", "feed-empty", "On the post \u201c" + c.post.title + "\u201d"));
   if (group.kind === "review" && c.product) article.appendChild(el("p", "feed-empty", "Review of " + c.product.brand + " \u2014 " + c.product.name));
   if (c.title) article.appendChild(el("h3", "post-title", c.title));
-  article.appendChild(el("p", "post-body", c.body));
+  if (c.body) article.appendChild(el("p", "post-body", c.body));
 
   const list = el("ul", "report-list");
   group.reports.forEach((r) => {
@@ -472,10 +476,41 @@ function buildReportedItem(group) {
   const keep = el("button", "action-btn", "Keep it");
   keep.type = "button";
   keep.addEventListener("click", () => decide("keep"));
-  const remove = el("button", "action-btn", "Remove");
-  remove.type = "button";
-  remove.addEventListener("click", () => decide("remove"));
-  actions.append(keep, remove, message);
+  actions.appendChild(keep);
+
+  if (isProfile) {
+    // Profiles aren't removed: the picture can be taken down, or the
+    // username reset (the member is told to choose a new one)
+    async function fixProfile(action, question) {
+      if (!confirm(question)) return;
+      actions.querySelectorAll("button").forEach((b) => { b.disabled = true; });
+      const { error } = await supabaseClient.rpc("moderate_profile", { p_id: c.id, p_action: action });
+      if (error) {
+        message.textContent = "Couldn't do that: " + error.message;
+        message.style.color = "#E07A5F";
+        actions.querySelectorAll("button").forEach((b) => { b.disabled = false; });
+        return;
+      }
+      if (action === "remove_avatar" && c.avatar_path) supabaseClient.storage.from("avatars").remove([c.avatar_path]);
+      loadReports();
+    }
+    if (c.avatar_path) {
+      const pic = el("button", "action-btn", "Remove picture");
+      pic.type = "button";
+      pic.addEventListener("click", () => fixProfile("remove_avatar", "Remove " + c.username + "'s profile picture? They'll be told why."));
+      actions.appendChild(pic);
+    }
+    const rename = el("button", "action-btn", "Reset username");
+    rename.type = "button";
+    rename.addEventListener("click", () => fixProfile("reset_username", "Reset the username \u201c" + c.username + "\u201d? They'll be asked to choose a new one."));
+    actions.appendChild(rename);
+  } else {
+    const remove = el("button", "action-btn", "Remove");
+    remove.type = "button";
+    remove.addEventListener("click", () => decide("remove"));
+    actions.appendChild(remove);
+  }
+  actions.appendChild(message);
   article.appendChild(actions);
   return article;
 }

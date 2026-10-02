@@ -2582,3 +2582,217 @@ div.biome-slot:focus-visible,
   opacity: 0.6;
   cursor: default;
 }
+
+/* =========================================================
+   PROFILE PICTURES
+   ========================================================= */
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+  border-radius: 50%;
+  background-color: var(--moss);
+  color: var(--cream);
+  font-family: var(--font-heading);
+  font-weight: 600;
+  line-height: 1;
+}
+
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar-small { width: 1.6rem; height: 1.6rem; font-size: 0.8rem; }
+.avatar-large { width: 4.5rem; height: 4.5rem; font-size: 1.9rem; }
+.avatar-xl { width: 7rem; height: 7rem; font-size: 2.8rem; }
+
+/* picture + name next to posts, comments and reviews */
+.post-author-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.post-author.is-deleted {
+  font-style: italic;
+  opacity: 0.75;
+}
+
+/* =========================================================
+   EDIT PROFILE PAGE
+   ========================================================= */
+.edit-section {
+  margin: 1.25rem 0 2rem;
+}
+
+.edit-section .section-title {
+  margin-bottom: 0.75rem;
+}
+
+.avatar-editor {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.avatar-buttons {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.4rem;
+}
+
+.file-btn {
+  cursor: pointer;
+}
+
+.avatar-buttons input:focus-visible + .file-btn,
+.file-btn:focus-within {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+.field-hint {
+  font-size: 0.85rem;
+  opacity: 0.75;
+  margin: 0.25rem 0 0.75rem;
+}
+
+.profile-optional {
+  margin-top: 1.25rem;
+}
+
+.text-input {
+  width: 100%;
+  background-color: var(--forest-dark);
+  border: 1px solid var(--moss);
+  border-radius: 6px;
+  padding: 0.6rem 0.8rem;
+  color: var(--cream);
+  font-family: var(--font-body);
+  font-size: 1rem;
+}
+
+.text-input:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+.choice-group {
+  border: none;
+  padding: 0;
+  margin: 0 0 1.1rem;
+}
+
+.choice-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-top: 0.35rem;
+}
+
+/* An option pill: the real radio/checkbox is hidden but still works with
+   the keyboard and screen readers */
+.choice {
+  position: relative;
+  cursor: pointer;
+}
+
+.choice input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+
+.choice span {
+  display: inline-block;
+  padding: 0.35rem 0.85rem;
+  border: 1px solid var(--moss);
+  border-radius: 999px;
+  font-size: 0.9rem;
+}
+
+.choice:hover span {
+  border-color: var(--gold);
+}
+
+.choice input:checked + span {
+  background-color: var(--leaf);
+  border-color: var(--leaf);
+  color: var(--forest-dark);
+  font-weight: 600;
+}
+
+.choice input:focus-visible + span {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+.danger-zone {
+  padding: 1rem;
+  border: 1px solid var(--report-red);
+  border-radius: 10px;
+}
+
+.danger-zone p {
+  margin-bottom: 0.75rem;
+}
+
+.check-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.5rem 0 1rem;
+  cursor: pointer;
+}
+
+.check-row input {
+  accent-color: var(--report-red);
+  width: 1.05rem;
+  height: 1.05rem;
+}
+
+.btn-danger {
+  margin-top: 0.75rem;
+  background-color: var(--report-red);
+  color: var(--bark);
+  border: none;
+  cursor: pointer;
+}
+
+.btn-danger:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* Profile page header: picture, name, skin & hair details */
+.profile-head {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.profile-head h1 {
+  margin: 0;
+}
+
+.profile-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-left: auto;
+}
+
+.profile-traits {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0.5rem 0 0.75rem;
+}

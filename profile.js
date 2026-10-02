@@ -462,6 +462,22 @@ async function showBiome(profileId, isMe) {
   section.hidden = false;
 }
 
+// Skin and hair details, if the member chose to share them
+function showTraits(profile) {
+  const box = document.getElementById("profile-traits");
+  const chips = [];
+  if (profile.skin_type) chips.push(PROFILES.label(PROFILES.SKIN_TYPES, profile.skin_type) + " skin");
+  (profile.skin_concerns || []).forEach((c) => chips.push(PROFILES.label(PROFILES.SKIN_CONCERNS, c)));
+  if (profile.hair_type || profile.hair_texture) {
+    const parts = [];
+    if (profile.hair_texture) parts.push(PROFILES.label(PROFILES.HAIR_TEXTURES, profile.hair_texture).toLowerCase());
+    if (profile.hair_type) parts.push(PROFILES.label(PROFILES.HAIR_TYPES, profile.hair_type).toLowerCase());
+    chips.push(parts.join(", ") + " hair");
+  }
+  box.replaceChildren(...chips.map((text) => el("span", "review-tag", text.charAt(0).toUpperCase() + text.slice(1))));
+  box.hidden = chips.length === 0;
+}
+
 // Achievements earned, shown on every profile under the shelf
 async function showAchievements(profileId) {
   const box = document.getElementById("achievements");
@@ -495,7 +511,8 @@ async function showAchievements(profileId) {
   const reviewsEl = document.getElementById("profile-reviews");
   const postsEl = document.getElementById("profile-posts");
 
-  let query = supabaseClient.from("profiles").select("id, username, created_at");
+  let query = supabaseClient.from("profiles")
+    .select("id, username, created_at, avatar_path, skin_type, skin_concerns, hair_type, hair_texture");
   query = wanted ? query.eq("username", wanted) : query.eq("id", me);
   const { data: profile } = await query.maybeSingle();
 
@@ -506,18 +523,39 @@ async function showAchievements(profileId) {
     return;
   }
 
-  document.title = profile.username + " — byome";
-  nameEl.textContent = profile.username;
+  const isMe = profile.id === me;
+  const name = PROFILES.displayName(profile);
+  document.title = name + " — byome";
+  nameEl.textContent = name;
+  document.getElementById("profile-avatar").replaceChildren(PROFILES.avatar(profile, "large"));
+  showTraits(profile);
+
+  // Your own profile: Edit profile. Someone else's: Report profile.
+  const actionsEl = document.getElementById("profile-head-actions");
+  if (isMe) {
+    const editLink = el("a", "btn btn-ghost", "Edit profile");
+    editLink.href = "edit-profile.html";
+    actionsEl.appendChild(editLink);
+  } else if (!PROFILES.isDeleted(profile)) {
+    await REPORTS.loadMine(me);
+    actionsEl.appendChild(REPORTS.button("profile", profile.id));
+  }
+
+  if (PROFILES.isDeleted(profile)) {
+    document.getElementById("profile-since").textContent = "This member deleted their account.";
+    loadContent(profile, false);
+    return;
+  }
   if (profile.created_at) {
     document.getElementById("profile-since").textContent =
       "Member since " + new Date(profile.created_at).toLocaleDateString(undefined, { month: "long", year: "numeric" });
   }
 
-  if (profile.id === me) showPoints(profile.id);
-  showBiome(profile.id, profile.id === me);
+  if (isMe) showPoints(profile.id);
+  showBiome(profile.id, isMe);
   showAchievements(profile.id);
 
-  loadContent(profile, profile.id === me);
+  loadContent(profile, isMe);
 })();
 
 // The member's reviews and posts. Reloaded after you edit or delete one.

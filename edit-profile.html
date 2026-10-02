@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Edit profile — byome</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css?v=15" />
+</head>
+<body>
+  <header class="site-header">
+    <a href="feed.html" class="logo">by<span class="logo-accent">🌱</span>me</a>
+    <button id="menu-toggle" class="hamburger-btn" aria-expanded="false" aria-controls="nav-menu" aria-label="Open menu">
+      <span></span><span></span><span></span>
+    </button>
+
+    <nav id="nav-menu" class="nav-menu" hidden>
+      <a href="feed.html" class="btn btn-ghost">Community</a>
+      <a href="reviews.html" class="btn btn-ghost">Reviews</a>
+      <a href="profile.html" class="btn btn-ghost">Profile</a>
+      <a href="biome-shop.html" class="btn btn-ghost">Biome shop</a>
+      <a href="suggest-product.html" class="btn btn-ghost">Suggest a product</a>
+      <a href="moderate-products.html" id="moderate-link" class="btn btn-ghost" hidden>Moderate</a>
+      <hr />
+      <span id="header-username" class="header-username"></span>
+      <button id="logout-btn" class="btn btn-ghost" type="button">Log out</button>
+    </nav>
+  </header>
+  <main class="feed-page edit-profile">
+    <a href="profile.html" class="back-link">&larr; Back to my profile</a>
+    <h1>Edit profile</h1>
+
+    <!-- Profile picture -->
+    <section class="edit-section" aria-labelledby="picture-title">
+      <h2 id="picture-title" class="section-title">Profile picture</h2>
+      <div class="avatar-editor">
+        <div id="avatar-preview"></div>
+        <div class="avatar-buttons">
+          <label for="avatar-file" class="btn btn-ghost file-btn">Choose a picture</label>
+          <input type="file" id="avatar-file" accept="image/jpeg,image/png,image/webp" class="visually-hidden" />
+          <button type="button" id="avatar-remove" class="action-btn" hidden>Remove picture</button>
+          <p class="field-hint">JPG, PNG or WebP. It's cropped to a square and resized for you.</p>
+        </div>
+      </div>
+      <p id="avatar-message" class="auth-message" aria-live="polite"></p>
+    </section>
+
+    <!-- Username, skin and hair -->
+    <form id="profile-form" class="edit-section">
+      <h2 class="section-title">About you</h2>
+      <label for="username" class="field-label">Username</label>
+      <input type="text" id="username" class="text-input" required minlength="3" maxlength="20"
+        pattern="[A-Za-z0-9_.\-]+" title="Letters, numbers, and _ . or - (no spaces)" />
+      <p class="field-hint">Changing it changes your profile's address too.</p>
+
+      <p class="field-hint profile-optional">Everything below is optional. It's shown on your profile and helps others find reviews from people like them.</p>
+      <fieldset class="choice-group" id="skin-type"><legend class="field-label">Skin type</legend></fieldset>
+      <fieldset class="choice-group" id="skin-concerns"><legend class="field-label">Skin concerns (choose any)</legend></fieldset>
+      <fieldset class="choice-group" id="hair-type"><legend class="field-label">Hair type</legend></fieldset>
+      <fieldset class="choice-group" id="hair-texture"><legend class="field-label">Hair texture</legend></fieldset>
+
+      <button type="submit" class="btn btn-solid">Save changes</button>
+      <p id="profile-message" class="auth-message" aria-live="polite"></p>
+    </form>
+
+    <!-- Delete account -->
+    <section class="edit-section danger-zone" aria-labelledby="delete-title">
+      <h2 id="delete-title" class="section-title">Delete account</h2>
+      <p>This permanently deletes your login and your personal details: profile picture, skin and hair profile, biome, points, achievements and notifications. It can't be undone.</p>
+      <p><strong>Your reviews, posts and comments will not be deleted.</strong> They'll stay on byome, shown as written by &ldquo;Deleted member&rdquo;, unless you tick the box below.</p>
+      <label class="check-row"><input type="checkbox" id="delete-content" /> Also delete all my reviews, posts and comments</label>
+      <label for="delete-confirm" class="field-label">To confirm, type DELETE</label>
+      <input type="text" id="delete-confirm" class="text-input" autocomplete="off" />
+      <button type="button" id="delete-account" class="btn btn-danger" disabled>Delete my account</button>
+      <p id="delete-message" class="auth-message" aria-live="polite"></p>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-client.js?v=15"></script>
+  <script src="profile-fields.js?v=15"></script>
+  <script src="nav-menu.js?v=15"></script>
+  <script src="edit-profile.js?v=15"></script>
+</body>
+</html>
