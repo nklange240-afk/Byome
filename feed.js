@@ -236,7 +236,7 @@ function buildPost(post) {
       const bodyEl = article.querySelector(".post-body");
       const show = (visible) => { if (titleEl) titleEl.hidden = !visible; bodyEl.hidden = !visible; };
       show(false);
-      const editForm = buildPostEditForm(post, loadPosts, () => { editForm.remove(); show(true); });
+      const editForm = EDIT_FORMS.post(post, loadPosts, () => { editForm.remove(); show(true); });
       article.insertBefore(editForm, actions);
     });
     actions.appendChild(edit);
@@ -254,59 +254,6 @@ function buildPost(post) {
 
   article.append(actions, commentsSection);
   return article;
-}
-
-// Edit your own post's heading and text
-function buildPostEditForm(post, onSaved, onCancel) {
-  const form = el("form", "edit-form");
-
-  const titleInput = el("input", "composer-title");
-  titleInput.type = "text";
-  titleInput.maxLength = 100;
-  titleInput.required = Boolean(post.title); // older posts may have no heading
-  titleInput.value = post.title || "";
-  titleInput.setAttribute("aria-label", "Post heading");
-
-  const bodyInput = el("textarea");
-  bodyInput.rows = 4;
-  bodyInput.maxLength = 1000;
-  bodyInput.required = true;
-  bodyInput.value = post.body;
-  bodyInput.setAttribute("aria-label", "Post text");
-
-  const footer = el("div", "comment-form-footer");
-  const message = el("span", "auth-message");
-  const buttons = el("div", "edit-buttons");
-  const cancel = actionButton("Cancel");
-  cancel.addEventListener("click", onCancel);
-  const save = el("button", "btn btn-solid", "Save");
-  save.type = "submit";
-  buttons.append(cancel, save);
-  footer.append(message, buttons);
-  form.append(titleInput, bodyInput, footer);
-
-  form.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    const body = bodyInput.value.trim();
-    if (!body) return;
-
-    save.disabled = true;
-    const { data, error } = await supabaseClient
-      .from("posts")
-      .update({ title: titleInput.value.trim() || null, body: body, edited_at: new Date().toISOString() })
-      .eq("id", post.id)
-      .select("id");
-
-    if (error || !data || data.length === 0) {
-      message.textContent = error ? error.message : "Couldn't save your changes.";
-      message.style.color = "#E07A5F";
-      save.disabled = false;
-      return;
-    }
-    onSaved();
-  });
-
-  return form;
 }
 
 // ---------- Comments ----------
