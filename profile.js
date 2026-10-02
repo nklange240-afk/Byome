@@ -235,16 +235,19 @@ async function showBiome(profileId, isMe) {
   const editorEl = document.getElementById("biome-editor");
   const arrangeBtn = document.getElementById("biome-arrange");
 
-  const [itemsRes, slotsRes, shelfRes, ownedRes] = await Promise.all([
-    supabaseClient.from("biome_items").select("key, kind, size, name, rarity, image, starter, sort_order").order("sort_order"),
+  const [itemsRes, slotsRes, shelfRes, ownedRes, rewardsRes] = await Promise.all([
+    supabaseClient.from("biome_items").select("key, kind, size, name, description, rarity, image, starter, sort_order").order("sort_order"),
     supabaseClient.from("biome_slots").select("slot, pot_key, plant_key").eq("user_id", profileId),
     supabaseClient.from("profiles").select("biome_shelf").eq("id", profileId).single(),
     isMe ? supabaseClient.from("biome_inventory").select("item_key").eq("user_id", profileId) : Promise.resolve({ data: [] }),
+    supabaseClient.from("achievements").select("name, reward_item").not("reward_item", "is", null),
   ]);
   if (itemsRes.error || slotsRes.error || shelfRes.error) return; // biome isn't set up in the database yet
 
   const items = {};
   itemsRes.data.forEach((it) => { items[it.key] = it; });
+  // Items that come from an achievement say so in their info box
+  (rewardsRes.data || []).forEach((a) => { if (items[a.reward_item]) items[a.reward_item].earnedWith = a.name; });
   const placed = {};
   slotsRes.data.forEach((row) => { placed[row.slot] = { pot: row.pot_key, plant: row.plant_key }; });
   let shelfKey = shelfRes.data.biome_shelf;
