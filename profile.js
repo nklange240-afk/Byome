@@ -104,7 +104,45 @@ function buildReviewCard(r) {
   return article;
 }
 
-// Your own points: balances, what's still pending, and recent activity
+// The order "how to earn" is listed in
+const EARN_ORDER = ["review", "first_review", "review_update", "review_liked", "review_standout",
+  "post_engaged", "comment_liked", "product_approved", "welcome"];
+
+// A small coin for community points
+function coinIcon() {
+  const ns = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(ns, "svg");
+  svg.setAttribute("viewBox", "0 0 24 24");
+  svg.setAttribute("class", "points-icon");
+  svg.setAttribute("aria-hidden", "true");
+  const ring = document.createElementNS(ns, "circle");
+  ring.setAttribute("cx", "12"); ring.setAttribute("cy", "12"); ring.setAttribute("r", "10");
+  ring.setAttribute("fill", "none"); ring.setAttribute("stroke", "currentColor"); ring.setAttribute("stroke-width", "1.8");
+  const star = document.createElementNS(ns, "path");
+  star.setAttribute("d", "M12 2c.7 5.6 3.9 9.3 10 10-6.1.7-9.3 4.4-10 10-.7-5.6-3.9-9.3-10-10 6.1-.7 9.3-4.4 10-10z");
+  star.setAttribute("transform", "translate(5.5 5.5) scale(.55)");
+  star.setAttribute("fill", "currentColor");
+  svg.append(ring, star);
+  return svg;
+}
+
+// "+10" pills: gold for community points, green for biome points. Zeros are hidden.
+function chips(community, biome) {
+  const wrap = el("div", "chips");
+  if (community) wrap.appendChild(el("span", "chip chip-community", "+" + community));
+  if (biome) wrap.appendChild(el("span", "chip chip-biome", "+" + biome));
+  return wrap;
+}
+
+function statTile(kind, label, value, pending, icon) {
+  const tile = el("div", "points-stat " + kind);
+  icon.classList.add("points-icon"); // same size for both tiles
+  tile.append(icon, el("span", "points-number", String(value)), el("span", "points-label", label));
+  if (pending) tile.appendChild(el("span", "points-pending", "+" + pending + " pending"));
+  return tile;
+}
+
+// Your own points: balances, how to earn more, and recent activity
 async function showPoints(userId) {
   const panel = document.getElementById("points-panel");
 
@@ -114,44 +152,65 @@ async function showPoints(userId) {
     supabaseClient.from("point_ledger")
       .select("action, community_points, biome_points, created_at, available_at, revoked_at")
       .eq("user_id", userId).order("created_at", { ascending: false }).limit(8),
-    supabaseClient.from("point_rules").select("action, label"),
+    supabaseClient.from("point_rules")
+      .select("action, label, description, community_points, biome_points"),
   ]);
   if (totalsRes.error && ledgerRes.error) return; // points aren't set up yet
 
   const totals = totalsRes.data || { community: 0, biome: 0, pending_community: 0, pending_biome: 0 };
+  const rules = (rulesRes.data || []).slice().sort((x, y) => {
+    const ix = EARN_ORDER.indexOf(x.action), iy = EARN_ORDER.indexOf(y.action);
+    return (ix < 0 ? 99 : ix) - (iy < 0 ? 99 : iy);
+  });
   const labels = {};
-  (rulesRes.data || []).forEach((r) => { labels[r.action] = r.label; });
+  rules.forEach((r) => { labels[r.action] = r.label; });
 
   panel.innerHTML = "";
-  panel.appendChild(el("h2", "section-title", "Your points"));
+
+  const head = el("div", "points-head");
+  head.append(el("h2", "section-title", "Your points"),
+    el("p", "points-sub", "Earn points by reviewing, helping out and joining the conversation."));
+  panel.appendChild(head);
 
   const stats = el("div", "points-stats");
-  [["Community points", totals.community], ["Biome points", totals.biome]].forEach(([label, value]) => {
-    const box = el("div", "points-stat");
-    box.append(el("span", "points-number", String(value)), el("span", "points-label", label));
-    stats.appendChild(box);
-  });
+  stats.append(
+    statTile("community", "Community points", totals.community, totals.pending_community, coinIcon()),
+    statTile("biome", "Biome points", totals.biome, totals.pending_biome, leafIcon())
+  );
   panel.appendChild(stats);
-
-  if (totals.pending_community || totals.pending_biome) {
-    panel.appendChild(el("p", "points-pending",
-      "Pending: +" + totals.pending_community + " community and +" + totals.pending_biome +
-      " biome points, available after the waiting period."));
-  }
   panel.appendChild(el("p", "points-note",
-    "Community points are for future real-world rewards. Biome points will buy plants and pots for your biome (coming soon)."));
+    "Community points are for future real-world rewards. Biome points will buy plants and pots for your biome (coming soon). Pending points become available after a short waiting period."));
+
+  if (rules.length) {
+    const earn = el("details", "points-earn");
+    earn.appendChild(el("summary", null, "How to earn points"));
+    const list = el("ul", "earn-list");
+    rules.forEach((r) => {
+      const li = el("li", "earn-item");
+      const main = el("div", "earn-main");
+      main.appendChild(el("div", "earn-title", r.label));
+      if (r.description) main.appendChild(el("div", "earn-desc", r.description));
+      li.append(main, chips(r.community_points, r.biome_points));
+      list.appendChild(li);
+    });
+    earn.appendChild(list);
+    panel.appendChild(earn);
+  }
 
   const rows = ledgerRes.data || [];
   if (rows.length) {
     panel.appendChild(el("h3", "points-subtitle", "Recent activity"));
     const list = el("ul", "points-log");
     rows.forEach((row) => {
-      let text = (labels[row.action] || row.action) + ": +" + row.community_points +
-        " community, +" + row.biome_points + " biome";
-      let cls = "";
-      if (row.revoked_at) { text += " (removed)"; cls = "is-revoked"; }
-      else if (new Date(row.available_at) > new Date()) text += " (available " + formatDate(row.available_at) + ")";
-      list.appendChild(el("li", cls, text));
+      const li = el("li", "points-entry" + (row.revoked_at ? " is-revoked" : ""));
+      const main = el("div", "entry-main");
+      main.appendChild(el("div", "entry-title", labels[row.action] || row.action));
+      let meta = formatDate(row.created_at);
+      if (row.revoked_at) meta += " · removed";
+      else if (new Date(row.available_at) > new Date()) meta += " · available " + formatDate(row.available_at);
+      main.appendChild(el("div", "entry-meta", meta));
+      li.append(main, chips(row.community_points, row.biome_points));
+      list.appendChild(li);
     });
     panel.appendChild(list);
   }

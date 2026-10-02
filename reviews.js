@@ -204,11 +204,22 @@ function enhanceSelect(select) {
 
 async function init() {
   const { data } = await supabaseClient.auth.getSession();
-  if (!data.session) { window.location.href = "login.html"; return; }
-  currentUser = data.session.user;
-  const { data: me } = await supabaseClient
-    .from("profiles").select("is_moderator").eq("id", currentUser.id).single();
-  isModerator = Boolean(me && me.is_moderator);
+
+  if (data.session) {
+    currentUser = data.session.user;
+    const { data: me } = await supabaseClient
+      .from("profiles").select("is_moderator").eq("id", currentUser.id).single();
+    isModerator = Boolean(me && me.is_moderator);
+  } else {
+    // No account — browsing and searching are still fully open, but
+    // the write form isn't, since posting a review requires an account.
+    const prompt = el("p", "feed-empty");
+    const link = el("a", "inline-link", "Log in");
+    link.href = "login.html";
+    prompt.append(document.createTextNode("Want to write a review? "), link, document.createTextNode(" first."));
+    form.replaceWith(prompt);
+  }
+
   await loadProducts();
   loadReviews();
 }
@@ -435,7 +446,7 @@ function starIcon() {
 
 // Leaf like button, same behavior as on the message board
 function buildLikeButton(table, idColumn, id, likes) {
-  let liked = likes.some((l) => l.user_id === currentUser.id);
+  let liked = currentUser ? likes.some((l) => l.user_id === currentUser.id) : false;
   let count = likes.length;
 
   const btn = el("button", "action-btn like-btn");
@@ -451,6 +462,7 @@ function buildLikeButton(table, idColumn, id, likes) {
   paint();
 
   btn.addEventListener("click", async () => {
+    if (!currentUser) { window.location.href = "login.html"; return; }
     btn.disabled = true;
     if (liked) {
       const { error } = await supabaseClient
@@ -539,7 +551,7 @@ function buildUpdate(u, r) {
   );
   box.append(label, el("p", "review-update-body", u.body));
 
-  if (r.user_id === currentUser.id) {
+  if (currentUser && r.user_id === currentUser.id) {
     const del = actionButton("Delete update");
     del.addEventListener("click", async () => {
       if (!confirm("Delete this update?")) return;
@@ -779,7 +791,7 @@ function buildReview(r) {
   const actions = el("div", "post-actions");
   actions.appendChild(buildLikeButton("review_likes", "review_id", r.id, r.review_likes || []));
 
-  if (r.user_id === currentUser.id) {
+  if (currentUser && r.user_id === currentUser.id) {
     const edit = actionButton("Edit");
     edit.addEventListener("click", () => {
       if (article.querySelector(".edit-form")) return;
@@ -808,7 +820,7 @@ function buildReview(r) {
   }
 
   // Moderators can mark other people's reviews as standout (bonus points)
-  if (isModerator && r.user_id !== currentUser.id && !isStandout) {
+  if (currentUser && isModerator && r.user_id !== currentUser.id && !isStandout) {
     const mark = actionButton("Mark standout");
     mark.addEventListener("click", async () => {
       mark.disabled = true;
@@ -824,6 +836,7 @@ function buildReview(r) {
 
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
+  if (!currentUser) { window.location.href = "login.html"; return; }
   messageEl.textContent = "Posting...";
   messageEl.style.color = "var(--cream)";
 
