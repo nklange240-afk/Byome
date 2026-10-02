@@ -5,6 +5,7 @@ const categorySelect = document.getElementById("product-category");
 const subcategorySelect = document.getElementById("product-subcategory");
 
 let currentUser = null;
+let knownProducts = []; // approved products, plus your own pending suggestions
 
 const SUBCATEGORIES = {
   "Hair Care": ["Shampoo & Conditioner", "Styling", "Treatments & Masks", "Scalp Care", "Tools & Accessories"],
@@ -45,7 +46,56 @@ async function init() {
   }
 
   currentUser = data.session.user;
+
+  const { data: products } = await supabaseClient
+    .from("products").select("id, name, brand, status, suggested_by").neq("status", "rejected");
+  knownProducts = products || [];
 }
+
+// ---------- "Is it already here?" ----------
+// While you type, list products that look like the one you're entering.
+// It's only a heads-up: you can still submit.
+const nameInput = document.getElementById("product-name");
+const brandInput = document.getElementById("product-brand");
+const similarBox = document.getElementById("similar-products");
+
+function currentMatches() {
+  return PRODUCT_MATCH.similar({ brand: brandInput.value, name: nameInput.value }, knownProducts);
+}
+
+function showSimilar() {
+  const matches = currentMatches().slice(0, 3);
+  similarBox.innerHTML = "";
+  similarBox.hidden = matches.length === 0;
+  if (!matches.length) return;
+
+  const title = document.createElement("p");
+  title.className = "similar-title";
+  title.textContent = matches.length === 1 ? "Is it this one? It's already on byome:" : "Is it one of these? They're already on byome:";
+  const list = document.createElement("ul");
+  matches.forEach(({ product }) => {
+    const li = document.createElement("li");
+    const label = product.brand + " \u2014 " + product.name;
+    if (product.status === "approved") {
+      const a = document.createElement("a");
+      a.className = "inline-link";
+      a.href = "reviews.html?q=" + encodeURIComponent(product.brand + " " + product.name);
+      a.textContent = label;
+      li.append(a);
+    } else {
+      li.textContent = label + " (you suggested this already; it's waiting for a moderator)";
+    }
+    list.appendChild(li);
+  });
+  similarBox.append(title, list);
+}
+
+let similarTimer = null;
+[nameInput, brandInput].forEach((input) => input.addEventListener("input", () => {
+  clearTimeout(similarTimer);
+  similarTimer = setTimeout(showSimilar, 250);
+}));
+form.addEventListener("reset", () => { similarBox.hidden = true; });
 
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -60,6 +110,13 @@ form.addEventListener("submit", async (event) => {
   const variations = variationsRaw
     ? variationsRaw.split(",").map((v) => v.trim()).filter((v) => v.length > 0)
     : [];
+
+  // A near-certain match gets one last check before submitting
+  const best = currentMatches()[0];
+  if (best && best.score === 1 &&
+      !confirm(best.product.brand + " \u2014 " + best.product.name + " looks like the same product. Submit anyway?")) {
+    return;
+  }
 
   messageEl.textContent = "Submitting...";
   messageEl.style.color = "var(--cream)";
