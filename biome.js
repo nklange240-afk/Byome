@@ -23,11 +23,16 @@ const BIOME = (function () {
   // same proportions at either size. Measured on the 512 canvas.
   const ART = { canvas: 512, left: 46, top: 54, width: 404, height: 392, bottom: 445 };
 
-  // A plant's bottom edge (y=462 on its canvas, the bottom of the art area)
-  // lands at y=80 on the pot's canvas: inside the pot opening, just behind
-  // the front of the rim. The plant is drawn in front of the pot.
+  // A potted plant is drawn in four layers, back to front:
+  //   1. the pot   2. soil   3. the plant   4. the pot's front rim and body
+  // so the plant's stems disappear behind the front of the rim, inside the
+  // pot. Layer 4 is the same pot image, cut along the front edge of the pot
+  // opening (see .biome-pot-front in style.css), so any pot drawn on the
+  // template works without extra art.
+  // The plant's bottom edge (y=462 on its canvas) lands at y=100 on the
+  // pot's canvas: behind the front rim.
   const PLANT_BASE_Y = 462;
-  const POT_SEAT_Y = 80;
+  const POT_SEAT_Y = 100;
 
   // How wide a pot's art appears on the shelf, in shelf pixels.
   // Medium is 1.25x small (a 640 canvas), the most that fits the bottom row.
@@ -112,7 +117,11 @@ const BIOME = (function () {
       }
 
       if (pot) spot.appendChild(img("biome-pot", pot.image, opts.editable ? "" : pot.name));
-      if (pot && plant) spot.appendChild(img("biome-plant", plant.image, opts.editable ? "" : plant.name));
+      if (pot && plant) {
+        spot.appendChild(img("biome-soil", "biome-assets/soil.png", ""));
+        spot.appendChild(img("biome-plant", plant.image, opts.editable ? "" : plant.name));
+        spot.appendChild(img("biome-pot-front", pot.image, ""));
+      }
       wrap.appendChild(spot);
     });
     return wrap;

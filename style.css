@@ -2039,13 +2039,37 @@ button.biome-slot {
   height: 100%;
 }
 
-/* Plant sits in front of the pot, its base inside the pot opening */
-.biome-plant {
+/* A potted plant: pot, soil, plant, then the pot's front on top, so the
+   stems tuck in behind the rim. Positions match biome.js (plant base at
+   y=462 on its canvas sits at y=100 on the pot's canvas). */
+.biome-soil,
+.biome-plant,
+.biome-pot-front {
   position: absolute;
   left: 0;
-  top: -74.609%;
   width: 100%;
   pointer-events: none;
+}
+
+.biome-soil,
+.biome-pot-front {
+  top: 0;
+  height: 100%;
+}
+
+.biome-plant {
+  top: -70.703%;
+}
+
+/* The pot again, cut along the front edge of the pot opening (an ellipse
+   centred at 248,73 on the 512 template), keeping only the front rim and body */
+.biome-pot-front {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512' preserveAspectRatio='none'%3E%3Cpath d='M0 73H52A196 12 0 0 0 444 73H512V512H0Z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512' preserveAspectRatio='none'%3E%3Cpath d='M0 73H52A196 12 0 0 0 444 73H512V512H0Z'/%3E%3C/svg%3E");
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
 }
 
 /* While arranging: outline around each spot's pot area */
