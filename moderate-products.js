@@ -1,4 +1,5 @@
 const queueEl = document.getElementById("queue");
+const heldEl = document.getElementById("held-queue");
 
 // Small helper: create an element with a class and text in one line.
 function el(tag, className, text) {
@@ -6,6 +7,17 @@ function el(tag, className, text) {
   if (className) node.className = className;
   if (text !== undefined) node.textContent = text;
   return node;
+}
+
+// Only allow normal web addresses for product photos. Anything else
+// (like a "javascript:" link) could run code when a moderator clicks it.
+function safeUrl(url) {
+  try {
+    const u = new URL(url);
+    return u.protocol === "https:" || u.protocol === "http:" ? u.href : null;
+  } catch (e) {
+    return null;
+  }
 }
 
 async function init() {
@@ -28,9 +40,14 @@ async function init() {
   if (!profile || !profile.is_moderator) {
     queueEl.innerHTML = "";
     queueEl.appendChild(el("p", "feed-empty", "This page is for moderators only."));
+    document.querySelector("main").replaceChildren(
+      el("h1", null, "Moderation"),
+      el("p", "feed-empty", "This page is for moderators only.")
+    );
     return;
   }
 
+  loadHeld();
   loadQueue();
 }
 
@@ -67,10 +84,11 @@ function buildQueueItem(product) {
   meta.appendChild(el("span", "post-author", product.brand));
   view.appendChild(meta);
 
-  if (product.photo_url) {
+  const photo = product.photo_url ? safeUrl(product.photo_url) : null;
+  if (photo) {
     const p = el("p", null);
     const a = document.createElement("a");
-    a.href = product.photo_url;
+    a.href = photo;
     a.target = "_blank";
     a.rel = "noopener noreferrer";
     a.textContent = "View submitted photo";
@@ -247,3 +265,85 @@ function buildEditForm(product, onSaved, onCancel) {
 }
 
 init();
+
+// ---------- Held by automod ----------
+
+function formatDate(iso) {
+  return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+}
+
+async function loadHeld() {
+  const held = (q) => q.not("held_at", "is", null).order("held_at", { ascending: true });
+  const [posts, comments, reviews, updates] = await Promise.all([
+    held(supabaseClient.from("posts").select("id, title, body, held_at, profiles!user_id(username)")),
+    held(supabaseClient.from("comments").select("id, body, held_at, profiles!user_id(username), posts!post_id(title)")),
+    held(supabaseClient.from("reviews").select("id, title, body, held_at, profiles!user_id(username), products!product_id(brand, name)")),
+    held(supabaseClient.from("review_updates").select("id, body, held_at, profiles!user_id(username), reviews!review_id(title)")),
+  ]);
+
+  heldEl.innerHTML = "";
+  const failed = [posts, comments, reviews, updates].find((res) => res.error);
+  if (failed) {
+    heldEl.appendChild(el("p", "feed-empty", "Couldn't load held items: " + failed.error.message));
+    return;
+  }
+
+  // One list, oldest first, whatever kind of thing it is
+  const items = [].concat(
+    posts.data.map((p) => ({ kind: "post", label: "Post", id: p.id, title: p.title, body: p.body, held_at: p.held_at, author: p.profiles })),
+    comments.data.map((c) => ({ kind: "comment", label: "Comment", id: c.id, body: c.body, held_at: c.held_at, author: c.profiles,
+      context: c.posts ? "On the post \u201c" + c.posts.title + "\u201d" : null })),
+    reviews.data.map((r) => ({ kind: "review", label: "Review", id: r.id, title: r.title, body: r.body, held_at: r.held_at, author: r.profiles,
+      context: r.products ? "Review of " + r.products.brand + " \u2014 " + r.products.name : null })),
+    updates.data.map((u) => ({ kind: "review_update", label: "Review update", id: u.id, body: u.body, held_at: u.held_at, author: u.profiles,
+      context: u.reviews ? "Update to the review \u201c" + u.reviews.title + "\u201d" : null }))
+  ).sort((a, b) => new Date(a.held_at) - new Date(b.held_at));
+
+  if (items.length === 0) {
+    heldEl.appendChild(el("p", "feed-empty", "Nothing held right now."));
+    return;
+  }
+  items.forEach((item) => heldEl.appendChild(buildHeldItem(item)));
+}
+
+function buildHeldItem(item) {
+  const article = el("article", "post");
+  const meta = el("div", "post-meta");
+  meta.append(
+    el("span", "review-tag", item.label),
+    el("span", "post-author", item.author ? item.author.username : "Unknown"),
+    el("span", null, "held " + formatDate(item.held_at))
+  );
+  article.appendChild(meta);
+  if (item.context) article.appendChild(el("p", "feed-empty", item.context));
+  if (item.title) article.appendChild(el("h3", "post-title", item.title));
+  article.appendChild(el("p", "post-body", item.body));
+
+  const actions = el("div", "post-actions");
+  const message = el("span", "auth-message");
+
+  function decide(action, button) {
+    return async () => {
+      if (action === "remove" && !confirm("Remove this " + item.label.toLowerCase() + " for good? The author will be told it broke the guidelines.")) return;
+      actions.querySelectorAll("button").forEach((b) => { b.disabled = true; });
+      const { error } = await supabaseClient.rpc("moderate_content", { p_kind: item.kind, p_id: item.id, p_action: action });
+      if (error) {
+        message.textContent = "Couldn't " + action + ": " + error.message;
+        message.style.color = "#E07A5F";
+        actions.querySelectorAll("button").forEach((b) => { b.disabled = false; });
+        return;
+      }
+      loadHeld();
+    };
+  }
+
+  const approve = el("button", "action-btn", "Approve");
+  approve.type = "button";
+  approve.addEventListener("click", decide("approve", approve));
+  const remove = el("button", "action-btn", "Remove");
+  remove.type = "button";
+  remove.addEventListener("click", decide("remove", remove));
+  actions.append(approve, remove, message);
+  article.appendChild(actions);
+  return article;
+}

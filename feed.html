@@ -7,7 +7,7 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=8" />
+  <link rel="stylesheet" href="style.css?v=9" />
 </head>
 <body>
 
@@ -59,21 +59,8 @@
     </form>
     <p id="post-message" class="auth-message"></p>
 
-    <div class="filter-row">
-      <label for="category-filter" class="visually-hidden">Filter by category</label>
-      <select id="category-filter" class="category-filter">
-        <option value="">All categories</option>
-        <option value="SOTD">SOTD</option>
-        <option value="Makeup">Makeup</option>
-        <option value="Skincare">Skincare</option>
-        <option value="Fragrance">Fragrance</option>
-        <option value="Body Care">Body Care</option>
-        <option value="Nails">Nails</option>
-        <option value="Just for Fun">Just for Fun</option>
-        <option value="Introductions">Introductions</option>
-        <option value="Personal Wins">Personal Wins</option>
-      </select>
-    </div>
+    <!-- Filter buttons are built by feed.js from the category list in the form above -->
+    <div id="category-filter" class="category-chips" role="group" aria-label="Filter posts by category"></div>
 
     <section id="feed" class="feed" aria-live="polite">
       <p class="feed-empty">Loading posts...</p>
@@ -81,8 +68,8 @@
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase-client.js?v=8"></script>
-  <script src="nav-menu.js?v=8"></script>
-  <script src="feed.js?v=8"></script>
+  <script src="supabase-client.js?v=9"></script>
+  <script src="nav-menu.js?v=9"></script>
+  <script src="feed.js?v=9"></script>
 </body>
 </html>

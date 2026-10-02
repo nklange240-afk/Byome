@@ -6,7 +6,7 @@
   <title>Reviews — byome</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=8" />
+  <link rel="stylesheet" href="style.css?v=9" />
 </head>
 <body>
   <header class="site-header">
@@ -74,6 +74,13 @@
     <p id="review-message" class="auth-message"></p>
     <p class="feed-empty">Can't find a product? <a href="suggest-product.html" class="inline-link">Suggest it</a>.</p>
 
+    <div class="review-search">
+      <label for="review-search" class="visually-hidden">Search reviews by product or brand</label>
+      <input type="search" id="review-search" class="search-input" autocomplete="off"
+        placeholder="Search reviews by product or brand..." />
+    </div>
+    <p id="search-status" class="search-status" aria-live="polite" hidden></p>
+
     <div class="filter-row">
       <label for="category-filter" class="visually-hidden">Filter by category</label>
       <select id="category-filter" class="category-filter">
@@ -96,8 +103,8 @@
     </section>
   </main>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase-client.js?v=8"></script>
-  <script src="nav-menu.js?v=8"></script>
-  <script src="reviews.js?v=8"></script>
+  <script src="supabase-client.js?v=9"></script>
+  <script src="nav-menu.js?v=9"></script>
+  <script src="reviews.js?v=9"></script>
 </body>
 </html>
