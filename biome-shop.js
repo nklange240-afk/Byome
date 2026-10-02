@@ -92,7 +92,7 @@ function buildCard(item, balance, ownedCount) {
   card.appendChild(el("span", "rarity rarity-" + item.rarity, item.rarity));
   card.appendChild(el("h3", null, item.name));
   if (item.description) card.appendChild(el("p", "shop-meta", item.description));
-  if (item.size) card.appendChild(el("p", "shop-meta", item.size === "small" ? "Fits the top two shelves" : "Fits the bottom shelf"));
+  if (item.size) card.appendChild(el("p", "shop-meta", item.size === "small" ? "Can be placed on the top two shelves" : "Can be placed on the bottom shelf"));
 
   const price = el("p", "shop-price");
   price.append(leafIcon(), el("span", null, String(item.price)));
