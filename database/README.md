@@ -16,3 +16,4 @@ byome's database lives in Supabase. These files are a backup and a history of ch
 - `2026-10-02-sprout-story.sql`: the Welcome sprout's description (shown in the shelf info box).
 - `2026-10-03-zebra-haworthia.sql`: adds the Zebra haworthia to the shop (uncommon, 120 points).
 - `2026-10-03-moderator-alerts.sql`: moderators get a notification for new product suggestions, automod holds and reports; `moderation_counts()` powers the badge on the Moderate link.
+- `2026-10-03-profiles.sql`: optional skin & hair profile, profile pictures (the `avatars` storage bucket), reporting profiles (moderators can remove a picture or reset a username), and deleting your account (reviews, posts and comments stay as "Deleted member" unless you choose to delete them).

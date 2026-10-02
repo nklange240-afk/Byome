@@ -24,11 +24,9 @@ function el(tag, className, text) {
 }
 
 // A username that links to that member's profile
-function authorLink(username) {
-  if (!username) return el("span", "post-author", "Unknown");
-  const a = el("a", "post-author", username);
-  a.href = "profile.html?user=" + encodeURIComponent(username);
-  return a;
+// A member's picture and name, linking to their profile (profile-fields.js)
+function authorLink(profile) {
+  return PROFILES.authorLink(profile);
 }
 
 function formatDate(iso) {
@@ -39,11 +37,11 @@ function formatDate(iso) {
   });
 }
 
-function buildMeta(username, createdAt, editedAt) {
+function buildMeta(profile, createdAt, editedAt) {
   const meta = el("div", "post-meta");
   const time = el("time", null, formatDate(createdAt));
   time.dateTime = createdAt;
-  meta.append(authorLink(username), time);
+  meta.append(authorLink(profile), time);
   if (editedAt) {
     const tag = el("span", "edited-tag", "edited");
     tag.title = "Edited " + formatDate(editedAt);
@@ -150,7 +148,7 @@ async function loadPosts(more) {
   const to = (more === true ? postsShown + PAGE_SIZE : Math.max(PAGE_SIZE, postsShown)) - 1;
   let query = supabaseClient
     .from("posts")
-    .select("id, title, body, category, created_at, edited_at, held_at, user_id, profiles!user_id(username), likes(user_id), comments(count)")
+    .select("id, title, body, category, created_at, edited_at, held_at, user_id, profiles!user_id(username, avatar_path), likes(user_id), comments(count)")
     .order("created_at", { ascending: false })
     .order("id")
     .range(from, to);
@@ -203,7 +201,7 @@ function buildPost(post) {
   } else if (post.category) {
     article.appendChild(el("span", "post-category-tag", post.category));
   }
-  article.appendChild(buildMeta(post.profiles && post.profiles.username, post.created_at, post.edited_at));
+  article.appendChild(buildMeta(post.profiles, post.created_at, post.edited_at));
   if (post.held_at) article.appendChild(heldNotice());
   article.appendChild(el("p", "post-body", post.body));
 
@@ -280,7 +278,7 @@ function buildPost(post) {
 async function fetchComments(postId) {
   const { data, error } = await supabaseClient
     .from("comments")
-    .select("id, parent_id, body, created_at, held_at, user_id, profiles!user_id(username), comment_likes(user_id)")
+    .select("id, parent_id, body, created_at, held_at, user_id, profiles!user_id(username, avatar_path), comment_likes(user_id)")
     .eq("post_id", postId)
     .order("created_at", { ascending: true });
 
@@ -315,7 +313,7 @@ function renderCommentSection(container, postId, comments, refresh) {
 function buildComment(comment, depth, postId, refresh) {
   const wrap = el("div", "comment");
 
-  wrap.appendChild(buildMeta(comment.profiles && comment.profiles.username, comment.created_at));
+  wrap.appendChild(buildMeta(comment.profiles, comment.created_at));
   if (comment.held_at) wrap.appendChild(heldNotice());
   wrap.appendChild(el("p", "comment-body", comment.body));
 

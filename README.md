@@ -12,7 +12,8 @@ The site is plain HTML, CSS and JavaScript (no build step). Accounts and data li
 | `signup.html`, `login.html`, `reset-password.html` | Accounts (the reset page handles "forgot password") |
 | `feed.html` | Community posts and comments |
 | `reviews.html` | Product reviews, with search and category filters |
-| `profile.html` | A member's shelf, achievements, points, reviews and posts. Your own profile lets you arrange your shelf and edit or delete your posts and reviews |
+| `profile.html` | A member's picture, skin & hair details, shelf, achievements, points, reviews and posts. Your own profile lets you arrange your shelf and edit or delete your posts and reviews; others' profiles can be reported |
+| `edit-profile.html` | Change your picture, username and skin & hair details, or delete your account |
 | `biome-shop.html` | Spend biome points on pots, plants and shelves |
 | `suggest-product.html` | Suggest a product for reviews (flags look-alikes of existing products) |
 | `notifications.html` | Your notifications |
@@ -26,6 +27,7 @@ The site is plain HTML, CSS and JavaScript (no build step). Accounts and data li
 - `edit-forms.js`: the edit forms for posts and reviews
 - `report.js`: the report (flag) button and pop-up
 - `product-match.js`: spots products that look like ones already listed
+- `profile-fields.js`: the skin & hair options, profile pictures, and how names show (including "Deleted member")
 
 When you change a page's JS or CSS, bump the `?v=` number in the HTML files so browsers load the new version.
 
