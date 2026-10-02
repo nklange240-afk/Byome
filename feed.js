@@ -134,6 +134,7 @@ async function init() {
 
   currentUser = data.session.user;
 
+  await REPORTS.loadMine(currentUser.id); // so flags you've used start red
   loadPosts();
 }
 
@@ -248,6 +249,8 @@ function buildPost(post) {
     });
     actions.appendChild(del);
   }
+
+  if (post.user_id !== currentUser.id) actions.appendChild(REPORTS.button("post", post.id));
 
   article.append(actions, commentsSection);
   return article;
@@ -382,6 +385,8 @@ function buildComment(comment, depth, postId, refresh) {
     });
     actions.appendChild(del);
   }
+
+  if (comment.user_id !== currentUser.id) actions.appendChild(REPORTS.button("comment", comment.id));
 
   wrap.append(actions, replyHolder);
 

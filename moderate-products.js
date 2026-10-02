@@ -1,5 +1,6 @@
 const queueEl = document.getElementById("queue");
 const heldEl = document.getElementById("held-queue");
+const reportsEl = document.getElementById("reports-queue");
 
 // Small helper: create an element with a class and text in one line.
 function el(tag, className, text) {
@@ -48,6 +49,7 @@ async function init() {
   }
 
   loadHeld();
+  loadReports();
   loadQueue();
 }
 
@@ -344,6 +346,102 @@ function buildHeldItem(item) {
   remove.type = "button";
   remove.addEventListener("click", decide("remove", remove));
   actions.append(approve, remove, message);
+  article.appendChild(actions);
+  return article;
+}
+
+// ---------- Reported by members ----------
+
+const REASON_LABELS = {
+  spam: "Spam or advertising", harassment: "Harassment or bullying", hate: "Hate speech or slurs",
+  inappropriate: "Inappropriate or explicit", misleading: "Misleading or false", other: "Something else",
+};
+
+async function loadReports() {
+  const { data, error } = await supabaseClient
+    .from("content_reports")
+    .select("id, kind, reason, details, created_at, reporter:profiles!reporter_id(username), " +
+      "post:posts!post_id(id, title, body, author:profiles!user_id(username)), " +
+      "comment:comments!comment_id(id, body, author:profiles!user_id(username), post:posts!post_id(title)), " +
+      "review:reviews!review_id(id, title, body, author:profiles!user_id(username), product:products!product_id(brand, name))")
+    .is("resolved_at", null)
+    .order("created_at", { ascending: true });
+
+  reportsEl.innerHTML = "";
+  if (error) {
+    reportsEl.appendChild(el("p", "feed-empty", "Couldn't load reports: " + error.message));
+    return;
+  }
+
+  // Several people can report the same thing: show it once, with every report
+  const groups = new Map();
+  data.forEach((r) => {
+    const content = r[r.kind];
+    if (!content) return;
+    const key = r.kind + ":" + content.id;
+    if (!groups.has(key)) groups.set(key, { kind: r.kind, content: content, reports: [] });
+    groups.get(key).reports.push(r);
+  });
+
+  if (groups.size === 0) {
+    reportsEl.appendChild(el("p", "feed-empty", "No open reports."));
+    return;
+  }
+  // Most-reported first
+  Array.from(groups.values())
+    .sort((a, b) => b.reports.length - a.reports.length)
+    .forEach((g) => reportsEl.appendChild(buildReportedItem(g)));
+}
+
+function buildReportedItem(group) {
+  const c = group.content;
+  const label = { post: "Post", comment: "Comment", review: "Review" }[group.kind];
+  const article = el("article", "post");
+
+  const meta = el("div", "post-meta");
+  meta.append(
+    el("span", "review-tag", label),
+    el("span", "post-author", c.author ? c.author.username : "Unknown"),
+    el("span", null, group.reports.length === 1 ? "1 report" : group.reports.length + " reports")
+  );
+  article.appendChild(meta);
+
+  if (group.kind === "comment" && c.post) article.appendChild(el("p", "feed-empty", "On the post \u201c" + c.post.title + "\u201d"));
+  if (group.kind === "review" && c.product) article.appendChild(el("p", "feed-empty", "Review of " + c.product.brand + " \u2014 " + c.product.name));
+  if (c.title) article.appendChild(el("h3", "post-title", c.title));
+  article.appendChild(el("p", "post-body", c.body));
+
+  const list = el("ul", "report-list");
+  group.reports.forEach((r) => {
+    const li = el("li");
+    li.appendChild(el("strong", null, REASON_LABELS[r.reason] || r.reason));
+    li.appendChild(document.createTextNode(" \u00b7 " + (r.reporter ? r.reporter.username : "Unknown") + ", " + formatDate(r.created_at)));
+    if (r.details) li.appendChild(el("p", "report-details", r.details));
+    list.appendChild(li);
+  });
+  article.appendChild(list);
+
+  const actions = el("div", "post-actions");
+  const message = el("span", "auth-message");
+  async function decide(action) {
+    if (action === "remove" && !confirm("Remove this " + group.kind + " for good? The author will be told it broke the guidelines.")) return;
+    actions.querySelectorAll("button").forEach((b) => { b.disabled = true; });
+    const { error } = await supabaseClient.rpc("resolve_reports", { p_kind: group.kind, p_id: c.id, p_action: action });
+    if (error) {
+      message.textContent = "Couldn't " + action + ": " + error.message;
+      message.style.color = "#E07A5F";
+      actions.querySelectorAll("button").forEach((b) => { b.disabled = false; });
+      return;
+    }
+    loadReports();
+  }
+  const keep = el("button", "action-btn", "Keep it");
+  keep.type = "button";
+  keep.addEventListener("click", () => decide("keep"));
+  const remove = el("button", "action-btn", "Remove");
+  remove.type = "button";
+  remove.addEventListener("click", () => decide("remove"));
+  actions.append(keep, remove, message);
   article.appendChild(actions);
   return article;
 }
