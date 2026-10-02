@@ -51,7 +51,20 @@
       .eq("id", data.session.user.id).single();
     if (!profile) return;
     document.getElementById("header-username").textContent = profile.username;
-    if (profile.is_moderator) document.getElementById("moderate-link").hidden = false;
+    if (profile.is_moderator) {
+      const modLink = document.getElementById("moderate-link");
+      modLink.hidden = false;
+      // How many things are waiting for a moderator
+      const { data: waiting } = await supabaseClient.rpc("moderation_counts");
+      if (waiting) {
+        const badge = document.createElement("span");
+        badge.className = "nav-badge";
+        badge.textContent = waiting > 9 ? "9+" : String(waiting);
+        modLink.appendChild(badge);
+        modLink.setAttribute("aria-label", "Moderate (" + waiting + " waiting)");
+        toggle.classList.add("has-unread");
+      }
+    }
 
     // On pages that show Log in / Sign up for guests (currently just
     // the homepage), hide those and reveal Log out now that we know

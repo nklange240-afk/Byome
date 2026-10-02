@@ -54,11 +54,15 @@ async function init() {
 }
 
 async function loadQueue() {
-  const { data: products, error } = await supabaseClient
-    .from("products")
-    .select("id, name, brand, photo_url, variations, created_at, profiles!suggested_by(username)")
-    .eq("status", "pending")
-    .order("created_at", { ascending: true });
+  const [{ data: products, error }, { data: everything }] = await Promise.all([
+    supabaseClient
+      .from("products")
+      .select("id, name, brand, photo_url, variations, created_at, profiles!suggested_by(username)")
+      .eq("status", "pending")
+      .order("created_at", { ascending: true }),
+    // Every live or waiting product, to spot repeat suggestions
+    supabaseClient.from("products").select("id, name, brand, status, created_at").neq("status", "rejected"),
+  ]);
 
   queueEl.innerHTML = "";
 
@@ -72,10 +76,16 @@ async function loadQueue() {
     return;
   }
 
-  products.forEach((p) => queueEl.appendChild(buildQueueItem(p)));
+  // Only flag against live products, or suggestions made BEFORE this one,
+  // so the first of two repeat suggestions isn't the one marked duplicate
+  products.forEach((p) => {
+    const earlier = (everything || []).filter((o) => o.status === "approved" || new Date(o.created_at) < new Date(p.created_at));
+    queueEl.appendChild(buildQueueItem(p, PRODUCT_MATCH.similar(p, earlier)));
+  });
 }
 
-function buildQueueItem(product) {
+// matches: products that look like this one (see product-match.js)
+function buildQueueItem(product, matches) {
   const article = el("article", "post");
 
   // Read-only view of the suggestion
@@ -133,7 +143,7 @@ function buildQueueItem(product) {
 
   const rejectBtn = el("button", "action-btn", "Reject");
   rejectBtn.type = "button";
-  rejectBtn.addEventListener("click", () => {
+  function openRejectForm(presetReason) {
     if (article.querySelector(".edit-form")) return;
     view.hidden = true;
     actions.hidden = true;
@@ -141,12 +151,35 @@ function buildQueueItem(product) {
       form.remove();
       view.hidden = false;
       actions.hidden = false;
-    });
+    }, presetReason);
     article.appendChild(form);
     form.querySelector("textarea").focus();
-  });
+  }
+  rejectBtn.addEventListener("click", () => openRejectForm());
 
   actions.append(approveBtn, editBtn, rejectBtn);
+
+  // Possible repeat: show what it looks like, plus a one-click duplicate rejection
+  if (matches && matches.length) {
+    const box = el("div", "similar-box");
+    box.appendChild(el("p", "similar-title", "Possible duplicate of:"));
+    const list = el("ul");
+    matches.slice(0, 3).forEach(({ product: p }) => {
+      const where = p.status === "approved" ? "already listed" : "also waiting here, suggested " + new Date(p.created_at).toLocaleDateString();
+      list.appendChild(el("li", null, p.brand + " \u2014 " + p.name + " (" + where + ")"));
+    });
+    box.appendChild(list);
+    view.appendChild(box);
+
+    const best = matches[0].product;
+    const dupBtn = el("button", "action-btn", "Reject as duplicate");
+    dupBtn.type = "button";
+    dupBtn.addEventListener("click", () => openRejectForm(
+      best.status === "approved"
+        ? "Thanks! This product is already listed as \u201c" + best.brand + " \u2014 " + best.name + "\u201d, so you can review it there."
+        : "Thanks! Someone suggested this product just before you, so it's already on its way."));
+    actions.appendChild(dupBtn);
+  }
   article.appendChild(actions);
 
   return article;
@@ -154,7 +187,7 @@ function buildQueueItem(product) {
 
 // Rejecting needs a reason. It's included in the notification the
 // person who suggested the product receives.
-function buildRejectForm(product, onSaved, onCancel) {
+function buildRejectForm(product, onSaved, onCancel, presetReason) {
   const form = el("form", "edit-form");
 
   const label = el("label", "field-label", "Why is this being rejected? (shown to the person who suggested it)");
@@ -165,6 +198,7 @@ function buildRejectForm(product, onSaved, onCancel) {
   textarea.maxLength = 500;
   textarea.required = true;
   textarea.placeholder = "e.g. This product is already listed under a different name.";
+  if (presetReason) textarea.value = presetReason;
 
   const message = el("p", "auth-message");
   const buttons = el("div", "edit-buttons");

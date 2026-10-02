@@ -7,7 +7,7 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=12" />
+  <link rel="stylesheet" href="style.css?v=14" />
 </head>
 <body>
 
@@ -48,6 +48,9 @@
         <label for="product-brand">Brand</label>
         <input type="text" id="product-brand" required />
 
+        <!-- Filled in by suggest-product.js when this looks like a product we already have -->
+        <div id="similar-products" class="similar-box" aria-live="polite" hidden></div>
+
         <label for="product-category">Category</label>
         <select id="product-category" required>
           <option value="">Choose a category...</option>
@@ -79,8 +82,9 @@
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase-client.js?v=12"></script>
-  <script src="nav-menu.js?v=12"></script>
-  <script src="suggest-product.js?v=12"></script>
+  <script src="supabase-client.js?v=14"></script>
+  <script src="nav-menu.js?v=14"></script>
+  <script src="product-match.js?v=14"></script>
+  <script src="suggest-product.js?v=14"></script>
 </body>
 </html>

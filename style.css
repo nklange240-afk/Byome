@@ -2543,3 +2543,42 @@ div.biome-slot:focus-visible,
   font-weight: 600;
   cursor: default;
 }
+
+/* =========================================================
+   POSSIBLE DUPLICATE PRODUCTS (suggest page + Moderate page)
+   ========================================================= */
+.similar-box {
+  margin: 0.25rem 0 0.75rem;
+  padding: 0.6rem 0.8rem;
+  border-left: 3px solid var(--gold);
+  background-color: rgba(224, 168, 62, 0.08);
+  border-radius: 0 6px 6px 0;
+  font-size: 0.9rem;
+}
+
+.similar-title {
+  font-weight: 600;
+  color: var(--gold);
+  margin-bottom: 0.25rem;
+}
+
+.similar-box ul {
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
+.similar-box li + li {
+  margin-top: 0.2rem;
+}
+
+/* "Load more" at the bottom of the feed and reviews */
+.load-more {
+  display: block;
+  margin: 1rem auto 2rem;
+  cursor: pointer;
+}
+
+.load-more:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
