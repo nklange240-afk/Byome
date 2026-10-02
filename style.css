@@ -1477,6 +1477,18 @@ a.post-author:focus-visible {
   color: var(--gold);
 }
 
+/* Coin (community) and leaf (biome) icons: same size, matching their numbers */
+.points-stat .points-icon {
+  width: 1.5rem;
+  height: 1.5rem;
+  margin-bottom: 0.2rem;
+  color: var(--gold);
+}
+
+.points-stat.biome .points-icon {
+  color: var(--leaf);
+}
+
 .points-stat:last-child .points-number {
   color: var(--leaf);
 }
@@ -1966,4 +1978,330 @@ css
   border-left: 3px solid var(--gold);
   padding: 0.2rem 0 0.2rem 0.6rem;
   margin: 0.4rem 0 0.6rem;
+}
+
+/* =========================================================
+   BIOME SHELF (profile page) and BIOME SHOP
+   ========================================================= */
+.biome-section {
+  margin: 1.5rem 0 2rem;
+}
+
+.biome-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.biome-head .section-title {
+  margin: 0;
+}
+
+.biome-head .btn {
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 0.4rem 1rem;
+}
+
+.biome-shelf {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  margin: 0.75rem auto 0;
+}
+
+.biome-shelf-img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* One spot = the pot's square canvas, placed by biome.js */
+.biome-slot {
+  position: absolute;
+  aspect-ratio: 1;
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: none;
+}
+
+button.biome-slot {
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+}
+
+.biome-pot {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Plant sits in front of the pot, its base inside the pot opening */
+.biome-plant {
+  position: absolute;
+  left: 0;
+  top: -74.609%;
+  width: 100%;
+  pointer-events: none;
+}
+
+/* While arranging: outline around each spot's pot area */
+.biome-slot-ring {
+  position: absolute;
+  left: 8.984%;
+  top: 10.547%;
+  width: 78.906%;
+  height: 76.563%;
+  border: 2px dashed transparent;
+  border-radius: 10px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.biome-slot.is-empty .biome-slot-ring {
+  border-color: rgba(243, 237, 224, 0.6);
+  background-color: rgba(36, 64, 47, 0.25);
+}
+
+.biome-slot:hover .biome-slot-ring,
+.biome-slot:focus-visible .biome-slot-ring {
+  border-color: var(--gold);
+}
+
+.biome-slot:focus-visible {
+  outline: none;
+}
+
+.biome-slot[aria-pressed="true"] .biome-slot-ring {
+  border: 3px solid var(--gold);
+}
+
+.biome-hint {
+  text-align: center;
+  font-size: 0.9rem;
+  opacity: 0.8;
+  margin-top: 0.6rem;
+}
+
+/* Arranging panel under the shelf */
+.biome-editor {
+  margin-top: 1rem;
+  padding: 1rem;
+  background-color: var(--forest-mid);
+  border-radius: 10px;
+}
+
+.biome-editor h3 {
+  font-family: var(--font-heading);
+  font-size: 1.05rem;
+  margin: 0.25rem 0 0.5rem;
+}
+
+.biome-editor h3 + .biome-tiles {
+  margin-bottom: 1rem;
+}
+
+.biome-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(88px, 1fr));
+  gap: 0.5rem;
+}
+
+.biome-tile {
+  -webkit-appearance: none;
+  appearance: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.4rem;
+  background-color: var(--forest-dark);
+  color: var(--cream);
+  border: 1px solid var(--moss);
+  border-radius: 8px;
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  line-height: 1.25;
+  text-align: center;
+  cursor: pointer;
+}
+
+.biome-tile:hover {
+  border-color: var(--gold);
+}
+
+.biome-tile:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+.biome-tile[aria-pressed="true"] {
+  border: 2px solid var(--gold);
+}
+
+.biome-tile:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.biome-tile img,
+.biome-tile-empty {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+}
+
+.biome-tile-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  opacity: 0.6;
+}
+
+.biome-tile-meta {
+  font-size: 0.75rem;
+  opacity: 0.75;
+}
+
+/* Rarity colors, used in the shop and editor */
+.rarity {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.rarity-common { color: var(--cream); opacity: 0.75; }
+.rarity-uncommon { color: var(--leaf); }
+.rarity-rare { color: #8EC3E6; }
+.rarity-legendary { color: var(--gold); }
+
+/* ----- Shop ----- */
+.shop-balance {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.05rem;
+  margin: 0.5rem 0 0.25rem;
+}
+
+.shop-balance strong {
+  font-family: var(--font-heading);
+  font-size: 1.6rem;
+  color: var(--leaf);
+}
+
+.shop-balance .leaf-icon {
+  width: 1.5rem;
+  height: 1.5rem;
+  color: var(--leaf);
+}
+
+.shop-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.shop-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 1rem;
+  background-color: var(--forest-mid);
+  border-radius: 10px;
+}
+
+.shop-card img {
+  width: 100%;
+  height: 150px;
+  object-fit: contain;
+}
+
+.shop-card h3 {
+  font-family: var(--font-heading);
+  font-size: 1.1rem;
+}
+
+.shop-price {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-weight: 600;
+  color: var(--leaf);
+}
+
+.shop-price .leaf-icon {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+.shop-meta {
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+
+.shop-card .btn {
+  margin-top: auto;
+  cursor: pointer;
+  border: none;
+  text-align: center;
+}
+
+.shop-card .btn:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+/* ----- Points lists: "How to earn" and "Recent activity" ----- */
+.earn-item,
+.points-entry {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.earn-desc,
+.entry-meta {
+  font-size: 0.8rem;
+  opacity: 0.75;
+}
+
+.points-entry.is-revoked .entry-title {
+  text-decoration: line-through;
+}
+
+/* "+10" pills: gold = community points, green = biome points */
+.chips {
+  display: flex;
+  flex-shrink: 0;
+  gap: 0.35rem;
+}
+
+.chip {
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.1rem 0.55rem;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.chip-community {
+  color: var(--gold);
+}
+
+.chip-biome {
+  color: var(--leaf);
+}
+
+/* Spending shows as a minus in "Recent activity" */
+.chip-spent {
+  opacity: 0.8;
+  border-style: dashed;
 }

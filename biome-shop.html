@@ -3,14 +3,17 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Notifications — byome</title>
+  <title>Biome shop — byome</title>
+
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css?v=9" />
 </head>
 <body>
+
   <header class="site-header">
     <a href="feed.html" class="logo">by<span class="logo-accent">🌱</span>me</a>
+
     <button id="menu-toggle" class="hamburger-btn" aria-expanded="false" aria-controls="nav-menu" aria-label="Open menu">
       <span></span><span></span><span></span>
     </button>
@@ -27,16 +30,19 @@
       <button id="logout-btn" class="btn btn-ghost" type="button">Log out</button>
     </nav>
   </header>
+
   <main class="feed-page">
-    <h1>Notifications</h1>
-    <p><button id="mark-read-btn" class="action-btn" type="button" hidden>Mark all as read</button></p>
-    <section id="notification-list" class="feed" aria-live="polite">
-      <p class="feed-empty">Loading...</p>
-    </section>
+    <h1>Biome shop</h1>
+    <p class="feed-empty">Spend biome points on pots, plants and shelves for the biome on your profile.</p>
+    <div id="shop-balance" class="shop-balance" aria-live="polite"></div>
+    <p class="feed-empty">Arrange what you own on your <a href="profile.html" class="inline-link">profile</a>.</p>
+    <p id="shop-message" class="auth-message" aria-live="polite"></p>
+    <div id="shop"><p class="feed-empty">Loading...</p></div>
   </main>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-client.js?v=9"></script>
   <script src="nav-menu.js?v=9"></script>
-  <script src="notifications.js?v=9"></script>
+  <script src="biome-shop.js?v=9"></script>
 </body>
 </html>
