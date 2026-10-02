@@ -6,6 +6,15 @@
 //
 // Spots are numbered 0-3 (top row), 4-7 (middle row), 8-10 (bottom row).
 const BIOME = (function () {
+  // Bump this whenever you replace a picture in biome-assets/ with a new
+  // drawing under the same name. Browsers keep old pictures for a while;
+  // a new number makes every browser fetch the new ones straight away.
+  const ART_VERSION = "2";
+
+  function src(path) {
+    return path + (path.indexOf("?") === -1 ? "?" : "&") + "v=" + ART_VERSION;
+  }
+
   const CANVAS = { w: 2700, h: 3600 };
 
   // The three openings in the shelf, top to bottom. "floor" is the y position
@@ -72,10 +81,10 @@ const BIOME = (function () {
     return slots;
   }
 
-  function img(className, src, alt) {
+  function img(className, path, alt) {
     const i = document.createElement("img");
     i.className = className;
-    i.src = src;
+    i.src = src(path);
     i.alt = alt;
     i.loading = "lazy";
     i.decoding = "async";
@@ -243,5 +252,5 @@ const BIOME = (function () {
     return wrap;
   }
 
-  return { build, layoutSlots, sizeOfSlot, ART };
+  return { build, layoutSlots, sizeOfSlot, src, ART };
 })();

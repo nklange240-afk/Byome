@@ -84,7 +84,7 @@ function buildCard(item, balance, ownedCount) {
   const card = el("article", "shop-card");
 
   const img = document.createElement("img");
-  img.src = item.image;
+  img.src = BIOME.src(item.image);
   img.alt = item.name;
   img.loading = "lazy";
   card.appendChild(img);
