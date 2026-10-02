@@ -267,6 +267,7 @@ async function init() {
     const { data: me } = await supabaseClient
       .from("profiles").select("is_moderator").eq("id", currentUser.id).single();
     isModerator = Boolean(me && me.is_moderator);
+    await REPORTS.loadMine(currentUser.id); // so flags you've used start red
   } else {
     // No account — browsing and searching are still fully open, but
     // the write form isn't, since posting a review requires an account.
@@ -941,6 +942,7 @@ function buildReview(r) {
     });
     actions.appendChild(mark);
   }
+  if (currentUser && r.user_id !== currentUser.id) actions.appendChild(REPORTS.button("review", r.id));
   article.appendChild(actions);
   return article;
 }
