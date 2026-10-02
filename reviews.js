@@ -31,10 +31,10 @@ categoryFilter.addEventListener("change", () => {
   subcategoryFilter.appendChild(new Option("All subcategories", ""));
   options.forEach((label) => subcategoryFilter.appendChild(new Option(label, label)));
   subcategoryFilter.disabled = options.length === 0;
-  loadReviews();
+  startOverReviews();
 });
 
-subcategoryFilter.addEventListener("change", loadReviews);
+subcategoryFilter.addEventListener("change", () => startOverReviews());
 
 // ---------- Search ----------
 // Type a product or brand; the list shows reviews of every matching
@@ -65,7 +65,7 @@ searchInput.addEventListener("input", () => {
     const q = searchInput.value.trim();
     if (q) url.searchParams.set("q", q); else url.searchParams.delete("q");
     history.replaceState(null, "", url);
-    loadReviews();
+    startOverReviews();
   }, 250); // wait until typing pauses
 });
 
@@ -462,7 +462,20 @@ productSelect.addEventListener("change", () => {
 
 let latestReviewsRequest = 0;
 
-async function loadReviews() {
+// Reviews load 20 at a time; "Load more" adds the next 20. Reloading after
+// an edit or a new review keeps however many were already showing; a new
+// search or filter starts again from the top.
+const PAGE_SIZE = 20;
+let reviewsShown = 0;
+
+function startOverReviews() {
+  reviewsShown = 0;
+  loadReviews();
+}
+
+async function loadReviews(more) {
+  const from = more === true ? reviewsShown : 0;
+  const to = (more === true ? reviewsShown + PAGE_SIZE : Math.max(PAGE_SIZE, reviewsShown)) - 1;
   // products!inner lets us filter reviews by a column on the joined
   // product (category/subcategory) — every review has a product, so
   // switching to an inner join never hides a review that would
@@ -471,7 +484,8 @@ async function loadReviews() {
     .from("reviews")
     .select("id, rating, title, body, variation, would_repurchase, holy_grail, created_at, edited_at, held_at, user_id, profiles!user_id(username), products!product_id!inner(name, brand, photo_url, category, subcategory), review_likes(user_id), review_updates(id, body, created_at, held_at), review_standouts(review_id)")
     .order("created_at", { ascending: false })
-    .limit(50);
+    .order("id")
+    .range(from, to);
 
   if (categoryFilter.value) {
     query = query.eq("products.category", categoryFilter.value);
@@ -505,12 +519,14 @@ async function loadReviews() {
   const { data: reviews, error } = await query;
   if (thisRequest !== latestReviewsRequest) return;
 
-  listEl.innerHTML = "";
+  if (more === true) listEl.querySelectorAll(".load-more").forEach((b) => b.remove());
+  else listEl.innerHTML = "";
   if (error) {
     listEl.appendChild(el("p", "feed-empty", "Couldn't load reviews: " + error.message));
     return;
   }
-  if (reviews.length === 0) {
+  if (reviews.length === 0 && more !== true) {
+    reviewsShown = 0;
     const filtered = q || categoryFilter.value;
     listEl.appendChild(el("p", "feed-empty", filtered
       ? "No reviews match yet. Be the first to write one above."
@@ -518,6 +534,13 @@ async function loadReviews() {
     return;
   }
   reviews.forEach((r) => listEl.appendChild(buildReview(r)));
+  reviewsShown = from + reviews.length;
+  if (reviews.length === to - from + 1) {
+    const btn = el("button", "btn btn-ghost load-more", "Load more");
+    btn.type = "button";
+    btn.addEventListener("click", () => { btn.disabled = true; btn.textContent = "Loading..."; loadReviews(true); });
+    listEl.appendChild(btn);
+  }
 }
 
 // Only allow normal web addresses for product photos

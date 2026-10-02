@@ -140,12 +140,20 @@ async function init() {
 
 // ---------- Posts ----------
 
-async function loadPosts() {
+// Posts load 20 at a time; "Load more" adds the next 20. Reloading after
+// an edit or a new post keeps however many were already showing.
+const PAGE_SIZE = 20;
+let postsShown = 0;
+
+async function loadPosts(more) {
+  const from = more === true ? postsShown : 0;
+  const to = (more === true ? postsShown + PAGE_SIZE : Math.max(PAGE_SIZE, postsShown)) - 1;
   let query = supabaseClient
     .from("posts")
     .select("id, title, body, category, created_at, edited_at, held_at, user_id, profiles!user_id(username), likes(user_id), comments(count)")
     .order("created_at", { ascending: false })
-    .limit(50);
+    .order("id")
+    .range(from, to);
 
   if (selectedCategory) {
     query = query.eq("category", selectedCategory);
@@ -153,7 +161,8 @@ async function loadPosts() {
 
   const { data: posts, error } = await query;
 
-  feedEl.innerHTML = "";
+  if (more === true) feedEl.querySelectorAll(".load-more").forEach((b) => b.remove());
+  else feedEl.innerHTML = "";
 
   if (error) {
     console.error("Failed to load posts:", error);
@@ -161,7 +170,8 @@ async function loadPosts() {
     return;
   }
 
-  if (posts.length === 0) {
+  if (posts.length === 0 && more !== true) {
+    postsShown = 0;
     const text = selectedCategory
       ? "No " + selectedCategory + " posts yet. Write the first one above."
       : "No posts yet. Write the first one above.";
@@ -170,6 +180,15 @@ async function loadPosts() {
   }
 
   posts.forEach((post) => feedEl.appendChild(buildPost(post)));
+  postsShown = from + posts.length;
+  if (posts.length === to - from + 1) feedEl.appendChild(loadMoreButton(() => loadPosts(true)));
+}
+
+function loadMoreButton(onClick) {
+  const btn = el("button", "btn btn-ghost load-more", "Load more");
+  btn.type = "button";
+  btn.addEventListener("click", () => { btn.disabled = true; btn.textContent = "Loading..."; onClick(); });
+  return btn;
 }
 
 function buildPost(post) {
@@ -453,6 +472,7 @@ function buildCategoryButtons() {
     categoryFilter.querySelectorAll(".category-chip").forEach((b) => {
       b.setAttribute("aria-pressed", String(b === btn));
     });
+    postsShown = 0;
     loadPosts();
   });
 }
