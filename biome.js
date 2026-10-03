@@ -9,7 +9,7 @@ const BIOME = (function () {
   // Bump this whenever you replace a picture in biome-assets/ with a new
   // drawing under the same name. Browsers keep old pictures for a while;
   // a new number makes every browser fetch the new ones straight away.
-  const ART_VERSION = "3";
+  const ART_VERSION = "4";
 
   function src(path) {
     return path + (path.indexOf("?") === -1 ? "?" : "&") + "v=" + ART_VERSION;
