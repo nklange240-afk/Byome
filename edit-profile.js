@@ -76,6 +76,36 @@ document.getElementById("avatar-remove").addEventListener("click", async () => {
   say("avatar-message", "Profile picture removed.", true);
 });
 
+// The colored ring around your picture: one click saves it
+function buildRingPicker() {
+  const box = document.getElementById("ring-color");
+  const row = el("div", "choice-row");
+  PROFILES.RING_COLORS.forEach(([key, name, color]) => {
+    const label = el("label", "choice ring-choice");
+    const input = el("input");
+    input.type = "radio";
+    input.name = "ring-color";
+    input.value = key;
+    input.checked = (profile.avatar_ring || "gold") === key;
+    const swatch = el("span", "ring-swatch");
+    swatch.style.backgroundColor = color;
+    const text = el("span", null);
+    text.append(swatch, document.createTextNode(name));
+    label.append(input, text);
+    row.appendChild(label);
+  });
+  box.appendChild(row);
+
+  box.addEventListener("change", async (event) => {
+    const choice = event.target.value;
+    const { error } = await supabaseClient.rpc("set_my_avatar_ring", { p_color: choice });
+    if (error) { say("avatar-message", error.message, false); return; }
+    profile.avatar_ring = choice;
+    paintAvatar();
+    say("avatar-message", "Ring color saved.", true);
+  });
+}
+
 // ---------- About you ----------
 
 // A row of pill-shaped options. Radios get a "Not saying" choice so any
@@ -166,12 +196,13 @@ deleteBtn.addEventListener("click", async () => {
 
   const { data: row, error } = await supabaseClient
     .from("profiles")
-    .select("username, avatar_path, skin_type, skin_concerns, hair_type, hair_texture")
+    .select("username, avatar_path, avatar_ring, skin_type, skin_concerns, hair_type, hair_texture")
     .eq("id", me).single();
   if (error) { say("profile-message", "Couldn't load your profile: " + error.message, false); return; }
   profile = row;
 
   paintAvatar();
+  buildRingPicker();
   document.getElementById("username").value = profile.username;
   buildChoices("skin-type", "skin-type", PROFILES.SKIN_TYPES, "radio", profile.skin_type);
   buildChoices("skin-concerns", "skin-concerns", PROFILES.SKIN_CONCERNS, "checkbox", profile.skin_concerns);

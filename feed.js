@@ -148,7 +148,7 @@ async function loadPosts(more) {
   const to = (more === true ? postsShown + PAGE_SIZE : Math.max(PAGE_SIZE, postsShown)) - 1;
   let query = supabaseClient
     .from("posts")
-    .select("id, title, body, category, created_at, edited_at, held_at, user_id, profiles!user_id(username, avatar_path), likes(user_id), comments(count)")
+    .select("id, title, body, category, created_at, edited_at, held_at, user_id, profiles!user_id(username, avatar_path, avatar_ring), likes(user_id), comments(count)")
     .order("created_at", { ascending: false })
     .order("id")
     .range(from, to);
@@ -278,7 +278,7 @@ function buildPost(post) {
 async function fetchComments(postId) {
   const { data, error } = await supabaseClient
     .from("comments")
-    .select("id, parent_id, body, created_at, held_at, user_id, profiles!user_id(username, avatar_path), comment_likes(user_id)")
+    .select("id, parent_id, body, created_at, held_at, user_id, profiles!user_id(username, avatar_path, avatar_ring), comment_likes(user_id)")
     .eq("post_id", postId)
     .order("created_at", { ascending: true });
 

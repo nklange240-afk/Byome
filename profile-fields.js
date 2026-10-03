@@ -12,6 +12,18 @@ const PROFILES = (function () {
   ];
   const HAIR_TYPES = [["straight", "Straight"], ["wavy", "Wavy"], ["curly", "Curly"], ["coily", "Coily"]];
   const HAIR_TEXTURES = [["fine", "Fine"], ["medium", "Medium"], ["thick", "Thick"]];
+  // Ring around the profile picture (must match the list in
+  // database/2026-10-03-avatar-ring.sql). Gold is the default.
+  const RING_COLORS = [
+    ["gold", "Gold", "#E0A83E"], ["leaf", "Leaf green", "#8DBB6E"], ["cream", "Cream", "#F3EDE0"],
+    ["rose", "Rose", "#E89AB4"], ["lavender", "Lavender", "#B9A3E3"], ["sky", "Sky blue", "#8EC3E6"],
+    ["terracotta", "Terracotta", "#E07A5F"],
+  ];
+
+  function ringColor(key) {
+    const found = RING_COLORS.find(([k]) => k === key);
+    return (found || RING_COLORS[0])[2];
+  }
 
   function label(list, key) {
     const found = list.find(([k]) => k === key);
@@ -45,6 +57,8 @@ const PROFILES = (function () {
     const url = profile && !isDeleted(profile) ? avatarUrl(profile.avatar_path) : null;
     const box = el("span", "avatar avatar-" + (size || "small"));
     box.setAttribute("aria-hidden", "true");
+    // Their chosen ring color (a deleted member's picture gets a plain ring)
+    box.style.borderColor = isDeleted(profile) ? "var(--moss)" : ringColor(profile && profile.avatar_ring);
     if (url) {
       const img = document.createElement("img");
       img.src = url;
@@ -77,5 +91,5 @@ const PROFILES = (function () {
     return wrap;
   }
 
-  return { SKIN_TYPES, SKIN_CONCERNS, HAIR_TYPES, HAIR_TEXTURES, label, isDeleted, displayName, avatarUrl, avatar, authorLink };
+  return { SKIN_TYPES, SKIN_CONCERNS, HAIR_TYPES, HAIR_TEXTURES, RING_COLORS, ringColor, label, isDeleted, displayName, avatarUrl, avatar, authorLink };
 })();

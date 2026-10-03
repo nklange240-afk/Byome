@@ -2598,6 +2598,8 @@ div.biome-slot:focus-visible,
   flex-shrink: 0;
   overflow: hidden;
   border-radius: 50%;
+  /* the ring: color comes from the member's choice (profile-fields.js) */
+  border: 2px solid var(--gold);
   background-color: var(--moss);
   color: var(--cream);
   font-family: var(--font-heading);
@@ -2612,8 +2614,8 @@ div.biome-slot:focus-visible,
 }
 
 .avatar-small { width: 1.6rem; height: 1.6rem; font-size: 0.8rem; }
-.avatar-large { width: 4.5rem; height: 4.5rem; font-size: 1.9rem; }
-.avatar-xl { width: 7rem; height: 7rem; font-size: 2.8rem; }
+.avatar-large { width: 4.5rem; height: 4.5rem; font-size: 1.9rem; border-width: 3px; }
+.avatar-xl { width: 7rem; height: 7rem; font-size: 2.8rem; border-width: 4px; }
 
 /* picture + name next to posts, comments and reviews */
 .post-author-wrap {
@@ -2800,4 +2802,25 @@ div.biome-slot:focus-visible,
   flex-wrap: wrap;
   gap: 0.4rem;
   margin: 0.5rem 0 0.75rem;
+}
+
+/* Ring color picker on Edit profile: a color dot inside each option */
+.ring-picker {
+  margin-top: 1rem;
+}
+
+.ring-choice > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+/* (more specific than ".choice span", so the dot doesn't get pill styling) */
+.choice .ring-swatch {
+  display: inline-block;
+  width: 0.9rem;
+  height: 0.9rem;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.25);
 }
