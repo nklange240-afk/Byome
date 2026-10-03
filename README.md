@@ -35,6 +35,7 @@ When you change a page's JS or CSS, bump the `?v=` number in the HTML files so b
 
 - Pots and plants are drawn on a 512×512 canvas (50px border). Use `plant-template-small.png` as a guide for plants.
 - Each pot has two files: the complete pot (`pot-NAME.png`) and its front overlay (`pot-NAME-front.png`). A plant is drawn between them.
+- Plants whose leaves spill over the rim (like the African violet) set `over_pot = true` in `biome_items`, and are drawn in front of the whole pot instead.
 - Shelves are 2700×3600.
 - When you replace a picture with a new drawing under the **same name**, bump `ART_VERSION` at the top of `biome.js`.
 - New items also need a row in the `biome_items` table (see `database/2026-10-03-zebra-haworthia.sql` for an example).

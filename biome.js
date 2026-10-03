@@ -239,8 +239,16 @@ const BIOME = (function () {
 
       if (pot) spot.appendChild(img("biome-pot", pot.image, ""));
       if (pot && plant) {
-        spot.appendChild(img("biome-plant", plant.image, ""));
-        spot.appendChild(img("biome-pot-front", frontOf(pot.image), ""));
+        // Most plants sit inside the pot (pot, plant, pot front). Plants whose
+        // leaves spill over the rim, like the African violet, are marked
+        // over_pot and drawn on top of the whole pot instead.
+        if (plant.over_pot) {
+          spot.appendChild(img("biome-pot-front", frontOf(pot.image), ""));
+          spot.appendChild(img("biome-plant is-over-pot", plant.image, ""));
+        } else {
+          spot.appendChild(img("biome-plant", plant.image, ""));
+          spot.appendChild(img("biome-pot-front", frontOf(pot.image), ""));
+        }
       }
       wrap.appendChild(spot);
     });

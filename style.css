@@ -2065,6 +2065,11 @@ button.biome-slot {
   pointer-events: none;
 }
 
+/* Plants whose leaves spill over the rim sit in front of the whole pot */
+.biome-plant.is-over-pot {
+  z-index: 3;
+}
+
 /* Viewing (not arranging): items show an info box on hover, tap or focus */
 div.biome-slot {
   cursor: help;
@@ -2126,7 +2131,7 @@ div.biome-slot:focus-visible,
   border: 2px dashed transparent;
   border-radius: 10px;
   pointer-events: none;
-  z-index: 3;
+  z-index: 4;
 }
 
 .biome-slot.is-empty .biome-slot-ring {
