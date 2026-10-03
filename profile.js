@@ -295,7 +295,7 @@ async function showBiome(profileId, isMe) {
   const arrangeBtn = document.getElementById("biome-arrange");
 
   const [itemsRes, slotsRes, shelfRes, ownedRes, rewardsRes] = await Promise.all([
-    supabaseClient.from("biome_items").select("key, kind, size, name, description, rarity, image, starter, sort_order").order("sort_order"),
+    supabaseClient.from("biome_items").select("key, kind, size, name, description, rarity, image, starter, sort_order, over_pot").order("sort_order"),
     supabaseClient.from("biome_slots").select("slot, pot_key, plant_key").eq("user_id", profileId),
     supabaseClient.from("profiles").select("biome_shelf").eq("id", profileId).single(),
     isMe ? supabaseClient.from("biome_inventory").select("item_key").eq("user_id", profileId) : Promise.resolve({ data: [] }),
