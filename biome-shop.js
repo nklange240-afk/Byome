@@ -45,7 +45,7 @@ async function loadShop() {
   const [pointsRes, itemsRes, ownedRes] = await Promise.all([
     supabaseClient.from("user_points").select("biome, pending_biome").eq("user_id", currentUser.id).maybeSingle(),
     supabaseClient.from("biome_items")
-      .select("key, kind, size, name, description, rarity, price, max_supply, sold, image")
+      .select("key, kind, size, name, description, rarity, price, max_supply, max_per_member, sold, image")
       .eq("available", true).eq("starter", false).not("price", "is", null)
       .order("sort_order").order("price"),
     supabaseClient.from("biome_inventory").select("item_key").eq("user_id", currentUser.id),
@@ -104,12 +104,14 @@ function buildCard(item, balance, ownedCount) {
       ? "Limited edition: " + left + " of " + item.max_supply + " left"
       : "Limited edition: sold out"));
   }
+  if (item.max_per_member) card.appendChild(el("p", "shop-meta", "Limit " + item.max_per_member + " per member"));
   if (ownedCount) card.appendChild(el("p", "shop-meta", "You own " + ownedCount));
 
   const buy = el("button", "btn btn-solid", "Buy");
   buy.type = "button";
   if (left !== null && left <= 0) { buy.disabled = true; buy.textContent = "Sold out"; }
   else if (item.kind === "shelf" && ownedCount) { buy.disabled = true; buy.textContent = "Owned"; }
+  else if (item.max_per_member && ownedCount >= item.max_per_member) { buy.disabled = true; buy.textContent = "Owned"; }
   else if (balance < item.price) { buy.disabled = true; buy.textContent = "Need " + (item.price - balance) + " more"; }
 
   buy.addEventListener("click", async () => {
