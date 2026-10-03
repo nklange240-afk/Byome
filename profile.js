@@ -512,7 +512,7 @@ async function showAchievements(profileId) {
   const postsEl = document.getElementById("profile-posts");
 
   let query = supabaseClient.from("profiles")
-    .select("id, username, created_at, avatar_path, skin_type, skin_concerns, hair_type, hair_texture");
+    .select("id, username, created_at, avatar_path, avatar_ring, skin_type, skin_concerns, hair_type, hair_texture");
   query = wanted ? query.eq("username", wanted) : query.eq("id", me);
   const { data: profile } = await query.maybeSingle();
 

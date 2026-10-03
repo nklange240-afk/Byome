@@ -482,7 +482,7 @@ async function loadReviews(more) {
   // otherwise have shown up.
   let query = supabaseClient
     .from("reviews")
-    .select("id, rating, title, body, variation, would_repurchase, holy_grail, created_at, edited_at, held_at, user_id, profiles!user_id(username, avatar_path), products!product_id!inner(name, brand, photo_url, category, subcategory), review_likes(user_id), review_updates(id, body, created_at, held_at), review_standouts(review_id)")
+    .select("id, rating, title, body, variation, would_repurchase, holy_grail, created_at, edited_at, held_at, user_id, profiles!user_id(username, avatar_path, avatar_ring), products!product_id!inner(name, brand, photo_url, category, subcategory), review_likes(user_id), review_updates(id, body, created_at, held_at), review_standouts(review_id)")
     .order("created_at", { ascending: false })
     .order("id")
     .range(from, to);
