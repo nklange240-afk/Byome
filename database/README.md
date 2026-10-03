@@ -20,3 +20,4 @@ byome's database lives in Supabase. These files are a backup and a history of ch
 - `2026-10-03-african-violet.sql`: plants can be marked `over_pot` (drawn in front of the pot); adds the African violet to the shop (uncommon, 150 points).
 - `2026-10-03-terry-and-sweetheart.sql`: "one per member" limit for shop items (`max_per_member`); the Terry pot (rare, 200 points, 1 per member); the Sweetheart pot, earned with the "Spread the love" achievement (give 50 likes to other members' posts, comments and reviews).
 - `2026-10-03-avatar-ring.sql`: a colored ring around profile pictures (gold by default; members pick from 7 colors on Edit profile).
+- `2026-10-03-first-bloom.sql`: the "First bloom" achievement (first review that passes the quality check), rewarded with a Bunch of daisies.
