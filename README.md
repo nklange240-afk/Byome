@@ -43,3 +43,7 @@ When you change a page's JS or CSS, bump the `?v=` number in the HTML files so b
 ## Database (`database/`)
 
 A backup of the Supabase setup, plus every change that was run in the Supabase SQL Editor, oldest first. See [`database/README.md`](database/README.md).
+
+## Emails (`email-templates/`)
+
+The signup and password-reset emails, kept as a backup of what's pasted into Supabase. See [`email-templates/README.md`](email-templates/README.md).
