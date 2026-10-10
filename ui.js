@@ -32,9 +32,9 @@ const UI = (function () {
       document.body.insertBefore(footer, document.querySelector("body > script"));
     }
     footer.replaceChildren();
-    footer.appendChild(el("p", "footer-tagline", "byome — built by the community, for the community."));
+    footer.appendChild(el("p", "footer-tagline", "Byome — built by the community, for the community."));
     const links = el("nav", "footer-links");
-    links.setAttribute("aria-label", "About byome");
+    links.setAttribute("aria-label", "About Byome");
     const items = [["index.html#about", "About"], ["terms.html", "Terms"], ["privacy.html", "Privacy"]];
     if (CONTACT_EMAIL) items.push(["mailto:" + CONTACT_EMAIL, "Contact"]);
     items.forEach(([href, text]) => {

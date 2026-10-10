@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>byome — honest beauty reviews</title>
+  <title>Byome — honest beauty reviews</title>
   <!-- Tab icon and the preview card shown when a link is shared -->
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png" />
   <link rel="apple-touch-icon" href="apple-touch-icon.png" />
   <meta name="theme-color" content="#24402F" />
   <meta name="description" content="Honest beauty reviews from the people actually using the products, plus a community and a little shelf of plants to grow." />
-  <meta property="og:site_name" content="byome" />
-  <meta property="og:title" content="byome — honest beauty reviews, grown together" />
+  <meta property="og:site_name" content="Byome" />
+  <meta property="og:title" content="Byome — honest beauty reviews, grown together" />
   <meta property="og:description" content="Honest beauty reviews from the people actually using the products, plus a community and a little shelf of plants to grow." />
   <meta property="og:image" content="https://byome.xyz/og-image.png" />
   <meta property="og:image:width" content="1200" />
@@ -22,13 +22,13 @@
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
 
   <!-- Our own stylesheet, kept in a separate file -->
-  <link rel="stylesheet" href="style.css?v=38" />
+  <link rel="stylesheet" href="style.css?v=41" />
 </head>
 <body>
 
   <!-- ===== HEADER ===== -->
   <header class="site-header">
-    <a href="index.html" class="logo">by<span class="logo-accent">🌱</span>me</a>
+    <a href="index.html" class="logo"><img src="logo-wordmark.png" alt="Byome home" width="1052" height="261" /></a>
 
     <div class="header-right">
       <a href="login.html" id="login-link" class="btn btn-ghost">Log in</a>
@@ -48,6 +48,7 @@
   <main>
     <!-- Members who are logged in see a welcome back instead (home.js) -->
     <section class="hero">
+      <div class="hero-text">
       <h1 id="hero-title">A community for honest beauty reviews, grown together. </h1>
       <p class="hero-sub" id="hero-sub">
         Review what you use, skip what you don't, and grow a little shelf of plants along the way.
@@ -55,6 +56,12 @@
       <div class="hero-actions" id="hero-actions">
         <a href="reviews.html" class="btn btn-solid">Browse reviews</a>
         <a href="signup.html" class="btn btn-ghost">Join the community</a>
+      </div>
+      </div>
+      <!-- A little shelf of biome plants (made from the biome art; see README) -->
+      <div class="hero-art">
+        <img src="biome-assets/hero-shelf.png" width="1060" height="401"
+          alt="A row of potted plants on a painted shelf: a zebra haworthia, daisies, an African violet and a little sprout." />
       </div>
     </section>
 
@@ -77,13 +84,13 @@
 
   <!-- ===== FOOTER ===== -->
   <footer class="site-footer">
-    <p>byome — built by the community, for the community.</p>
+    <p>Byome — built by the community, for the community.</p>
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase-client.js?v=38"></script>
-  <script src="nav-menu.js?v=38"></script>
-  <script src="ui.js?v=38"></script>
-  <script src="home.js?v=38"></script>
+  <script src="supabase-client.js?v=41"></script>
+  <script src="nav-menu.js?v=41"></script>
+  <script src="ui.js?v=41"></script>
+  <script src="home.js?v=41"></script>
 </body>
 </html>

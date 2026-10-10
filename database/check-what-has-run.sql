@@ -33,5 +33,6 @@ from (values
   ('2026-10-10-helpful-reviews.sql',      exists (select 1 from col where t = 'reviews' and c = 'helpful_count')),
   ('2026-10-11-moderation-log.sql',       exists (select 1 from tbl where name = 'moderation_log')),
   ('2026-10-11-helpful-wording.sql',      exists (select 1 from fn where name = 'on_review_like' and body like '%found your review%')),
-  ('2026-10-11-returned-content.sql',     exists (select 1 from tbl where name = 'returned_content'))
+  ('2026-10-11-returned-content.sql',     exists (select 1 from tbl where name = 'returned_content')),
+  ('2026-10-11-capital-byome.sql',        exists (select 1 from public.achievements where name = 'Welcome to Byome'))
 ) as checks(file, ok);

@@ -42,7 +42,7 @@ document.getElementById("request-form").addEventListener("submit", async (event)
   if (error) { say(error.message, false); return; }
   // Same message whether or not the address has an account, so this page
   // can't be used to find out who's signed up
-  say("If that email has a byome account, a reset link is on its way. Check your inbox (and spam folder).", true);
+  say("If that email has a Byome account, a reset link is on its way. Check your inbox (and spam folder).", true);
 });
 
 document.getElementById("new-password-form").addEventListener("submit", async (event) => {

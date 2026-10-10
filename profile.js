@@ -549,7 +549,7 @@ async function showAchievements(profileId) {
 
   const isMe = profile.id === me;
   const name = PROFILES.displayName(profile);
-  document.title = name + " — byome";
+  document.title = name + " — Byome";
   nameEl.textContent = name;
   // The profile is set in the member's chosen biome
   const deleted = PROFILES.isDeleted(profile);

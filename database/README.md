@@ -31,3 +31,4 @@ byome's database lives in Supabase. These files are a backup and a history of ch
 - `2026-10-11-returned-content.sql`: moderators pick a reason (and can add a short note) for every removal, and the member is told both; removed posts and reviews also leave the author a private copy ("Returned to you" on their profile) to revise and resubmit (held for a moderator first) or let go. Run after the moderation log file.
 
 **Not sure what's been run?** `check-what-has-run.sql` is read-only: run it in the SQL Editor and it lists every update above as "yes" or "MISSING".
+- `2026-10-11-capital-byome.sql`: "Byome" with a capital B in text stored in the database (the "Welcome to Byome" achievement, the sprout's story, and notifications already sent). Web and email addresses stay lowercase.
