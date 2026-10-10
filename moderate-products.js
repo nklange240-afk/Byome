@@ -48,6 +48,7 @@ async function init() {
     return;
   }
 
+  UI.startModSession(data.session.user.id);
   loadHeld();
   loadReports();
   loadQueue();
@@ -398,7 +399,7 @@ async function loadReports() {
       "post:posts!post_id(id, title, body, author:profiles!user_id(username)), " +
       "comment:comments!comment_id(id, body, author:profiles!user_id(username), post:posts!post_id(title)), " +
       "review:reviews!review_id(id, title, body, author:profiles!user_id(username), product:products!product_id(brand, name)), " +
-      "profile:profiles!profile_id(id, username, avatar_path, avatar_ring)")
+      "profile:profiles!profile_id(id, username, avatar_path, avatar_ring, profile_biome, show_biome_symbol)")
     .is("resolved_at", null)
     .order("created_at", { ascending: true });
 

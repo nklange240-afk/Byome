@@ -3388,50 +3388,212 @@ dialog.celebrate h2 {
 
 /* =========================================================
    BIOMES
+   Community is the forest, Reviews the meadow, and each profile is set
+   in its member's chosen biome. ui.js handles the slow color shift and
+   places the drifting particles in the page margins.
    ========================================================= */
 
-/* ----- Forest (Community) ----- */
-.biome-forest {
+/* Each biome re-colors the cards and borders to match */
+.biome-meadow {
+  --forest-dark: #2C3B24;
+  --forest-mid: #3E5130;
+  --moss: #74895A;
+}
+
+.biome-desert {
+  --forest-dark: #402C22;
+  --forest-mid: #5A3E30;
+  --moss: #94694E;
+}
+
+.biome-tundra {
+  --forest-dark: #22303D;
+  --forest-mid: #34485B;
+  --moss: #6A8599;
+}
+
+.biome-ocean {
+  --forest-dark: #14344E;
+  --forest-mid: #1F4A6B;
+  --moss: #4A7C9C;
+}
+
+.biome-reef {
+  --forest-dark: #103C40;
+  --forest-mid: #1B575B;
+  --moss: #4A9490;
+}
+
+.biome-page {
   transition: background-color 1.2s linear;
 }
 
-/* Page content sits above the fireflies */
-.biome-forest .site-header {
+/* The desert sun: a soft warm glow in the top corner */
+.biome-desert {
+  background-image: radial-gradient(circle at 92% 4%, rgba(255, 196, 120, 0.22), transparent 38%);
+  background-attachment: fixed;
+}
+
+/* Page content sits above the particles */
+.biome-page .site-header {
   z-index: 2;
 }
 
-.biome-forest > main,
-.biome-forest .site-footer {
+.biome-page > main,
+.biome-page .site-footer {
   position: relative;
   z-index: 1;
 }
 
-.fireflies {
+.biome-layer {
   position: fixed;
   inset: 0;
   z-index: 0;
   pointer-events: none;
   overflow: hidden;
-  /* Fireflies glow brighter the deeper you go */
-  opacity: calc(0.45 + var(--forest-depth, 0) * 0.55);
 }
 
-.firefly {
+.particle {
   position: absolute;
   width: var(--size, 4px);
   height: var(--size, 4px);
   border-radius: 50%;
+}
+
+/* Forest: fireflies, brighter the deeper you go */
+.biome-forest .biome-layer {
+  opacity: calc(0.45 + var(--biome-depth, 0) * 0.55);
+}
+
+.p-firefly {
+  width: calc(var(--size) + 1px);
+  height: calc(var(--size) + 1px);
   background-color: #F4F8C8;
   box-shadow: 0 0 8px 3px rgba(222, 240, 140, 0.7), 0 0 24px 10px rgba(200, 230, 110, 0.22);
   opacity: 0.6;
 }
 
+/* Meadow: dandelion seeds floating up */
+.p-seed {
+  background-color: rgba(255, 252, 238, 0.9);
+  box-shadow: 0 0 6px 2px rgba(255, 250, 230, 0.35);
+  opacity: 0.7;
+}
+
+/* Desert: warm specks of sand in the air */
+.p-mote {
+  width: calc(var(--size) * 0.6);
+  height: calc(var(--size) * 0.6);
+  background-color: #F2C98B;
+  box-shadow: 0 0 5px 1px rgba(242, 190, 120, 0.5);
+  opacity: 0.55;
+}
+
+/* Tundra: snow */
+.p-snow {
+  background-color: #FFFFFF;
+  box-shadow: 0 0 4px 1px rgba(255, 255, 255, 0.5);
+  opacity: 0.8;
+}
+
+/* Ocean and reef: bubbles */
+.p-bubble {
+  width: calc(var(--size) * 1.8);
+  height: calc(var(--size) * 1.8);
+  border: 1.5px solid rgba(220, 245, 255, 0.55);
+  background: radial-gradient(circle at 32% 30%, rgba(255, 255, 255, 0.6) 0 18%, transparent 24%);
+  opacity: 0.75;
+}
+
+/* Reef: glowing specks of life, in coral colors */
+.p-plankton {
+  --glow: #FF9AA8;
+  background-color: var(--glow);
+  box-shadow: 0 0 8px 3px var(--glow);
+  opacity: 0.6;
+}
+
+.p-plankton[style*="--hue: 1"] { --glow: #FFD27A; }
+.p-plankton[style*="--hue: 2"] { --glow: #8FF0E0; }
+.p-plankton[style*="--hue: 3"] { --glow: #D7A6FF; }
+
+/* Ocean and reef: soft rays of light from the surface, fading with depth */
+.light-rays {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 70vh;
+  background: repeating-linear-gradient(105deg,
+    rgba(200, 235, 255, 0.07) 0 40px, transparent 40px 110px,
+    rgba(200, 235, 255, 0.04) 110px 150px, transparent 150px 230px);
+  -webkit-mask-image: linear-gradient(to bottom, #000, transparent);
+  mask-image: linear-gradient(to bottom, #000, transparent);
+  opacity: calc(1 - var(--biome-depth, 0) * 1.2);
+}
+
+/* The symbol after a username */
+.biome-symbol {
+  margin-left: 0.3rem;
+  font-size: 0.9em;
+  line-height: 1;
+}
+
+/* ----- Biome previews (shop, Edit profile, pop-ups) ----- */
+.biome-swatch {
+  position: relative;
+  overflow: hidden;
+  border-radius: 10px;
+}
+
+.shop-art.biome-swatch,
+.celebrate-art.biome-swatch {
+  width: 100%;
+  height: 150px;
+}
+
+.celebrate-art.biome-swatch {
+  width: 200px;
+  height: 140px;
+}
+
+.swatch-symbol {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 2.6rem;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.35));
+}
+
+.swatch-rays {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(105deg, rgba(200, 235, 255, 0.1) 0 12px, transparent 12px 34px);
+  -webkit-mask-image: linear-gradient(to bottom, #000, transparent 80%);
+  mask-image: linear-gradient(to bottom, #000, transparent 80%);
+}
+
+.swatch-dot {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+}
+
+.dot-firefly { background: #F4F8C8; box-shadow: 0 0 6px 2px rgba(222, 240, 140, 0.7); }
+.dot-seed { background: #FFFCEE; box-shadow: 0 0 4px 1px rgba(255, 250, 230, 0.5); }
+.dot-mote { width: 3px; height: 3px; background: #F2C98B; box-shadow: 0 0 4px 1px rgba(242, 190, 120, 0.6); }
+.dot-snow { background: #FFFFFF; }
+.dot-bubble { width: 8px; height: 8px; border: 1px solid rgba(220, 245, 255, 0.7); }
+.dot-plankton { background: #FF9AA8; box-shadow: 0 0 6px 2px #FF9AA8; }
+.dot-plankton:nth-child(3n) { background: #FFD27A; box-shadow: 0 0 6px 2px #FFD27A; }
+.dot-plankton:nth-child(3n+1) { background: #8FF0E0; box-shadow: 0 0 6px 2px #8FF0E0; }
+
 @media (prefers-reduced-motion: no-preference) {
-  .firefly {
+  .p-firefly {
     opacity: 0;
     animation:
       firefly-blink var(--blink, 5s) ease-in-out var(--delay, 0s) infinite,
-      firefly-drift var(--drift, 20s) ease-in-out var(--delay, 0s) infinite alternate;
+      wander var(--dur, 20s) ease-in-out var(--delay, 0s) infinite alternate;
   }
 
   @keyframes firefly-blink {
@@ -3442,10 +3604,111 @@ dialog.celebrate h2 {
     75% { opacity: 0.8; }
   }
 
-  @keyframes firefly-drift {
+  @keyframes wander {
     0% { transform: translate(0, 0); }
     33% { transform: translate(var(--dx), calc(var(--dy) * -0.5)); }
     66% { transform: translate(calc(var(--dx) * -0.4), var(--dy)); }
     100% { transform: translate(calc(var(--dx) * 0.6), calc(var(--dy) * 0.3)); }
   }
+
+  /* Things that rise (seeds, bubbles) start below the screen and float
+     up past the top; snow does the opposite */
+  .p-seed,
+  .p-bubble {
+    top: 102% !important;
+    animation: rise var(--dur, 20s) linear var(--delay, 0s) infinite;
+  }
+
+  .p-snow {
+    top: -3% !important;
+    animation: fall var(--dur, 20s) linear var(--delay, 0s) infinite;
+  }
+
+  @keyframes rise {
+    0% { transform: translate(0, 0); }
+    25% { transform: translate(var(--dx), -28vh); }
+    50% { transform: translate(calc(var(--dx) * -0.5), -56vh); }
+    75% { transform: translate(calc(var(--dx) * 0.7), -84vh); }
+    100% { transform: translate(0, -110vh); }
+  }
+
+  @keyframes fall {
+    0% { transform: translate(0, 0); }
+    25% { transform: translate(var(--dx), 28vh); }
+    50% { transform: translate(calc(var(--dx) * -0.5), 56vh); }
+    75% { transform: translate(calc(var(--dx) * 0.7), 84vh); }
+    100% { transform: translate(0, 110vh); }
+  }
+
+  .p-mote,
+  .p-plankton {
+    animation:
+      wander var(--dur, 20s) ease-in-out var(--delay, 0s) infinite alternate,
+      shimmer var(--blink, 5s) ease-in-out var(--delay, 0s) infinite;
+  }
+
+  @keyframes shimmer {
+    0%, 100% { opacity: 0.2; }
+    50% { opacity: 0.85; }
+  }
+}
+
+/* ----- Edit profile: choosing a profile biome ----- */
+.biome-picker {
+  border: none;
+  padding: 0;
+  margin: 0.75rem 0;
+}
+
+.biome-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 0.75rem;
+}
+
+.biome-option {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.4rem;
+  border: 2px solid transparent;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.option-swatch {
+  height: 80px;
+}
+
+.option-swatch .swatch-symbol {
+  font-size: 1.8rem;
+}
+
+.biome-option-text {
+  display: flex;
+  flex-direction: column;
+  padding: 0 0.2rem;
+  font-size: 0.9rem;
+}
+
+.biome-option-note {
+  font-size: 0.8rem;
+  opacity: 0.75;
+}
+
+.biome-option:has(input:checked) {
+  border-color: var(--gold);
+}
+
+.biome-option:has(input:focus-visible) {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+.biome-option.is-locked .option-swatch {
+  filter: grayscale(0.7) brightness(0.7);
+}
+
+.biome-option.is-locked .biome-option-text {
+  opacity: 0.7;
 }

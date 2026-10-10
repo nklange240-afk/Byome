@@ -29,7 +29,11 @@ The site is plain HTML, CSS and JavaScript (no build step). Accounts and data li
 - `report.js`: the report (flag) button and pop-up
 - `product-match.js`: spots products that look like ones already listed
 - `profile-fields.js`: the skin & hair options, profile pictures, and how names show (including "Deleted member")
-- `ui.js`: the footer, friendly empty states, the pop-up that celebrates new achievements and purchases, and sparkles on rare items. Set `CONTACT_EMAIL` at the top to show a Contact link in the footer
+- `ui.js`: the footer, friendly empty states, the pop-up that celebrates new achievements and purchases (and thanks moderators after a visit to the Moderate page), sparkles on rare items, and **biomes**. Set `CONTACT_EMAIL` at the top to show a Contact link in the footer
+
+## Biomes
+
+Community is set in the forest and Reviews in the meadow (`<body data-biome="...">`). Profile pages use the member's chosen biome (Edit profile). Each biome's colors, symbol and drifting particles are in `BIOME_LOOKS` in `ui.js`; its card and border colors are under BIOMES in `style.css`. A new biome needs both, plus a row in `biome_items` with `kind = 'biome'`.
 
 ## Icons and link previews
 

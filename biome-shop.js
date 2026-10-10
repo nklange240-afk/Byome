@@ -9,6 +9,7 @@ const SECTIONS = [
   { kind: "pot", title: "Pots" },
   { kind: "plant", title: "Plants", empty: "Plants are on their way. Check back soon!" },
   { kind: "shelf", title: "Shelves" },
+  { kind: "biome", title: "Biomes" },
 ];
 
 let currentUser = null;
@@ -95,6 +96,7 @@ function buildCard(item, balance, ownedCount) {
   card.appendChild(el("h3", null, item.name));
   if (item.description) card.appendChild(el("p", "shop-meta", item.description));
   if (item.size) card.appendChild(el("p", "shop-meta", item.size === "small" ? "Can be placed on the top two shelves" : "Can be placed on the bottom shelf"));
+  if (item.kind === "biome") card.appendChild(el("p", "shop-meta", "Sets the scene on your profile. Choose it on Edit profile."));
 
   const price = el("p", "shop-price");
   price.append(leafIcon(), el("span", null, String(item.price)));
@@ -126,12 +128,12 @@ function buildCard(item, balance, ownedCount) {
     }
     showMessage("You bought the " + item.name.toLowerCase() +
       (data && data.serial ? " (#" + data.serial + " of " + item.max_supply + ")" : "") +
-      "! Put it on your shelf from your profile.", true);
+      (item.kind === "biome" ? "! Choose it on Edit profile." : "! Put it on your shelf from your profile."), true);
     UI.celebrate({
       label: "New for your biome",
       heading: item.name,
       text: (data && data.serial ? "Number " + data.serial + " of " + item.max_supply + ". " : "") +
-        "Arrange it on your shelf from your profile.",
+        (item.kind === "biome" ? "Choose it on Edit profile to set your profile in it." : "Arrange it on your shelf from your profile."),
       item: item,
     });
     loadShop();

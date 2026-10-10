@@ -82,6 +82,11 @@ const UI = (function () {
   // The item's picture: plants are shown growing in the starter pot,
   // since that's where reward plants are placed
   function itemArt(item, className) {
+    if (item.kind === "biome") {
+      const swatch = biomeSwatch(item.key, (className || "celebrate-art") + " is-biome biome-swatch");
+      sparkles(swatch, item.rarity);
+      return swatch;
+    }
     const box = el("div", className || "celebrate-art");
     if (item.kind === "plant") {
       box.classList.add("is-potted");
@@ -179,7 +184,7 @@ const UI = (function () {
 
     const { data: rows, error } = await supabaseClient
       .from("user_achievements")
-      .select("achievement_key, earned_at, achievements!achievement_key(name, description, biome_items!reward_item(kind, name, image, rarity, over_pot))")
+      .select("achievement_key, earned_at, achievements!achievement_key(name, description, biome_items!reward_item(key, kind, name, image, rarity, over_pot))")
       .eq("user_id", userId).gte("earned_at", since).order("earned_at");
     if (error || !rows) return;
 
@@ -202,80 +207,170 @@ const UI = (function () {
   }
 
   // ---------- Biomes ----------
-  // A page picks its biome with <body data-biome="...">.
-
-  // Forest (Community): fireflies drift in the margins, and the page
-  // darkens very slowly as you scroll deeper into the forest.
-  const FOREST = {
-    top: [36, 64, 47],     // --forest-dark, at the edge of the forest
-    deep: [12, 26, 19],    // the darkest it gets
-    depth: 9000,           // pixels of scrolling to reach the deepest point
-    fireflies: 16,
+  // A page picks its biome with <body data-biome="...">; profile pages use
+  // the member's chosen biome (UI.setBiome). Each biome has:
+  //   symbol: shown next to usernames (if the member turns it on)
+  //   top / deep: the background color at the top of the page, and at
+  //     its deepest point; the page shifts very slowly between them as
+  //     you scroll down
+  //   particles: what drifts in the margins, and how many
+  // The colors of cards and borders for each biome are in style.css.
+  const BIOME_LOOKS = {
+    forest: { name: "Forest", symbol: "\u{1F332}", top: [36, 64, 47], deep: [12, 26, 19], particles: [["firefly", 16]] },
+    meadow: { name: "Meadow", symbol: "\u{1F33C}", top: [44, 59, 36], deep: [72, 61, 33], particles: [["seed", 14]] },
+    desert: { name: "Desert", symbol: "☀️", top: [64, 44, 34], deep: [34, 23, 38], particles: [["mote", 18]] },
+    tundra: { name: "Snowy tundra", symbol: "❄️", top: [34, 48, 61], deep: [16, 24, 34], particles: [["snow", 26]] },
+    ocean: { name: "Open ocean", symbol: "\u{1F30A}", top: [20, 52, 78], deep: [4, 12, 26], particles: [["bubble", 16]], rays: true },
+    reef: { name: "Coral reef", symbol: "\u{1F420}", top: [16, 60, 64], deep: [8, 30, 42], particles: [["plankton", 18], ["bubble", 8]], rays: true },
   };
+  const DEPTH = 9000; // pixels of scrolling to reach the deepest point
 
-  function forest() {
-    document.body.classList.add("biome-forest");
+  function biomeLook(key) {
+    return BIOME_LOOKS[key] || null;
+  }
 
-    // The darkening
+  // The little symbol shown after a username, or null
+  function biomeSymbol(profile) {
+    if (!profile || !profile.show_biome_symbol) return null;
+    const look = biomeLook(profile.profile_biome);
+    if (!look) return null;
+    const span = el("span", "biome-symbol", look.symbol);
+    span.setAttribute("role", "img");
+    span.setAttribute("aria-label", look.name + " biome");
+    span.title = look.name;
+    return span;
+  }
+
+  // A small preview of a biome (shop cards, Edit profile, pop-ups)
+  function biomeSwatch(key, className) {
+    const look = biomeLook(key) || BIOME_LOOKS.forest;
+    const box = el("div", (className || "biome-swatch") + " swatch-" + key);
+    box.style.background = "linear-gradient(170deg, rgb(" + look.top.join(",") + "), rgb(" + look.deep.join(",") + "))";
+    box.setAttribute("aria-hidden", "true");
+    if (look.rays) box.appendChild(el("span", "swatch-rays"));
+    const [kind] = look.particles[0];
+    for (let i = 0; i < 7; i++) {
+      const p = el("span", "swatch-dot dot-" + kind);
+      p.style.left = (8 + ((i * 37) % 84)) + "%";
+      p.style.top = (10 + ((i * 53) % 78)) + "%";
+      box.appendChild(p);
+    }
+    box.appendChild(el("span", "swatch-symbol", look.symbol));
+    return box;
+  }
+
+  let biomeStarted = false;
+
+  function setBiome(key) {
+    const look = biomeLook(key);
+    if (!look || biomeStarted) return;
+    biomeStarted = true;
+    document.body.dataset.biome = key;
+    document.body.classList.add("biome-page", "biome-" + key);
+
+    // The slow shift in color as you go deeper
     let ticking = false;
     function shade() {
       ticking = false;
-      const t = Math.min(1, window.scrollY / FOREST.depth);
+      const t = Math.min(1, window.scrollY / DEPTH);
       const eased = t * t * (3 - 2 * t); // gentle at both ends
-      const rgb = FOREST.top.map((c, i) => Math.round(c + (FOREST.deep[i] - c) * eased));
+      const rgb = look.top.map((c, i) => Math.round(c + (look.deep[i] - c) * eased));
       document.body.style.backgroundColor = "rgb(" + rgb.join(",") + ")";
-      document.body.style.setProperty("--forest-depth", eased.toFixed(3));
+      document.body.style.setProperty("--biome-depth", eased.toFixed(3));
     }
     window.addEventListener("scroll", () => {
       if (!ticking) { ticking = true; requestAnimationFrame(shade); }
     }, { passive: true });
     shade();
 
-    // The fireflies, kept to the empty space beside the page content
-    const layer = el("div", "fireflies");
+    // What drifts in the margins, kept beside the page content
+    const layer = el("div", "biome-layer");
     layer.setAttribute("aria-hidden", "true");
+    if (look.rays) layer.appendChild(el("div", "light-rays"));
     document.body.insertBefore(layer, document.body.firstChild);
-    const flies = [];
-    for (let i = 0; i < FOREST.fireflies; i++) {
-      const fly = el("span", "firefly");
-      // Each one drifts and blinks on its own slow rhythm
-      fly.style.setProperty("--drift", (14 + Math.random() * 14).toFixed(1) + "s");
-      fly.style.setProperty("--blink", (3 + Math.random() * 4).toFixed(1) + "s");
-      fly.style.setProperty("--delay", (-Math.random() * 20).toFixed(1) + "s");
-      fly.style.setProperty("--dx", ((Math.random() - 0.5) * 60).toFixed(0) + "px");
-      fly.style.setProperty("--dy", ((Math.random() - 0.5) * 80).toFixed(0) + "px");
-      fly.style.setProperty("--size", (4 + Math.random() * 3).toFixed(1) + "px");
-      fly._side = i % 2;   // left or right
-      fly._x = Math.random();
-      fly._y = Math.random();
-      layer.appendChild(fly);
-      flies.push(fly);
-    }
+    const bits = [];
+    look.particles.forEach(([kind, count]) => {
+      for (let i = 0; i < count; i++) {
+        const bit = el("span", "particle p-" + kind);
+        // Each one moves on its own slow rhythm
+        bit.style.setProperty("--dur", (14 + Math.random() * 16).toFixed(1) + "s");
+        bit.style.setProperty("--blink", (3 + Math.random() * 4).toFixed(1) + "s");
+        bit.style.setProperty("--delay", (-Math.random() * 30).toFixed(1) + "s");
+        bit.style.setProperty("--dx", ((Math.random() - 0.5) * 60).toFixed(0) + "px");
+        bit.style.setProperty("--dy", ((Math.random() - 0.5) * 80).toFixed(0) + "px");
+        bit.style.setProperty("--size", (3 + Math.random() * 4).toFixed(1) + "px");
+        bit.style.setProperty("--hue", String(Math.floor(Math.random() * 4)));
+        bit._side = i % 2;   // left or right margin
+        bit._x = Math.random();
+        bit._y = Math.random();
+        layer.appendChild(bit);
+        bits.push(bit);
+      }
+    });
     function place() {
       const main = document.querySelector("main");
       const w = window.innerWidth;
-      const content = main ? main.getBoundingClientRect() : { left: w * 0.2, right: w * 0.8 };
-      const pad = 12;
+      const content = main ? main.getBoundingClientRect() : { left: w * 0.2 };
       // Room on each side of the content (at least a thin strip on phones)
-      const margin = Math.max(18, content.left - pad);
-      flies.forEach((fly) => {
-        const x = fly._side === 0 ? fly._x * margin : w - margin + fly._x * margin;
-        fly.style.left = Math.round(x) + "px";
-        fly.style.top = Math.round(8 + fly._y * 84) + "%";
+      const margin = Math.max(18, content.left - 12);
+      bits.forEach((bit) => {
+        const x = bit._side === 0 ? bit._x * margin : w - margin + bit._x * margin;
+        bit.style.left = Math.round(x) + "px";
+        bit.style.top = Math.round(6 + bit._y * 86) + "%";
       });
     }
     window.addEventListener("resize", place);
     place();
   }
 
-  const BIOMES = { forest: forest };
+  // ---------- Moderator thank-you ----------
+  // Moderators earn Byome points quietly while they work. When they leave
+  // the Moderate page, one pop-up thanks them with the total for that visit.
+  const MOD_SESSION = "byome-mod-session";
+  const MOD_ACTIONS = ["mod_decision", "mod_edit"];
+
+  // Called by the Moderate page: remembers the newest moderator reward so
+  // far, so later we can count only what was earned during this visit
+  async function startModSession(userId) {
+    try { if (sessionStorage.getItem(MOD_SESSION)) return; } catch (e) { return; }
+    const { data } = await supabaseClient.from("point_ledger").select("created_at")
+      .eq("user_id", userId).in("action", MOD_ACTIONS).order("created_at", { ascending: false }).limit(1);
+    try {
+      sessionStorage.setItem(MOD_SESSION, JSON.stringify({ since: data && data.length ? data[0].created_at : null }));
+    } catch (e) { /* storage blocked: no thank-you pop-up, nothing else changes */ }
+  }
+
+  async function thankModerator() {
+    if (/moderate-products\.html$/.test(window.location.pathname)) return;
+    let session = null;
+    try {
+      session = JSON.parse(sessionStorage.getItem(MOD_SESSION) || "null");
+      sessionStorage.removeItem(MOD_SESSION);
+    } catch (e) { return; }
+    if (!session || typeof supabaseClient === "undefined") return;
+    const { data: auth } = await supabaseClient.auth.getSession();
+    if (!auth.session) return;
+
+    let query = supabaseClient.from("point_ledger").select("biome_points")
+      .eq("user_id", auth.session.user.id).in("action", MOD_ACTIONS).is("revoked_at", null);
+    if (session.since) query = query.gt("created_at", session.since);
+    const { data: rows } = await query;
+    if (!rows || !rows.length) return;
+    const points = rows.reduce((sum, r) => sum + r.biome_points, 0);
+    celebrate({
+      label: "Moderator thanks",
+      heading: "Thanks for your hard work!",
+      text: "You earned " + points + " Byome points for completing " + rows.length +
+        (rows.length === 1 ? " action" : " actions") + " as a moderator.",
+    });
+  }
 
   document.addEventListener("DOMContentLoaded", () => {
     buildFooter();
     checkAchievements();
-    const biome = BIOMES[document.body.dataset.biome];
-    if (biome) biome();
+    thankModerator();
+    if (document.body.dataset.biome) setBiome(document.body.dataset.biome);
   });
 
-  return { emptyState, celebrate, sparkles, itemArt };
+  return { emptyState, celebrate, sparkles, itemArt, setBiome, biomeSymbol, biomeSwatch, biomeLook, startModSession };
 })();

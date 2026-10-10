@@ -537,11 +537,12 @@ async function showAchievements(profileId) {
   const postsEl = document.getElementById("profile-posts");
 
   let query = supabaseClient.from("profiles")
-    .select("id, username, created_at, avatar_path, avatar_ring, skin_type, skin_concerns, hair_type, hair_texture, is_moderator");
+    .select("id, username, created_at, avatar_path, avatar_ring, skin_type, skin_concerns, hair_type, hair_texture, is_moderator, profile_biome, show_biome_symbol");
   query = wanted ? query.eq("username", wanted) : query.eq("id", me);
   const { data: profile } = await query.maybeSingle();
 
   if (!profile) {
+    UI.setBiome("forest");
     nameEl.textContent = "Profile not found";
     showMessage(reviewsEl, "We couldn't find that member.");
     showMessage(postsEl, "");
@@ -552,6 +553,11 @@ async function showAchievements(profileId) {
   const name = PROFILES.displayName(profile);
   document.title = name + " — byome";
   nameEl.textContent = name;
+  // The profile is set in the member's chosen biome
+  const deleted = PROFILES.isDeleted(profile);
+  UI.setBiome(deleted ? "forest" : profile.profile_biome || "forest");
+  const symbol = deleted ? null : UI.biomeSymbol(profile);
+  if (symbol) nameEl.appendChild(symbol);
   document.getElementById("profile-avatar").replaceChildren(PROFILES.avatar(profile, "large"));
   showTraits(profile);
 
