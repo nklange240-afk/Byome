@@ -55,7 +55,22 @@ signupForm.addEventListener("submit", async (event) => {
 
   // Success — Supabase has sent a confirmation email, and the profile
   // row was created automatically by the database trigger.
-  messageEl.textContent = "Check your email to confirm your account!";
-  messageEl.style.color = "var(--gold)";
-  signupForm.reset();
+  // Swap the form for a clear "check your email" note
+  const card = signupForm.closest(".auth-card");
+  const done = document.createElement("div");
+  done.className = "signup-done";
+  done.setAttribute("role", "status");
+  const sprout = document.createElement("img");
+  sprout.src = "biome-assets/plant-welcome-sprout.png";
+  sprout.alt = "";
+  sprout.className = "signup-done-art";
+  const h = document.createElement("h1");
+  h.textContent = "Almost there!";
+  const p1 = document.createElement("p");
+  p1.textContent = "We sent a confirmation link to " + email + ". Open it to finish joining byome.";
+  const p2 = document.createElement("p");
+  p2.className = "field-hint";
+  p2.textContent = "Can't find it? Check your spam or promotions folder. The email comes from no-reply@byome.xyz.";
+  done.append(sprout, h, p1, p2);
+  card.replaceChildren(done);
 });

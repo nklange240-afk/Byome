@@ -25,3 +25,6 @@ byome's database lives in Supabase. These files are a backup and a history of ch
 - `2026-10-10-profile-biomes.sql`: profile biomes. Members choose the biome their profile page is set in (Forest and Meadow free; Desert and Snowy tundra 300, Open ocean 400, Coral reef 500 in the shop, one each), and can show its symbol next to their username. Run after the moderator rewards file.
 - `2026-10-10-helpful-reviews.sql`: reviews keep a `helpful_count` (the leaf on reviews now reads "Helpful"), so the Reviews page can sort by most helpful. Members can't change their own count.
 - `2026-10-11-moderation-log.sql`: the moderation log (every moderation action, readable by moderators only, shown on the Moderate page); moderation notifications marked positive or negative (green or red flag); and members can no longer tell which moderator acted (reports and standout marks stop storing the moderator, moderation notifications never name one).
+- `2026-10-11-helpful-wording.sql`: the notification for "Helpful" on reviews reads "found your review of … helpful" (existing ones reworded too).
+
+**Not sure what's been run?** `check-what-has-run.sql` is read-only: run it in the SQL Editor and it lists every update above as "yes" or "MISSING".

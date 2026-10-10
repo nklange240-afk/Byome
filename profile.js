@@ -52,9 +52,7 @@ function showMessage(container, text) {
 
 function metaRow(createdAt, editedAt) {
   const meta = el("div", "post-meta");
-  const time = el("time", null, formatDate(createdAt));
-  time.dateTime = createdAt;
-  meta.appendChild(time);
+  meta.appendChild(UI.timeTag(createdAt));
   if (editedAt) meta.appendChild(el("span", "edited-tag", "edited"));
   return meta;
 }

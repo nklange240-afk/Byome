@@ -39,9 +39,7 @@ function formatDate(iso) {
 
 function buildMeta(profile, createdAt, editedAt) {
   const meta = el("div", "post-meta");
-  const time = el("time", null, formatDate(createdAt));
-  time.dateTime = createdAt;
-  meta.append(authorLink(profile), time);
+  meta.append(authorLink(profile), UI.timeTag(createdAt));
   if (editedAt) {
     const tag = el("span", "edited-tag", "edited");
     tag.title = "Edited " + formatDate(editedAt);
@@ -186,7 +184,7 @@ async function loadPosts(more) {
 function loadMoreButton(onClick) {
   const btn = el("button", "btn btn-ghost load-more", "Load more");
   btn.type = "button";
-  btn.addEventListener("click", () => { btn.disabled = true; btn.textContent = "Loading..."; onClick(); });
+  btn.addEventListener("click", () => { btn.disabled = true; btn.textContent = "Loading…"; btn.classList.add("is-loading"); onClick(); });
   return btn;
 }
 
@@ -215,7 +213,8 @@ function buildPost(post) {
   commentsBtn.setAttribute("aria-expanded", "false");
 
   function paintCommentsBtn() {
-    commentsBtn.textContent = "Comments (" + commentCount + ")";
+    commentsBtn.textContent = commentCount === 0 ? "Leave a comment"
+      : commentCount === 1 ? "1 comment" : commentCount + " comments";
   }
   paintCommentsBtn();
 

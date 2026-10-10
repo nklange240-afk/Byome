@@ -185,14 +185,14 @@ function buildQueueItem(product, matches) {
 
   const actions = el("div", "post-actions");
 
-  const approveBtn = el("button", "action-btn", "Approve");
+  const approveBtn = el("button", "action-btn mod-btn is-good", "Approve");
   approveBtn.type = "button";
   approveBtn.addEventListener("click", async () => {
     await supabaseClient.from("products").update({ status: "approved" }).eq("id", product.id);
     loadQueue();
   });
 
-  const editBtn = el("button", "action-btn", "Edit");
+  const editBtn = el("button", "action-btn mod-btn", "Edit");
   editBtn.type = "button";
   editBtn.addEventListener("click", () => {
     if (article.querySelector(".edit-form")) return;
@@ -207,7 +207,7 @@ function buildQueueItem(product, matches) {
     form.querySelector("input").focus();
   });
 
-  const rejectBtn = el("button", "action-btn", "Reject");
+  const rejectBtn = el("button", "action-btn mod-btn is-bad", "Reject");
   rejectBtn.type = "button";
   function openRejectForm(presetReason) {
     if (article.querySelector(".edit-form")) return;
@@ -238,7 +238,7 @@ function buildQueueItem(product, matches) {
     view.appendChild(box);
 
     const best = matches[0].product;
-    const dupBtn = el("button", "action-btn", "Reject as duplicate");
+    const dupBtn = el("button", "action-btn mod-btn is-bad", "Reject as duplicate");
     dupBtn.type = "button";
     dupBtn.addEventListener("click", () => openRejectForm(
       best.status === "approved"
@@ -439,10 +439,10 @@ function buildHeldItem(item) {
     };
   }
 
-  const approve = el("button", "action-btn", "Approve");
+  const approve = el("button", "action-btn mod-btn is-good", "Approve");
   approve.type = "button";
   approve.addEventListener("click", decide("approve", approve));
-  const remove = el("button", "action-btn", "Remove");
+  const remove = el("button", "action-btn mod-btn is-bad", "Remove");
   remove.type = "button";
   remove.addEventListener("click", decide("remove", remove));
   actions.append(approve, remove, message);
@@ -539,7 +539,7 @@ function buildReportedItem(group) {
     }
     loadReports();
   }
-  const keep = el("button", "action-btn", "Keep it");
+  const keep = el("button", "action-btn mod-btn is-good", "Keep it");
   keep.type = "button";
   keep.addEventListener("click", () => decide("keep"));
   actions.appendChild(keep);
@@ -561,17 +561,17 @@ function buildReportedItem(group) {
       loadReports();
     }
     if (c.avatar_path) {
-      const pic = el("button", "action-btn", "Remove picture");
+      const pic = el("button", "action-btn mod-btn is-bad", "Remove picture");
       pic.type = "button";
       pic.addEventListener("click", () => fixProfile("remove_avatar", "Remove " + c.username + "'s profile picture? They'll be told why."));
       actions.appendChild(pic);
     }
-    const rename = el("button", "action-btn", "Reset username");
+    const rename = el("button", "action-btn mod-btn is-bad", "Reset username");
     rename.type = "button";
     rename.addEventListener("click", () => fixProfile("reset_username", "Reset the username \u201c" + c.username + "\u201d? They'll be asked to choose a new one."));
     actions.appendChild(rename);
   } else {
-    const remove = el("button", "action-btn", "Remove");
+    const remove = el("button", "action-btn mod-btn is-bad", "Remove");
     remove.type = "button";
     remove.addEventListener("click", () => decide("remove"));
     actions.appendChild(remove);

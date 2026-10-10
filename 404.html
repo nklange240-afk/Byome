@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <!-- GitHub Pages shows this page for any address that doesn't exist, at
+       any depth, so every link and picture is taken from the site's root -->
+  <base href="/" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Page not found — byome</title>
+  <!-- Tab icon and the preview card shown when a link is shared -->
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+  <meta name="theme-color" content="#24402F" />
+  <meta name="description" content="Honest beauty reviews from the people actually using the products, plus a community and a little shelf of plants to grow." />
+  <meta property="og:site_name" content="byome" />
+  <meta property="og:title" content="byome — honest beauty reviews, grown together" />
+  <meta property="og:description" content="Honest beauty reviews from the people actually using the products, plus a community and a little shelf of plants to grow." />
+  <meta property="og:image" content="https://byome.xyz/og-image.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css?v=36" />
+</head>
+<body>
+  <header class="site-header">
+    <a href="index.html" class="logo">by<span class="logo-accent">🌱</span>me</a>
+    <button id="menu-toggle" class="hamburger-btn" aria-expanded="false" aria-controls="nav-menu" aria-label="Open menu">
+      <span></span><span></span><span></span>
+    </button>
+
+    <!-- The menu items are filled in by nav-menu.js, the same on every page -->
+    <nav id="nav-menu" class="nav-menu" hidden></nav>
+  </header>
+  <main class="feed-page not-found">
+    <img src="biome-assets/plant-welcome-sprout.png" alt="" class="not-found-art" />
+    <h1>This page wandered off</h1>
+    <p>We couldn't find what you were looking for. It may have moved, or the link might have a typo.</p>
+    <div class="hero-actions">
+      <a href="index.html" class="btn btn-solid">Go home</a>
+      <a href="reviews.html" class="btn btn-ghost">Browse reviews</a>
+    </div>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-client.js?v=36"></script>
+  <script src="nav-menu.js?v=36"></script>
+  <script src="ui.js?v=36"></script>
+</body>
+</html>
