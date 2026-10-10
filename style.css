@@ -3399,11 +3399,11 @@ dialog.celebrate h2 {
    ========================================================= */
 
 /* Each biome re-colors the cards and borders to match */
-/* A spring meadow: sage and mint greens */
+/* A spring meadow: fresh spring greens, a step brighter than the forest */
 .biome-meadow {
-  --forest-dark: #2C584A;
-  --forest-mid: #3C6D5C;
-  --moss: #86AE9C;
+  --forest-dark: #33603F;
+  --forest-mid: #43744F;
+  --moss: #8EBF8A;
 }
 
 .biome-desert {
