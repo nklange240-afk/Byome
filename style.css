@@ -4102,3 +4102,67 @@ input[type="radio"] {
   margin-top: 0;
   font-size: 0.85rem;
 }
+
+/* "Returned to you" on your own profile */
+.returned {
+  margin: 1.25rem 0 2rem;
+  padding: 1.1rem 1.25rem;
+  border: 1px solid #E07A5F;
+  border-radius: 12px;
+  background-color: rgba(224, 122, 95, 0.08);
+}
+
+.returned .section-title {
+  margin-top: 0;
+}
+
+.returned-intro {
+  font-size: 0.92rem;
+  opacity: 0.9;
+  margin-bottom: 1rem;
+}
+
+.returned-card {
+  padding: 0.9rem 0;
+  border-top: 1px solid var(--moss);
+}
+
+.returned-what {
+  font-size: 0.82rem;
+  opacity: 0.75;
+  margin-bottom: 0.35rem;
+}
+
+.returned-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-top: 0.75rem;
+}
+
+.returned-form input,
+.returned-form textarea {
+  width: 100%;
+  background-color: var(--forest-dark);
+  border: 1px solid var(--moss);
+  border-radius: 6px;
+  padding: 0.6rem 0.8rem;
+  color: var(--cream);
+  font-family: var(--font-body);
+  font-size: 1rem;
+}
+
+.returned-done {
+  color: var(--leaf);
+}
+
+.returned-card .post-actions,
+.returned-form .post-actions {
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.returned-card .btn {
+  white-space: nowrap;
+  padding: 0.5rem 1rem;
+}

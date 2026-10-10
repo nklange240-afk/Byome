@@ -585,7 +585,111 @@ async function showAchievements(profileId) {
   showAchievements(profile.id);
 
   loadContent(profile, isMe);
+  if (isMe) showReturned(profile, isMe);
 })();
+
+// ---------- Returned to you ----------
+// When a moderator removes a post or review, its author keeps a private
+// copy here. Revising and resubmitting posts it again, held for a
+// moderator before anyone else sees it; "Let it go" deletes the copy.
+async function showReturned(profile, isMe) {
+  const box = document.getElementById("returned");
+  const { data: items, error } = await supabaseClient.from("returned_content")
+    .select("id, kind, title, body, product_id, removed_at").order("removed_at", { ascending: false });
+  if (error || !items || !items.length) { box.hidden = true; return; }
+
+  // Product names for returned reviews
+  const productIds = items.map((i) => i.product_id).filter(Boolean);
+  const names = {};
+  if (productIds.length) {
+    const { data: products } = await supabaseClient.from("products").select("id, brand, name").in("id", productIds);
+    (products || []).forEach((p) => { names[p.id] = p.brand + " — " + p.name; });
+  }
+
+  box.replaceChildren();
+  box.appendChild(el("h2", "section-title", "Returned to you"));
+  box.appendChild(el("p", "returned-intro",
+    "A moderator removed these because they didn't follow the community guidelines. Only you can see them. " +
+    "You can revise one and resubmit it (a moderator will look it over before it goes up), or let it go."));
+  items.forEach((item) => box.appendChild(returnedCard(item, names, profile, isMe)));
+  box.hidden = false;
+}
+
+function returnedCard(item, names, profile, isMe) {
+  const card = el("article", "returned-card");
+  const what = item.kind === "review"
+    ? "Your review of " + (names[item.product_id] || "a product")
+    : "Your post";
+  const head = el("p", "returned-what");
+  head.append(document.createTextNode(what + " \u00b7 removed "), UI.timeTag(item.removed_at));
+  card.appendChild(head);
+  if (item.title) card.appendChild(el("h3", "post-title", item.title));
+  card.appendChild(el("p", "post-body", item.body));
+  const message = el("p", "auth-message");
+  message.setAttribute("aria-live", "polite");
+
+  const actions = el("div", "post-actions");
+  const revise = el("button", "btn btn-solid", "Revise and resubmit");
+  revise.type = "button";
+  const letGo = el("button", "btn btn-ghost", "Let it go");
+  letGo.type = "button";
+  actions.append(revise, letGo);
+  card.append(actions, message);
+
+  letGo.addEventListener("click", async () => {
+    if (!confirm("Let this go? It will be deleted for good.")) return;
+    const { error } = await supabaseClient.from("returned_content").delete().eq("id", item.id);
+    if (error) { message.textContent = error.message; message.style.color = "#E07A5F"; return; }
+    card.remove();
+    showReturned(profile, isMe);
+  });
+
+  revise.addEventListener("click", () => {
+    const form = el("form", "returned-form");
+    const titleLabel = el("label", "field-label", "Heading");
+    const title = el("input", "composer-title");
+    title.value = item.title || "";
+    title.maxLength = 100;
+    title.required = item.kind === "review";
+    title.id = "returned-title-" + item.id;
+    titleLabel.htmlFor = title.id;
+    const bodyLabel = el("label", "field-label", item.kind === "review" ? "Your review" : "Your post");
+    const body = el("textarea");
+    body.value = item.body;
+    body.rows = 5;
+    body.required = true;
+    body.maxLength = item.kind === "review" ? 2000 : 1000;
+    body.id = "returned-body-" + item.id;
+    bodyLabel.htmlFor = body.id;
+    const save = el("button", "btn btn-solid", "Resubmit for review");
+    save.type = "submit";
+    const cancel = el("button", "btn btn-ghost", "Cancel");
+    cancel.type = "button";
+    const buttons = el("div", "post-actions");
+    buttons.append(save, cancel);
+    form.append(titleLabel, title, bodyLabel, body, buttons);
+    actions.replaceWith(form);
+    body.focus();
+
+    cancel.addEventListener("click", () => form.replaceWith(actions));
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      save.disabled = true;
+      const { error } = await supabaseClient.rpc("resubmit_returned",
+        { p_id: item.id, p_title: title.value, p_body: body.value });
+      if (error) {
+        message.textContent = error.message;
+        message.style.color = "#E07A5F";
+        save.disabled = false;
+        return;
+      }
+      card.replaceChildren(el("p", "returned-done",
+        "Thanks for revising it! It's back with the moderators, and you'll get a notification once it's approved."));
+      loadContent(profile, isMe); // it shows below as "waiting for a moderator"
+    });
+  });
+  return card;
+}
 
 // The member's reviews and posts. Reloaded after you edit or delete one.
 async function loadContent(profile, isMe) {
