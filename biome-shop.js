@@ -89,6 +89,12 @@ function buildCard(item, balance, ownedCount) {
   pic.setAttribute("role", "img");
   pic.setAttribute("aria-label", item.name);
   card.appendChild(pic);
+  // Biomes can be previewed: click the picture (or rest the mouse on it)
+  if (item.kind === "biome") {
+    pic.classList.add("is-previewable");
+    pic.addEventListener("click", () => UI.openBiomePreview(item));
+    UI.previewOnHover(pic, item);
+  }
   if (ownedCount) card.appendChild(el("span", "owned-tag", ownedCount > 1 ? "Owned ×" + ownedCount : "Owned"));
 
   const sparkly = item.rarity === "rare" || item.rarity === "legendary";
@@ -138,6 +144,7 @@ function buildCard(item, balance, ownedCount) {
     });
     loadShop();
   });
+  if (item.kind === "biome") card.appendChild(UI.previewButton(item));
   card.appendChild(buy);
   return card;
 }
