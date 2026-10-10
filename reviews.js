@@ -350,7 +350,7 @@ async function showProductPage() {
     document.querySelector(".page-head h1").textContent = "Product not found";
     return;
   }
-  document.title = product.brand + " " + product.name + " reviews — byome";
+  document.title = product.brand + " " + product.name + " reviews — Byome";
   document.querySelector(".page-head h1").textContent = product.name;
   const rows = statsRes.data || [];
 
@@ -475,7 +475,7 @@ async function init() {
     const prompt = el("p", "guest-prompt");
     const login = el("a", "inline-link", "Log in");
     login.href = "login.html";
-    const join = el("a", "inline-link", "join byome");
+    const join = el("a", "inline-link", "join Byome");
     join.href = "signup.html";
     prompt.append(login, document.createTextNode(" or "), join,
       document.createTextNode(" to write a review or suggest a product."));

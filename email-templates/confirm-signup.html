@@ -1,16 +1,16 @@
 <!-- Supabase → Authentication → Email Templates → "Confirm signup"
-     Subject: Welcome to byome 🌱 Please confirm your email -->
+     Subject: Welcome to Byome 🌱 Please confirm your email -->
 <div style="margin:0;padding:32px 16px;background-color:#24402F;font-family:'Work Sans',Helvetica,Arial,sans-serif;">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;margin:0 auto;background-color:#F3EDE0;border-radius:16px;">
     <tr>
       <td style="padding:32px 32px 8px;text-align:center;">
-        <img src="https://byome.xyz/logo-wordmark-green.png" width="240" height="60" alt="byome" style="display:block;margin:0 auto 12px;border:0;width:240px;height:auto;" />
-        <h1 style="margin:8px 0 0;font-family:Fraunces,Georgia,serif;font-size:28px;font-weight:600;color:#24402F;">Welcome to byome{{ if .Data.username }}, {{ .Data.username }}{{ end }}!</h1>
+        <img src="https://byome.xyz/logo-wordmark-green.png" width="240" height="60" alt="Byome" style="display:block;margin:0 auto 12px;border:0;width:240px;height:auto;" />
+        <h1 style="margin:8px 0 0;font-family:Fraunces,Georgia,serif;font-size:28px;font-weight:600;color:#24402F;">Welcome to Byome{{ if .Data.username }}, {{ .Data.username }}{{ end }}!</h1>
       </td>
     </tr>
     <tr>
       <td style="padding:16px 32px;font-size:16px;line-height:1.6;color:#2A1F16;">
-        <p style="margin:0 0 16px;">We're so glad you're here! byome is a community for honest beauty reviews, written by the people who actually use the products.</p>
+        <p style="margin:0 0 16px;">We're so glad you're here! Byome is a community for honest beauty reviews, written by the people who actually use the products.</p>
         <p style="margin:0 0 24px;">There's just one step left: confirm your email, and you're in.</p>
         <p style="margin:0 0 24px;text-align:center;">
           <a href="{{ .ConfirmationURL }}" style="display:inline-block;padding:14px 28px;background-color:#E0A83E;color:#2A1F16;font-weight:600;text-decoration:none;border-radius:999px;">Confirm my email</a>
@@ -22,7 +22,7 @@
     <tr>
       <td style="padding:16px 32px 32px;font-size:13px;line-height:1.5;color:#5E7F56;">
         <p style="margin:0 0 8px;">If the button doesn't work, copy this link into your browser:<br /><a href="{{ .ConfirmationURL }}" style="color:#35573F;word-break:break-all;">{{ .ConfirmationURL }}</a></p>
-        <p style="margin:0;">Didn't sign up for byome? You can safely ignore this email.</p>
+        <p style="margin:0;">Didn't sign up for Byome? You can safely ignore this email.</p>
       </td>
     </tr>
   </table>

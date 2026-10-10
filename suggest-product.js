@@ -71,7 +71,7 @@ function showSimilar() {
 
   const title = document.createElement("p");
   title.className = "similar-title";
-  title.textContent = matches.length === 1 ? "Is it this one? It's already on byome:" : "Is it one of these? They're already on byome:";
+  title.textContent = matches.length === 1 ? "Is it this one? It's already on Byome:" : "Is it one of these? They're already on Byome:";
   const list = document.createElement("ul");
   matches.forEach(({ product }) => {
     const li = document.createElement("li");

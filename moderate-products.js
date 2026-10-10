@@ -270,7 +270,7 @@ function buildRejectForm(product, onSaved, onCancel, presetReason) {
   const picks = el("div", "reason-choices quick-picks");
   [
     ["Already listed", "Thanks! This product is already listed, so you can review it there."],
-    ["Not a beauty product", "Thanks for the suggestion! byome is just for beauty and personal care products, so this one isn't a fit."],
+    ["Not a beauty product", "Thanks for the suggestion! Byome is just for beauty and personal care products, so this one isn't a fit."],
     ["Not enough detail", "Thanks! We couldn't tell exactly which product this is. Please suggest it again with the full name and brand."],
     ["Spelling or name", "Thanks! The name or brand didn't quite match the real product. Please suggest it again as it appears on the packaging."],
   ].forEach(([text, reason]) => {

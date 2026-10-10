@@ -239,7 +239,7 @@ deleteBtn.addEventListener("click", async () => {
     return;
   }
   await supabaseClient.auth.signOut().catch(() => {});
-  alert("Your account has been deleted. Thank you for being part of byome.");
+  alert("Your account has been deleted. Thank you for being part of Byome.");
   window.location.href = "index.html";
 });
 

@@ -22,7 +22,7 @@ const ICONS = {
   achievement: '<path d="M12 21v-8"/><path d="M12 13c0-4 3-6 7-6 0 4-3 6-7 6z"/><path d="M12 15c0-3-2-5-6-5 0 3 2 5 6 5z"/>',
   // a sparkle: points
   points: '<path d="M12 3c.6 4.6 3.4 7.4 8 8-4.6.6-7.4 3.4-8 8-.6-4.6-3.4-7.4-8-8 4.6-.6 7.4-3.4 8-8z"/>',
-  // a leaf (byome's "like")
+  // a leaf (Byome's "like")
   like: '<path d="M5 19C5 10 10 5 19 5c0 9-5 14-14 14z"/><path d="M5 19l8-8"/>',
   // a speech bubble: comments and replies
   comment: '<path d="M4 5h16v11H9l-5 4z"/>',
