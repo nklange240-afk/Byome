@@ -18,7 +18,7 @@
   <meta name="twitter:card" content="summary_large_image" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=25" />
+  <link rel="stylesheet" href="style.css?v=27" />
 </head>
 <body data-biome="meadow">
   <header class="site-header">
@@ -31,6 +31,8 @@
     <nav id="nav-menu" class="nav-menu" hidden></nav>
   </header>
   <main class="feed-page">
+    <!-- Product pages (reviews.html?product=...): back link and summary -->
+    <a href="reviews.html" id="product-back" class="back-link" hidden>&larr; All reviews</a>
     <div class="page-head">
       <h1>Reviews</h1>
       <button type="button" id="write-review-toggle" class="btn btn-solid" aria-expanded="false" aria-controls="review-form">Write a review</button>
@@ -79,7 +81,8 @@
       </div>
     </form>
     <p id="review-message" class="auth-message"></p>
-    <p class="feed-empty">Can't find a product? <a href="suggest-product.html" class="inline-link">Suggest it</a>.</p>
+    <section id="product-summary" class="product-summary" hidden></section>
+    <p class="feed-empty" id="suggest-line">Can't find a product? <a href="suggest-product.html" class="inline-link">Suggest it</a>.</p>
 
     <div class="review-search">
       <label for="review-search" class="visually-hidden">Search reviews by product or brand</label>
@@ -108,17 +111,22 @@
       </select>
     </div>
 
+    <div id="sort-chips" class="category-chips sort-chips" role="group" aria-label="Sort reviews">
+      <span class="sort-label">Sort:</span>
+      <button type="button" class="category-chip" data-sort="newest" aria-pressed="true">Newest</button>
+      <button type="button" class="category-chip" data-sort="helpful" aria-pressed="false">Most helpful</button>
+    </div>
     <section id="reviews" class="feed" aria-live="polite">
       <p class="feed-empty">Loading reviews...</p>
     </section>
   </main>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase-client.js?v=25"></script>
-  <script src="profile-fields.js?v=25"></script>
-  <script src="nav-menu.js?v=25"></script>
-  <script src="ui.js?v=25"></script>
-  <script src="edit-forms.js?v=25"></script>
-  <script src="report.js?v=25"></script>
-  <script src="reviews.js?v=25"></script>
+  <script src="supabase-client.js?v=27"></script>
+  <script src="profile-fields.js?v=27"></script>
+  <script src="nav-menu.js?v=27"></script>
+  <script src="ui.js?v=27"></script>
+  <script src="edit-forms.js?v=27"></script>
+  <script src="report.js?v=27"></script>
+  <script src="reviews.js?v=27"></script>
 </body>
 </html>
