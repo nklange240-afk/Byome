@@ -268,7 +268,8 @@ end $$;
 insert into public.moderation_log (created_at, moderator_id, action, target_type, target_id, target_owner, outcome, note)
 select r.resolved_at, r.resolved_by,
        case r.resolution when 'kept' then 'keep' else 'remove' end,
-       r.kind, coalesce(r.post_id, r.comment_id, r.review_id, r.profile_id), null,
+       -- (profile_id is read this way so this works even where it doesn't exist)
+       r.kind, coalesce(r.post_id, r.comment_id, r.review_id, (to_jsonb(r) ->> 'profile_id')::uuid), null,
        case when r.resolution = 'kept' then null else 'negative' end,
        'Earlier report (before the log)'
 from public.content_reports r
