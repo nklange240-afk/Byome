@@ -21,6 +21,7 @@ from (values
   ('2026-10-03-zebra-haworthia.sql',      exists (select 1 from public.biome_items where key = 'zebra-haworthia')),
   ('2026-10-03-moderator-alerts.sql',     exists (select 1 from fn where name = 'moderation_counts')),
   ('2026-10-03-profiles.sql (profiles)',  exists (select 1 from col where t = 'profiles' and c = 'skin_type')),
+  -- the next two are also covered by 2026-10-11-profiles-catch-up.sql
   ('2026-10-03-profiles.sql (reporting profiles)', exists (select 1 from col where t = 'content_reports' and c = 'profile_id')),
   ('2026-10-03-profiles.sql (delete account)', exists (select 1 from fn where name = 'delete_my_account')),
   ('2026-10-03-african-violet.sql',       exists (select 1 from col where t = 'biome_items' and c = 'over_pot')),
@@ -31,5 +32,6 @@ from (values
   ('2026-10-10-profile-biomes.sql',       exists (select 1 from col where t = 'profiles' and c = 'profile_biome')),
   ('2026-10-10-helpful-reviews.sql',      exists (select 1 from col where t = 'reviews' and c = 'helpful_count')),
   ('2026-10-11-moderation-log.sql',       exists (select 1 from tbl where name = 'moderation_log')),
-  ('2026-10-11-helpful-wording.sql',      exists (select 1 from fn where name = 'on_review_like' and body like '%found your review%'))
+  ('2026-10-11-helpful-wording.sql',      exists (select 1 from fn where name = 'on_review_like' and body like '%found your review%')),
+  ('2026-10-11-returned-content.sql',     exists (select 1 from tbl where name = 'returned_content'))
 ) as checks(file, ok);
