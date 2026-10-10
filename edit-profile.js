@@ -140,7 +140,7 @@ async function buildBiomePicker() {
     text.appendChild(el("span", "biome-option-note", have ? (it.starter ? "Free" : "Yours") : it.price + " Byome points"));
     label.appendChild(text);
     if (!have) {
-      label.title = "Find this one in the Biome shop";
+      label.title = "Find this one in the Byome Shop";
       label.addEventListener("click", () => { window.location.href = "biome-shop.html"; });
     }
     grid.appendChild(label);

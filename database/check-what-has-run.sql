@@ -34,5 +34,6 @@ from (values
   ('2026-10-11-moderation-log.sql',       exists (select 1 from tbl where name = 'moderation_log')),
   ('2026-10-11-helpful-wording.sql',      exists (select 1 from fn where name = 'on_review_like' and body like '%found your review%')),
   ('2026-10-11-returned-content.sql',     exists (select 1 from tbl where name = 'returned_content')),
-  ('2026-10-11-capital-byome.sql',        exists (select 1 from public.achievements where name = 'Welcome to Byome'))
+  ('2026-10-11-capital-byome.sql',        exists (select 1 from public.achievements where name = 'Welcome to Byome')),
+  ('2026-10-12-byome-shop.sql',           exists (select 1 from public.point_rules where action = 'biome_purchase' and label = 'Byome Shop purchase'))
 ) as checks(file, ok);
