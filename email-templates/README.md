@@ -14,4 +14,4 @@ Notes:
 - `{{ .ConfirmationURL }}` is the button link Supabase fills in. Keep it exactly as written.
 - `{{ .Data.username }}` is the member's username, which is left out if it's missing.
 - Styles are written on each tag (not in `style.css`) because email apps ignore separate stylesheets.
-- The sprout picture loads from `https://byome.xyz/biome-assets/plant-welcome-sprout.png`, so don't rename that file.
+- The logo at the top loads from `https://byome.xyz/logo-wordmark-green.png`, so don't rename that file.

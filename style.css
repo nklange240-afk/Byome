@@ -4216,3 +4216,18 @@ input[type="radio"] {
 .returned-why p {
   margin: 0.1rem 0;
 }
+
+/* =========================================================
+   LOGO
+   ========================================================= */
+.logo img {
+  display: block;
+  height: 42px;
+  width: auto;
+}
+
+@media (max-width: 600px) {
+  .logo img {
+    height: 34px;
+  }
+}

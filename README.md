@@ -36,12 +36,11 @@ The site is plain HTML, CSS and JavaScript (no build step). Accounts and data li
 
 Community is set in the forest and Reviews in the meadow (`<body data-biome="...">`). Profile pages use the member's chosen biome (Edit profile). Each biome's colors, symbol and drifting particles are in `BIOME_LOOKS` in `ui.js`; its card and border colors are under BIOMES in `style.css`. A new biome needs both, plus a row in `biome_items` with `kind = 'biome'`.
 
-## Icons and link previews
+## Logo, icons and link previews
 
-- `favicon-32.png` (browser tab) and `apple-touch-icon.png` (phone home screen) are the welcome sprout for now; swap in the real logo when it's ready, keeping the same names and sizes.
-- `og-image.png` (1200×630) is the picture shown when someone shares a byome link. It's made from the biome art.
-
-When you change a page's JS or CSS, bump the `?v=` number in the HTML files so browsers load the new version.
+- `logo-wordmark.png` (cream, for the dark header), `logo-wordmark-green.png` (green, used in the emails) and `logo-icon.png` (the sun-and-sprout mark).
+- `favicon-32.png` (browser tab) and `apple-touch-icon.png` (phone home screen, on the byome green) are made from the icon.
+- `og-image.png` (1200×630) is the picture shown when someone shares a byome link: the wordmark above a row of biome pots and plants.
 
 ## Biome art (`biome-assets/`)
 
