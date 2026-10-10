@@ -3181,6 +3181,11 @@ body > main {
   position: relative;
 }
 
+/* ...except shelf spots, which must stay exactly where biome.js puts them */
+.biome-slot.has-sparkles {
+  position: absolute;
+}
+
 .sparkle {
   position: absolute;
   z-index: 6;
