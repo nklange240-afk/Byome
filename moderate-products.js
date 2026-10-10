@@ -52,6 +52,71 @@ async function init() {
   loadHeld();
   loadReports();
   loadQueue();
+  loadLog();
+  // Refresh the log after any action on this page (they all reload a queue)
+  document.querySelector("main").addEventListener("click", (e) => {
+    if (e.target.closest("button") && !e.target.closest("#mod-log")) setTimeout(loadLog, 1500);
+  });
+}
+
+// ---------- Moderation log ----------
+
+const LOG_PAGE = 50;
+let logShown = 0;
+
+const LOG_WORDS = {
+  approve: "approved", remove: "removed", keep: "kept (after a report)", reject: "rejected",
+  edit: "edited", remove_avatar: "removed the profile picture of", reset_username: "reset the username of",
+  standout: "marked as standout",
+};
+const LOG_TYPES = {
+  post: "post", comment: "comment", review: "review", review_update: "review update",
+  product: "product suggestion", profile: "profile",
+};
+
+async function loadLog(more) {
+  const box = document.getElementById("mod-log");
+  const from = more ? logShown : 0;
+  const { data, error } = await supabaseClient.from("moderation_log")
+    .select("id, created_at, action, target_type, outcome, note, " +
+      "moderator:profiles!moderator_id(username), owner:profiles!target_owner(username)")
+    .order("created_at", { ascending: false })
+    .range(from, from + LOG_PAGE - 1);
+
+  if (!more) box.replaceChildren();
+  box.querySelectorAll(".load-more").forEach((b) => b.remove());
+  if (error) { box.appendChild(el("p", "feed-empty", "Couldn't load the log: " + error.message)); return; }
+  if (!data.length && !more) { box.appendChild(el("p", "feed-empty", "Nothing yet. Actions will appear here as moderators work.")); return; }
+
+  data.forEach((row) => {
+    const item = el("div", "log-row" + (row.outcome ? " is-" + row.outcome : ""));
+    const mark = el("span", "log-mark", row.outcome === "positive" ? "\u2713" : row.outcome === "negative" ? "\u2715" : "\u2022");
+    mark.setAttribute("aria-hidden", "true");
+    const text = el("p", "log-text");
+    text.appendChild(el("strong", null, row.moderator ? row.moderator.username : "A former moderator"));
+    const verb = LOG_WORDS[row.action] || row.action;
+    const kind = LOG_TYPES[row.target_type] || row.target_type;
+    let sentence = " " + verb + " ";
+    if (row.target_type === "profile" && (row.action === "remove_avatar" || row.action === "reset_username")) {
+      sentence += row.note ? row.note : "a member";
+    } else {
+      sentence += (row.owner ? row.owner.username + "\u2019s " : "a ") + kind;
+      if (row.note) sentence += ": \u201c" + row.note + "\u201d";
+    }
+    text.appendChild(document.createTextNode(sentence));
+    const when = el("time", "log-time", new Date(row.created_at).toLocaleString(undefined,
+      { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }));
+    when.dateTime = row.created_at;
+    item.append(mark, text, when);
+    box.appendChild(item);
+  });
+  logShown = from + data.length;
+  if (data.length === LOG_PAGE) {
+    const btn = el("button", "btn btn-ghost load-more", "Show older");
+    btn.type = "button";
+    btn.addEventListener("click", () => loadLog(true));
+    box.appendChild(btn);
+  }
 }
 
 async function loadQueue() {

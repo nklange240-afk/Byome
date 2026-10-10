@@ -36,9 +36,14 @@ const ICON_FOR = {
   moderation: "moderation", moderation_queue: "moderation",
 };
 
-function typeIcon(type) {
+// Moderation flags: green when it went your way (approved, your report was
+// acted on), red when it didn't, gold for moderators' "new in the queue"
+function typeIcon(type, tone) {
   const kind = ICON_FOR[type] || "points";
-  const wrap = el("span", "notification-icon icon-" + kind);
+  let shade = "";
+  if (type === "moderation_queue") shade = " is-queue";
+  else if (kind === "moderation") shade = tone === "positive" ? " is-positive" : " is-negative";
+  const wrap = el("span", "notification-icon icon-" + kind + shade);
   wrap.setAttribute("aria-hidden", "true");
   wrap.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' + ICONS[kind] + "</svg>";
   return wrap;
@@ -53,7 +58,7 @@ function typeIcon(type) {
 
   const { data: items, error } = await supabaseClient
     .from("notifications")
-    .select("id, type, message, link, created_at, read_at")
+    .select("id, type, tone, message, link, created_at, read_at")
     .order("created_at", { ascending: false })
     .limit(50);
 
@@ -70,7 +75,7 @@ function typeIcon(type) {
 
   items.forEach((n) => {
     const article = el("article", "notification" + (n.read_at ? "" : " is-unread"));
-    article.appendChild(typeIcon(n.type));
+    article.appendChild(typeIcon(n.type, n.tone));
     const textBox = el("div", "notification-main");
     article.appendChild(textBox);
     // only ever link to our own pages
