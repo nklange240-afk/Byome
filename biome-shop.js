@@ -88,8 +88,8 @@ function buildCard(item, balance, ownedCount) {
   const pic = UI.itemArt(item, "shop-art");
   pic.setAttribute("role", "img");
   pic.setAttribute("aria-label", item.name);
-  if (ownedCount) pic.appendChild(el("span", "owned-tag", ownedCount > 1 ? "Owned ×" + ownedCount : "Owned"));
   card.appendChild(pic);
+  if (ownedCount) card.appendChild(el("span", "owned-tag", ownedCount > 1 ? "Owned ×" + ownedCount : "Owned"));
 
   const sparkly = item.rarity === "rare" || item.rarity === "legendary";
   card.appendChild(el("span", "rarity rarity-" + item.rarity, (sparkly ? "\u2726 " : "") + item.rarity));
