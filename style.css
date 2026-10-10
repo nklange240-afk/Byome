@@ -3399,11 +3399,15 @@ dialog.celebrate h2 {
    ========================================================= */
 
 /* Each biome re-colors the cards and borders to match */
-/* A spring meadow: fresh spring greens, a step brighter than the forest */
+/* A spring meadow: fresh spring greens, a step brighter than the forest.
+   The accent is spring green itself (#BEF7BC), and gold turns a softer
+   buttercup so names and links stay easy to read on the brighter green. */
 .biome-meadow {
-  --forest-dark: #33603F;
-  --forest-mid: #43744F;
-  --moss: #8EBF8A;
+  --forest-dark: #366A34;
+  --forest-mid: #427740;
+  --moss: #8FC48C;
+  --leaf: #BEF7BC;
+  --gold: #F7D78C;
 }
 
 .biome-desert {
