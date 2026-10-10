@@ -45,6 +45,25 @@ const UI = (function () {
     footer.appendChild(links);
   }
 
+  // ---------- Why something was removed ----------
+  // Must match removal_reason_label() in database/2026-10-11-returned-content.sql
+  const REMOVAL_REASONS = [
+    ["profanity", "Profanity or slurs"],
+    ["harassment", "Harassment or personal attacks"],
+    ["spam", "Spam or self-promotion"],
+    ["low_effort", "Low effort (too short or not useful)"],
+    ["off_topic", "Unrelated to the topic or product"],
+    ["misleading", "Misleading or false claims"],
+    ["not_genuine", "Not a genuine review (the product wasn't used)"],
+    ["personal_info", "Shares someone's personal information"],
+    ["other", "Something else"],
+  ];
+
+  function removalReasonLabel(key) {
+    const found = REMOVAL_REASONS.find(([k]) => k === key);
+    return found ? found[1] : null;
+  }
+
   // ---------- Friendly dates ----------
 
   // "just now", "5 minutes ago", "yesterday", "3 days ago"; older than a
@@ -422,5 +441,5 @@ const UI = (function () {
     if (document.body.dataset.biome) setBiome(document.body.dataset.biome);
   });
 
-  return { friendlyDate, timeTag, emptyState, celebrate, sparkles, itemArt, setBiome, biomeSymbol, biomeSwatch, biomeLook, startModSession };
+  return { REMOVAL_REASONS, removalReasonLabel, friendlyDate, timeTag, emptyState, celebrate, sparkles, itemArt, setBiome, biomeSymbol, biomeSwatch, biomeLook, startModSession };
 })();

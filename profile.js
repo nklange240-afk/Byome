@@ -595,7 +595,7 @@ async function showAchievements(profileId) {
 async function showReturned(profile, isMe) {
   const box = document.getElementById("returned");
   const { data: items, error } = await supabaseClient.from("returned_content")
-    .select("id, kind, title, body, product_id, removed_at").order("removed_at", { ascending: false });
+    .select("id, kind, title, body, product_id, removed_at, reason, reason_note").order("removed_at", { ascending: false });
   if (error || !items || !items.length) { box.hidden = true; return; }
 
   // Product names for returned reviews
@@ -623,6 +623,22 @@ function returnedCard(item, names, profile, isMe) {
   const head = el("p", "returned-what");
   head.append(document.createTextNode(what + " \u00b7 removed "), UI.timeTag(item.removed_at));
   card.appendChild(head);
+  // Why it was removed, and the moderator's note
+  const reasonLabel = item.reason ? UI.removalReasonLabel(item.reason) : null;
+  if (reasonLabel || item.reason_note) {
+    const why = el("div", "returned-why");
+    if (reasonLabel) {
+      const line = el("p");
+      line.append(el("strong", null, "Why: "), document.createTextNode(reasonLabel));
+      why.appendChild(line);
+    }
+    if (item.reason_note) {
+      const line = el("p");
+      line.append(el("strong", null, "Moderator's note: "), document.createTextNode(item.reason_note));
+      why.appendChild(line);
+    }
+    card.appendChild(why);
+  }
   if (item.title) card.appendChild(el("h3", "post-title", item.title));
   card.appendChild(el("p", "post-body", item.body));
   const message = el("p", "auth-message");

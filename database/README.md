@@ -28,6 +28,6 @@ byome's database lives in Supabase. These files are a backup and a history of ch
 - `2026-10-11-helpful-wording.sql`: the notification for "Helpful" on reviews reads "found your review of … helpful" (existing ones reworded too).
 
 - `2026-10-11-profiles-catch-up.sql`: adds the parts of `2026-10-03-profiles.sql` that never reached the live database (reporting profiles, deleting your account, picture storage rules). Skips anything already there. Run it before the moderation log file.
-- `2026-10-11-returned-content.sql`: when a moderator removes a post or review, its author keeps a private copy ("Returned to you" on their profile) to revise and resubmit (held for a moderator first) or let go. Run after the moderation log file.
+- `2026-10-11-returned-content.sql`: moderators pick a reason (and can add a short note) for every removal, and the member is told both; removed posts and reviews also leave the author a private copy ("Returned to you" on their profile) to revise and resubmit (held for a moderator first) or let go. Run after the moderation log file.
 
 **Not sure what's been run?** `check-what-has-run.sql` is read-only: run it in the SQL Editor and it lists every update above as "yes" or "MISSING".

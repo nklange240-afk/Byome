@@ -4166,3 +4166,53 @@ input[type="radio"] {
   white-space: nowrap;
   padding: 0.5rem 1rem;
 }
+
+/* Moderate page: picking why something is removed */
+.reason-form {
+  margin-top: 0.75rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid #E07A5F;
+  border-radius: 10px;
+}
+
+.reason-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0.4rem 0 0.75rem;
+}
+
+.reason-choice span {
+  font-size: 0.85rem;
+}
+
+.reason-note,
+.reason-form textarea {
+  width: 100%;
+  background-color: var(--forest-dark);
+  border: 1px solid var(--moss);
+  border-radius: 6px;
+  padding: 0.5rem 0.7rem;
+  color: var(--cream);
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+}
+
+.quick-picks .category-chip {
+  font-size: 0.82rem;
+  padding: 0.25rem 0.75rem;
+}
+
+/* "Returned to you": why it was removed */
+.returned-why {
+  margin: 0.25rem 0 0.6rem;
+  padding: 0.55rem 0.8rem;
+  border-left: 3px solid #E07A5F;
+  background-color: rgba(224, 122, 95, 0.1);
+  border-radius: 0 6px 6px 0;
+  font-size: 0.9rem;
+}
+
+.returned-why p {
+  margin: 0.1rem 0;
+}

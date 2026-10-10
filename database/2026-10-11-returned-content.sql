@@ -3,6 +3,8 @@
 -- private copy ("Returned to you" on their profile). They can revise and
 -- resubmit it (it goes back to the moderators before anyone else sees
 -- it), or let it go.
+-- Moderators also pick a reason for every removal (profanity, low effort,
+-- unrelated, ...) and can add a short note; the member is told both.
 -- Run in the Supabase SQL Editor AFTER 2026-10-11-moderation-log.sql.
 -- Safe to run again. Paste the whole file with nothing highlighted.
 -- =========================================================
@@ -21,8 +23,12 @@ create table if not exists public.returned_content (
   variation text,
   would_repurchase boolean,
   holy_grail boolean,
-  removed_at timestamptz not null default now()
+  removed_at timestamptz not null default now(),
+  reason text,                -- why it was removed (see removal_reason_label)
+  reason_note text            -- the moderator's short note, if any
 );
+alter table public.returned_content add column if not exists reason text;
+alter table public.returned_content add column if not exists reason_note text;
 create index if not exists returned_content_user_idx on public.returned_content (user_id);
 alter table public.returned_content enable row level security;
 
@@ -36,10 +42,32 @@ create policy "Members can let returned content go" on public.returned_content f
 revoke insert, update on public.returned_content from anon, authenticated;
 
 
--- ---------- Removing content keeps a copy for its author ----------
--- Same as in 2026-10-11-moderation-log.sql, plus the copy and a kinder
--- message for posts and reviews.
-create or replace function public.moderate_content(p_kind text, p_id uuid, p_action text)
+-- ---------- Why something was removed ----------
+-- The reasons moderators choose from (the Moderate page shows the same list)
+create or replace function public.removal_reason_label(p_reason text) returns text
+language sql immutable as $$
+  select case p_reason
+    when 'profanity' then 'Profanity or slurs'
+    when 'harassment' then 'Harassment or personal attacks'
+    when 'spam' then 'Spam or self-promotion'
+    when 'low_effort' then 'Low effort (too short or not useful)'
+    when 'off_topic' then 'Unrelated to the topic or product'
+    when 'misleading' then 'Misleading or false claims'
+    when 'not_genuine' then 'Not a genuine review (the product wasn''t used)'
+    when 'personal_info' then 'Shares someone''s personal information'
+    when 'other' then 'Something else'
+  end
+$$;
+
+
+-- ---------- Removing content: a reason, and a copy for its author ----------
+-- Same as in 2026-10-11-moderation-log.sql, plus: a reason and optional
+-- note for removals (both told to the member), and a private copy of
+-- removed posts and reviews. (The old version without a reason is
+-- replaced, not kept alongside.)
+drop function if exists public.moderate_content(text, uuid, text);
+create or replace function public.moderate_content(p_kind text, p_id uuid, p_action text,
+                                                   p_reason text default null, p_note text default null)
 returns text
 language plpgsql security definer set search_path to public as $$
 declare
@@ -47,8 +75,17 @@ declare
   author uuid;
   label text;
   what text := replace(p_kind, '_', ' ');
+  why text;
 begin
   if not is_moderator() then raise exception 'Moderators only'; end if;
+  p_note := nullif(btrim(coalesce(p_note, '')), '');
+  if p_action = 'remove' then
+    p_reason := coalesce(p_reason, 'other');
+    if removal_reason_label(p_reason) is null then raise exception 'Unknown reason: %', p_reason; end if;
+    if char_length(p_note) > 200 then raise exception 'Please keep the note to 200 characters'; end if;
+    why := ' Reason: ' || removal_reason_label(p_reason) || '.'
+        || case when p_note is not null then ' Moderator''s note: "' || p_note || '"' else '' end;
+  end if;
 
   tbl := case p_kind when 'post' then 'posts' when 'comment' then 'comments'
                      when 'review' then 'reviews' when 'review_update' then 'review_updates' end;
@@ -73,26 +110,82 @@ begin
   elsif p_action = 'remove' then
     -- Posts and reviews: keep a private copy for the author first
     if p_kind = 'post' then
-      insert into returned_content (user_id, kind, title, body, category)
-      select user_id, 'post', title, body, category from posts where id = p_id;
+      insert into returned_content (user_id, kind, title, body, category, reason, reason_note)
+      select user_id, 'post', title, body, category, p_reason, p_note from posts where id = p_id;
     elsif p_kind = 'review' then
-      insert into returned_content (user_id, kind, title, body, product_id, rating, variation, would_repurchase, holy_grail)
-      select user_id, 'review', title, body, product_id, rating, variation, would_repurchase, holy_grail
+      insert into returned_content (user_id, kind, title, body, product_id, rating, variation, would_repurchase, holy_grail, reason, reason_note)
+      select user_id, 'review', title, body, product_id, rating, variation, would_repurchase, holy_grail, p_reason, p_note
       from reviews where id = p_id;
     end if;
     execute format('delete from %I where id = $1', tbl) using p_id;
     perform create_notification(author, null, 'moderation', p_id,
-      'A moderator removed your ' || what || ' because it didn''t follow the community guidelines.'
+      'A moderator removed your ' || what || '.' || why
       || case when p_kind in ('post', 'review')
               then ' You can revise and resubmit it from your profile, or let it go.' else '' end,
       case when p_kind in ('post', 'review') then 'profile.html' end,
       false, 'negative');
-    perform log_moderation('remove', p_kind, p_id, author, 'negative', label);
+    perform log_moderation('remove', p_kind, p_id, author, 'negative',
+      left(coalesce(label, ''), 80) || ' (' || removal_reason_label(p_reason)
+      || case when p_note is not null then ': ' || p_note else '' end || ')');
     perform reward_moderator('mod_decision', p_kind, p_id, author);
     return 'removed';
   end if;
   raise exception 'Unknown action: %', p_action;
 end $$;
+
+
+revoke execute on function public.moderate_content(text, uuid, text, text, text) from public, anon;
+grant execute on function public.moderate_content(text, uuid, text, text, text) to authenticated;
+
+
+-- ---------- Reports: removing passes the reason along ----------
+-- Same as in 2026-10-11-moderation-log.sql, plus the reason and note.
+drop function if exists public.resolve_reports(text, uuid, text);
+create or replace function public.resolve_reports(p_kind text, p_id uuid, p_action text,
+                                                  p_reason text default null, p_note text default null)
+returns text
+language plpgsql security definer set search_path to public as $$
+declare
+  col text := case p_kind when 'post' then 'post_id' when 'comment' then 'comment_id'
+                          when 'review' then 'review_id' when 'profile' then 'profile_id' end;
+  r record;
+  closed int;
+  author uuid;
+  label text;
+begin
+  if not is_moderator() then raise exception 'Moderators only'; end if;
+  if col is null then raise exception 'Unknown kind: %', p_kind; end if;
+
+  if p_action = 'keep' then
+    execute format('update content_reports set resolved_at = now(), resolved_by = null, resolution = ''kept''
+                    where %I = $1 and resolved_at is null', col) using p_id;
+    get diagnostics closed = row_count;
+    if closed > 0 then
+      if p_kind = 'profile' then
+        author := p_id;
+        select username into label from profiles where id = p_id;
+      else
+        execute format('select user_id, left(to_jsonb(t) ->> %L, 80) from %I t where id = $1',
+          case when p_kind = 'comment' then 'body' else 'title' end,
+          case p_kind when 'post' then 'posts' when 'comment' then 'comments' else 'reviews' end)
+          into author, label using p_id;
+      end if;
+      perform log_moderation('keep', p_kind, p_id, author, null, label);
+      perform reward_moderator('mod_decision', p_kind, p_id, author);
+    end if;
+    return 'kept';
+  elsif p_action = 'remove' and p_kind <> 'profile' then
+    for r in execute format('select distinct reporter_id from content_reports where %I = $1', col) using p_id loop
+      perform create_notification(r.reporter_id, null, 'moderation', p_id,
+        'Thanks for your report. A moderator removed the ' || p_kind || ' you flagged.', null,
+        false, 'positive');
+    end loop;
+    return moderate_content(p_kind, p_id, 'remove', p_reason, p_note);
+  end if;
+  raise exception 'Unknown action: %', p_action;
+end $$;
+revoke execute on function public.resolve_reports(text, uuid, text, text, text) from public, anon;
+grant execute on function public.resolve_reports(text, uuid, text, text, text) to authenticated;
 
 
 -- ---------- Revise and resubmit ----------
