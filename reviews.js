@@ -36,6 +36,48 @@ categoryFilter.addEventListener("change", () => {
 
 subcategoryFilter.addEventListener("change", () => startOverReviews());
 
+// Category and subcategory pills (like the community feed). They set the
+// hidden dropdowns above, so the filtering itself works as before.
+const categoryChips = document.getElementById("category-chips");
+const subcategoryChips = document.getElementById("subcategory-chips");
+
+function buildChips(box, select, allLabel) {
+  box.replaceChildren();
+  Array.from(select.options).forEach((option) => {
+    const chip = document.createElement("button");
+    chip.type = "button";
+    chip.className = "category-chip";
+    chip.textContent = option.value ? option.textContent : allLabel;
+    chip.setAttribute("aria-pressed", String(select.value === option.value));
+    chip.addEventListener("click", () => {
+      if (select.value === option.value) return;
+      select.value = option.value;
+      box.querySelectorAll(".category-chip").forEach((c) => c.setAttribute("aria-pressed", String(c === chip)));
+      select.dispatchEvent(new Event("change"));
+    });
+    box.appendChild(chip);
+  });
+}
+
+buildChips(categoryChips, categoryFilter, "All");
+categoryFilter.addEventListener("change", () => {
+  subcategoryChips.hidden = subcategoryFilter.disabled;
+  if (!subcategoryFilter.disabled) buildChips(subcategoryChips, subcategoryFilter, "All " + categoryFilter.value.toLowerCase());
+});
+
+// The write form stays folded away until you ask for it, so the reviews
+// come first
+const writeToggle = document.getElementById("write-review-toggle");
+function setWriting(open) {
+  form.hidden = !open;
+  writeToggle.setAttribute("aria-expanded", String(open));
+  writeToggle.textContent = open ? "Close" : "Write a review";
+  writeToggle.classList.toggle("btn-solid", !open);
+  writeToggle.classList.toggle("btn-ghost", open);
+  if (open) document.getElementById("review-brand").focus();
+}
+writeToggle.addEventListener("click", () => setWriting(form.hidden));
+
 // ---------- Search ----------
 // Type a product or brand; the list shows reviews of every matching
 // product. Each word only has to appear somewhere in "brand + name",
@@ -126,7 +168,17 @@ function buildRatingWidget() {
     leaf.append(input, leafIcon(), el("span", "visually-hidden", n + " out of 5: " + RATING_LABELS[n]));
 
     leaf.addEventListener("mouseenter", () => paint(n));
-    input.addEventListener("change", () => { selected = n; paint(n); });
+    input.addEventListener("change", () => {
+      selected = n;
+      paint(n);
+      // The chosen leaves pop one after another
+      leaves.slice(0, n).forEach((l, i) => {
+        l.classList.remove("pop");
+        void l.offsetWidth; // restart the animation
+        l.style.animationDelay = i * 60 + "ms";
+        l.classList.add("pop");
+      });
+    });
 
     leaves.push(leaf);
     box.appendChild(leaf);
@@ -276,6 +328,7 @@ async function init() {
     link.href = "login.html";
     prompt.append(document.createTextNode("Want to write a review? "), link, document.createTextNode(" first."));
     form.replaceWith(prompt);
+    writeToggle.remove();
   }
 
   await loadProducts();
@@ -482,7 +535,7 @@ async function loadReviews(more) {
   // otherwise have shown up.
   let query = supabaseClient
     .from("reviews")
-    .select("id, rating, title, body, variation, would_repurchase, holy_grail, created_at, edited_at, held_at, user_id, profiles!user_id(username, avatar_path, avatar_ring), products!product_id!inner(name, brand, photo_url, category, subcategory), review_likes(user_id), review_updates(id, body, created_at, held_at), review_standouts(review_id)")
+    .select("id, rating, title, body, variation, would_repurchase, holy_grail, created_at, edited_at, held_at, user_id, profiles!user_id(username, avatar_path, avatar_ring, profile_biome, show_biome_symbol), products!product_id!inner(name, brand, photo_url, category, subcategory), review_likes(user_id), review_updates(id, body, created_at, held_at), review_standouts(review_id)")
     .order("created_at", { ascending: false })
     .order("id")
     .range(from, to);
@@ -528,9 +581,9 @@ async function loadReviews(more) {
   if (reviews.length === 0 && more !== true) {
     reviewsShown = 0;
     const filtered = q || categoryFilter.value;
-    listEl.appendChild(el("p", "feed-empty", filtered
-      ? "No reviews match yet. Be the first to write one above."
-      : "No reviews yet. Write the first one above."));
+    listEl.appendChild(UI.emptyState({ image: "biome-assets/plant-daisies.png", text: filtered
+      ? "No reviews match yet. Why not write the first one?"
+      : "No reviews yet. Why not write the first one?" }));
     return;
   }
   reviews.forEach((r) => listEl.appendChild(buildReview(r)));
@@ -596,6 +649,7 @@ function buildLikeButton(table, idColumn, id, likes) {
       if (!error) { liked = true; count++; }
     }
     paint();
+    btn.classList.toggle("just-liked", liked); // the leaf gives a little pop
     btn.disabled = false;
   });
   return btn;
@@ -883,6 +937,7 @@ form.addEventListener("submit", async (event) => {
   form.reset();
   variationField.hidden = true;
   countEl.textContent = "0 / 2000";
+  setWriting(false);
   loadReviews();
 });
 

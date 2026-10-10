@@ -1,4 +1,4 @@
-// Biome shop: spend biome points on pots, plants and shelves.
+// Biome shop: spend Byome points on pots, plants and shelves.
 // Prices, stock and balances are all checked by the database
 // (buy_biome_item), so this page only has to show them.
 const shopEl = document.getElementById("shop");
@@ -9,6 +9,7 @@ const SECTIONS = [
   { kind: "pot", title: "Pots" },
   { kind: "plant", title: "Plants", empty: "Plants are on their way. Check back soon!" },
   { kind: "shelf", title: "Shelves" },
+  { kind: "biome", title: "Biomes" },
 ];
 
 let currentUser = null;
@@ -45,7 +46,7 @@ async function loadShop() {
   const [pointsRes, itemsRes, ownedRes] = await Promise.all([
     supabaseClient.from("user_points").select("biome, pending_biome").eq("user_id", currentUser.id).maybeSingle(),
     supabaseClient.from("biome_items")
-      .select("key, kind, size, name, description, rarity, price, max_supply, max_per_member, sold, image")
+      .select("key, kind, size, name, description, rarity, price, max_supply, max_per_member, sold, image, over_pot")
       .eq("available", true).eq("starter", false).not("price", "is", null)
       .order("sort_order").order("price"),
     supabaseClient.from("biome_inventory").select("item_key").eq("user_id", currentUser.id),
@@ -60,7 +61,7 @@ async function loadShop() {
   const balance = pointsRes.data ? pointsRes.data.biome : 0;
   const pending = pointsRes.data ? pointsRes.data.pending_biome : 0;
   balanceEl.innerHTML = "";
-  balanceEl.append(leafIcon(), el("strong", null, String(balance)), el("span", null, "biome points"));
+  balanceEl.append(leafIcon(), el("strong", null, String(balance)), el("span", null, "Byome points"));
   if (pending) balanceEl.appendChild(el("span", "shop-meta", "(+" + pending + " pending)"));
 
   const owned = {};
@@ -71,7 +72,7 @@ async function loadShop() {
     if (!items.length && !section.empty) return;
     shopEl.appendChild(el("h2", "section-title", section.title));
     if (!items.length) {
-      shopEl.appendChild(el("p", "feed-empty", section.empty));
+      shopEl.appendChild(UI.emptyState({ image: "biome-assets/plant-welcome-sprout.png", text: section.empty }));
       return;
     }
     const grid = el("div", "shop-grid");
@@ -81,18 +82,21 @@ async function loadShop() {
 }
 
 function buildCard(item, balance, ownedCount) {
-  const card = el("article", "shop-card");
+  const card = el("article", "shop-card rarity-edge-" + item.rarity);
 
-  const img = document.createElement("img");
-  img.src = BIOME.src(item.image);
-  img.alt = item.name;
-  img.loading = "lazy";
-  card.appendChild(img);
+  // Plants are shown in the starter pot; rare things sparkle
+  const pic = UI.itemArt(item, "shop-art");
+  pic.setAttribute("role", "img");
+  pic.setAttribute("aria-label", item.name);
+  if (ownedCount) pic.appendChild(el("span", "owned-tag", ownedCount > 1 ? "Owned ×" + ownedCount : "Owned"));
+  card.appendChild(pic);
 
-  card.appendChild(el("span", "rarity rarity-" + item.rarity, item.rarity));
+  const sparkly = item.rarity === "rare" || item.rarity === "legendary";
+  card.appendChild(el("span", "rarity rarity-" + item.rarity, (sparkly ? "\u2726 " : "") + item.rarity));
   card.appendChild(el("h3", null, item.name));
   if (item.description) card.appendChild(el("p", "shop-meta", item.description));
   if (item.size) card.appendChild(el("p", "shop-meta", item.size === "small" ? "Can be placed on the top two shelves" : "Can be placed on the bottom shelf"));
+  if (item.kind === "biome") card.appendChild(el("p", "shop-meta", "Sets the scene on your profile. Choose it on Edit profile."));
 
   const price = el("p", "shop-price");
   price.append(leafIcon(), el("span", null, String(item.price)));
@@ -105,7 +109,6 @@ function buildCard(item, balance, ownedCount) {
       : "Limited edition: sold out"));
   }
   if (item.max_per_member) card.appendChild(el("p", "shop-meta", "Limit " + item.max_per_member + " per member"));
-  if (ownedCount) card.appendChild(el("p", "shop-meta", "You own " + ownedCount));
 
   const buy = el("button", "btn btn-solid", "Buy");
   buy.type = "button";
@@ -115,7 +118,7 @@ function buildCard(item, balance, ownedCount) {
   else if (balance < item.price) { buy.disabled = true; buy.textContent = "Need " + (item.price - balance) + " more"; }
 
   buy.addEventListener("click", async () => {
-    if (!confirm("Buy the " + item.name.toLowerCase() + " for " + item.price + " biome points?")) return;
+    if (!confirm("Buy the " + item.name.toLowerCase() + " for " + item.price + " Byome points?")) return;
     buy.disabled = true;
     const { data, error } = await supabaseClient.rpc("buy_biome_item", { p_key: item.key });
     if (error) {
@@ -125,7 +128,14 @@ function buildCard(item, balance, ownedCount) {
     }
     showMessage("You bought the " + item.name.toLowerCase() +
       (data && data.serial ? " (#" + data.serial + " of " + item.max_supply + ")" : "") +
-      "! Put it on your shelf from your profile.", true);
+      (item.kind === "biome" ? "! Choose it on Edit profile." : "! Put it on your shelf from your profile."), true);
+    UI.celebrate({
+      label: "New for your biome",
+      heading: item.name,
+      text: (data && data.serial ? "Number " + data.serial + " of " + item.max_supply + ". " : "") +
+        (item.kind === "biome" ? "Choose it on Edit profile to set your profile in it." : "Arrange it on your shelf from your profile."),
+      item: item,
+    });
     loadShop();
   });
   card.appendChild(buy);

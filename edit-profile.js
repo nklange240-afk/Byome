@@ -106,6 +106,61 @@ function buildRingPicker() {
   });
 }
 
+// ---------- Profile biome ----------
+// Every biome is listed: the ones you have can be picked, the others show
+// their price and link to the shop. Picking one (or the symbol box) saves.
+async function buildBiomePicker() {
+  const box = document.getElementById("biome-picker");
+  const symbolBox = document.getElementById("biome-symbol");
+  const [itemsRes, ownedRes] = await Promise.all([
+    supabaseClient.from("biome_items").select("key, name, description, rarity, price, starter")
+      .eq("kind", "biome").order("sort_order"),
+    supabaseClient.from("biome_inventory").select("item_key").eq("user_id", me),
+  ]);
+  if (itemsRes.error || !itemsRes.data.length) { box.closest("section").hidden = true; return; }
+  const owned = new Set((ownedRes.data || []).map((r) => r.item_key));
+  // Never chosen before: the symbol box starts ticked, ready for the first pick
+  const firstPick = !profile.show_biome_symbol && (profile.profile_biome || "forest") === "forest";
+  symbolBox.checked = profile.show_biome_symbol || firstPick;
+
+  const grid = el("div", "biome-options");
+  itemsRes.data.forEach((it) => {
+    const have = it.starter || owned.has(it.key);
+    const label = el("label", "biome-option" + (have ? "" : " is-locked"));
+    const input = el("input");
+    input.type = "radio";
+    input.name = "profile-biome";
+    input.value = it.key;
+    input.className = "visually-hidden";
+    input.disabled = !have;
+    input.checked = (profile.profile_biome || "forest") === it.key;
+    label.append(input, UI.biomeSwatch(it.key, "biome-swatch option-swatch"));
+    const text = el("span", "biome-option-text");
+    text.appendChild(el("strong", null, it.name));
+    text.appendChild(el("span", "biome-option-note", have ? (it.starter ? "Free" : "Yours") : it.price + " Byome points"));
+    label.appendChild(text);
+    if (!have) {
+      label.title = "Find this one in the Biome shop";
+      label.addEventListener("click", () => { window.location.href = "biome-shop.html"; });
+    }
+    grid.appendChild(label);
+  });
+  box.appendChild(grid);
+
+  async function save() {
+    const picked = box.querySelector("input:checked");
+    const { error } = await supabaseClient.rpc("set_my_biome", {
+      p_key: picked ? picked.value : "forest", p_show_symbol: symbolBox.checked,
+    });
+    if (error) { say("biome-message", error.message, false); return; }
+    profile.profile_biome = picked ? picked.value : "forest";
+    profile.show_biome_symbol = symbolBox.checked;
+    say("biome-message", "Saved. Your profile is set in the " + (picked ? picked.closest("label").querySelector("strong").textContent.toLowerCase() : "forest") + " now.", true);
+  }
+  box.addEventListener("change", save);
+  symbolBox.addEventListener("change", save);
+}
+
 // ---------- About you ----------
 
 // A row of pill-shaped options. Radios get a "Not saying" choice so any
@@ -197,13 +252,14 @@ deleteBtn.addEventListener("click", async () => {
 
   const { data: row, error } = await supabaseClient
     .from("profiles")
-    .select("username, avatar_path, avatar_ring, skin_type, skin_concerns, hair_type, hair_texture")
+    .select("username, avatar_path, avatar_ring, skin_type, skin_concerns, hair_type, hair_texture, profile_biome, show_biome_symbol")
     .eq("id", me).single();
   if (error) { say("profile-message", "Couldn't load your profile: " + error.message, false); return; }
   profile = row;
 
   paintAvatar();
   buildRingPicker();
+  buildBiomePicker();
   document.getElementById("username").value = profile.username;
   buildChoices("skin-type", "skin-type", PROFILES.SKIN_TYPES, "radio", profile.skin_type);
   buildChoices("skin-concerns", "skin-concerns", PROFILES.SKIN_CONCERNS, "checkbox", profile.skin_concerns);

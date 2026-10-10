@@ -87,6 +87,9 @@ const PROFILES = (function () {
       const a = el("a", "post-author", profile.username);
       a.href = "profile.html?user=" + encodeURIComponent(profile.username);
       wrap.appendChild(a);
+      // Their biome's symbol, if they've turned it on
+      const symbol = typeof UI !== "undefined" ? UI.biomeSymbol(profile) : null;
+      if (symbol) wrap.appendChild(symbol);
     }
     return wrap;
   }

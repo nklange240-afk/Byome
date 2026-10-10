@@ -4,13 +4,25 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Edit profile — byome</title>
+  <!-- Tab icon and the preview card shown when a link is shared -->
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+  <meta name="theme-color" content="#24402F" />
+  <meta name="description" content="Honest beauty reviews from the people actually using the products, plus a community and a little shelf of plants to grow." />
+  <meta property="og:site_name" content="byome" />
+  <meta property="og:title" content="byome — honest beauty reviews, grown together" />
+  <meta property="og:description" content="Honest beauty reviews from the people actually using the products, plus a community and a little shelf of plants to grow." />
+  <meta property="og:image" content="https://byome.xyz/og-image.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=21" />
+  <link rel="stylesheet" href="style.css?v=24" />
 </head>
 <body>
   <header class="site-header">
-    <a href="feed.html" class="logo">by<span class="logo-accent">🌱</span>me</a>
+    <a href="index.html" class="logo">by<span class="logo-accent">🌱</span>me</a>
     <button id="menu-toggle" class="hamburger-btn" aria-expanded="false" aria-controls="nav-menu" aria-label="Open menu">
       <span></span><span></span><span></span>
     </button>
@@ -38,6 +50,20 @@
         <legend class="field-label">Ring color</legend>
       </fieldset>
       <p id="avatar-message" class="auth-message" aria-live="polite"></p>
+    </section>
+
+    <!-- Profile biome: the world your profile page is set in -->
+    <section class="edit-section" aria-labelledby="biome-title">
+      <h2 id="biome-title" class="section-title">Profile biome</h2>
+      <p class="field-hint">The world your profile is set in. Forest and meadow are free; find more in the <a class="inline-link" href="biome-shop.html">Biome shop</a>.</p>
+      <fieldset class="biome-picker" id="biome-picker">
+        <legend class="visually-hidden">Choose your profile biome</legend>
+      </fieldset>
+      <label class="check-row">
+        <input type="checkbox" id="biome-symbol" />
+        <span>Show my biome's symbol next to my username</span>
+      </label>
+      <p id="biome-message" class="auth-message" aria-live="polite"></p>
     </section>
 
     <!-- Username, skin and hair -->
@@ -72,9 +98,10 @@
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase-client.js?v=21"></script>
-  <script src="profile-fields.js?v=21"></script>
-  <script src="nav-menu.js?v=21"></script>
-  <script src="edit-profile.js?v=21"></script>
+  <script src="supabase-client.js?v=24"></script>
+  <script src="profile-fields.js?v=24"></script>
+  <script src="nav-menu.js?v=24"></script>
+  <script src="ui.js?v=24"></script>
+  <script src="edit-profile.js?v=24"></script>
 </body>
 </html>

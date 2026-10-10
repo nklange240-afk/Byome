@@ -106,7 +106,10 @@ const BIOME = (function () {
     const part = el("div", "biome-tip-item");
     const head = el("div", "biome-tip-head");
     head.appendChild(el("strong", null, (prefix || "") + item.name));
-    if (item.rarity) head.appendChild(el("span", "rarity rarity-" + item.rarity, RARITY[item.rarity] || item.rarity));
+    if (item.rarity) {
+      const sparkly = item.rarity === "rare" || item.rarity === "legendary";
+      head.appendChild(el("span", "rarity rarity-" + item.rarity, (sparkly ? "\u2726 " : "") + (RARITY[item.rarity] || item.rarity)));
+    }
     part.appendChild(head);
     if (item.description) part.appendChild(el("p", "biome-tip-text", item.description));
     if (item.earnedWith) part.appendChild(el("p", "biome-tip-earned", "Earned with \u201c" + item.earnedWith + "\u201d"));
@@ -133,7 +136,10 @@ const BIOME = (function () {
     function show(target) {
       const parts = contentFor(target);
       if (!parts) return;
+      if (current && current !== wrap) current.classList.remove("is-active");
       current = target;
+      // The plant gives a little sway when you look at it (see style.css)
+      if (target !== wrap) target.classList.add("is-active");
       tip.replaceChildren(...parts);
       tip.hidden = false;
 
@@ -158,6 +164,7 @@ const BIOME = (function () {
 
     function hide() {
       if (current) current.removeAttribute("aria-describedby");
+      if (current && current !== wrap) current.classList.remove("is-active");
       current = null;
       tip.hidden = true;
     }
@@ -249,6 +256,11 @@ const BIOME = (function () {
           spot.appendChild(img("biome-plant", plant.image, ""));
           spot.appendChild(img("biome-pot-front", frontOf(pot.image), ""));
         }
+      }
+      // Rare things twinkle (not while arranging, to keep that view calm)
+      if (!opts.editable && typeof UI !== "undefined") {
+        const rarest = [plant, pot].find((it) => it && (it.rarity === "rare" || it.rarity === "legendary"));
+        if (rarest) UI.sparkles(spot, rarest.rarity);
       }
       wrap.appendChild(spot);
     });

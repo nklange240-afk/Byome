@@ -114,6 +114,7 @@ function buildLikeButton(table, idColumn, id, likes) {
       if (!error) { liked = true; count++; }
     }
     paint();
+    btn.classList.toggle("just-liked", liked); // the leaf gives a little pop
     btn.disabled = false;
   });
 
@@ -148,7 +149,7 @@ async function loadPosts(more) {
   const to = (more === true ? postsShown + PAGE_SIZE : Math.max(PAGE_SIZE, postsShown)) - 1;
   let query = supabaseClient
     .from("posts")
-    .select("id, title, body, category, created_at, edited_at, held_at, user_id, profiles!user_id(username, avatar_path, avatar_ring), likes(user_id), comments(count)")
+    .select("id, title, body, category, created_at, edited_at, held_at, user_id, profiles!user_id(username, avatar_path, avatar_ring, profile_biome, show_biome_symbol), likes(user_id), comments(count)")
     .order("created_at", { ascending: false })
     .order("id")
     .range(from, to);
@@ -171,9 +172,9 @@ async function loadPosts(more) {
   if (posts.length === 0 && more !== true) {
     postsShown = 0;
     const text = selectedCategory
-      ? "No " + selectedCategory + " posts yet. Write the first one above."
-      : "No posts yet. Write the first one above.";
-    feedEl.appendChild(el("p", "feed-empty", text));
+      ? "No " + selectedCategory + " posts yet. Be the first to start one!"
+      : "No posts yet. Be the first to start one!";
+    feedEl.appendChild(UI.emptyState({ image: "biome-assets/plant-welcome-sprout.png", text: text }));
     return;
   }
 
@@ -278,7 +279,7 @@ function buildPost(post) {
 async function fetchComments(postId) {
   const { data, error } = await supabaseClient
     .from("comments")
-    .select("id, parent_id, body, created_at, held_at, user_id, profiles!user_id(username, avatar_path, avatar_ring), comment_likes(user_id)")
+    .select("id, parent_id, body, created_at, held_at, user_id, profiles!user_id(username, avatar_path, avatar_ring, profile_biome, show_biome_symbol), comment_likes(user_id)")
     .eq("post_id", postId)
     .order("created_at", { ascending: true });
 
@@ -439,7 +440,22 @@ postForm.addEventListener("submit", async (event) => {
   }
   postForm.reset();
   charCount.textContent = "0 / 1000";
+  setComposing(false);
   loadPosts();
+});
+
+// The post form stays folded into a slim "Start a post…" bar until needed
+const postStarter = document.getElementById("post-starter");
+function setComposing(open) {
+  postForm.hidden = !open;
+  postStarter.hidden = open;
+  postStarter.setAttribute("aria-expanded", String(open));
+  if (open) postTitle.focus();
+}
+postStarter.addEventListener("click", () => setComposing(true));
+document.getElementById("post-cancel").addEventListener("click", () => {
+  setComposing(false);
+  postStarter.focus();
 });
 
 postBody.addEventListener("input", () => {

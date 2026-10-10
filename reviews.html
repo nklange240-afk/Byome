@@ -4,13 +4,25 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Reviews — byome</title>
+  <!-- Tab icon and the preview card shown when a link is shared -->
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+  <meta name="theme-color" content="#24402F" />
+  <meta name="description" content="Honest beauty reviews from the people actually using the products, plus a community and a little shelf of plants to grow." />
+  <meta property="og:site_name" content="byome" />
+  <meta property="og:title" content="byome — honest beauty reviews, grown together" />
+  <meta property="og:description" content="Honest beauty reviews from the people actually using the products, plus a community and a little shelf of plants to grow." />
+  <meta property="og:image" content="https://byome.xyz/og-image.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=21" />
+  <link rel="stylesheet" href="style.css?v=24" />
 </head>
-<body>
+<body data-biome="meadow">
   <header class="site-header">
-    <a href="feed.html" class="logo">by<span class="logo-accent">🌱</span>me</a>
+    <a href="index.html" class="logo">by<span class="logo-accent">🌱</span>me</a>
     <button id="menu-toggle" class="hamburger-btn" aria-expanded="false" aria-controls="nav-menu" aria-label="Open menu">
       <span></span><span></span><span></span>
     </button>
@@ -19,8 +31,11 @@
     <nav id="nav-menu" class="nav-menu" hidden></nav>
   </header>
   <main class="feed-page">
-    <h1>Reviews</h1>
-    <form id="review-form" class="composer">
+    <div class="page-head">
+      <h1>Reviews</h1>
+      <button type="button" id="write-review-toggle" class="btn btn-solid" aria-expanded="false" aria-controls="review-form">Write a review</button>
+    </div>
+    <form id="review-form" class="composer" hidden>
       <label for="review-brand" class="field-label">Brand</label>
       <div class="combo">
         <input type="text" id="review-brand" class="combo-input" role="combobox" autocomplete="off"
@@ -73,7 +88,10 @@
     </div>
     <p id="search-status" class="search-status" aria-live="polite" hidden></p>
 
-    <div class="filter-row">
+    <div id="category-chips" class="category-chips" role="group" aria-label="Filter by category"></div>
+    <div id="subcategory-chips" class="category-chips subcategory-chips" role="group" aria-label="Filter by subcategory" hidden></div>
+    <!-- The pills above drive these (kept for the filtering code) -->
+    <div class="filter-row" hidden>
       <label for="category-filter" class="visually-hidden">Filter by category</label>
       <select id="category-filter" class="category-filter">
         <option value="">All categories</option>
@@ -95,11 +113,12 @@
     </section>
   </main>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase-client.js?v=21"></script>
-  <script src="profile-fields.js?v=21"></script>
-  <script src="nav-menu.js?v=21"></script>
-  <script src="edit-forms.js?v=21"></script>
-  <script src="report.js?v=21"></script>
-  <script src="reviews.js?v=21"></script>
+  <script src="supabase-client.js?v=24"></script>
+  <script src="profile-fields.js?v=24"></script>
+  <script src="nav-menu.js?v=24"></script>
+  <script src="ui.js?v=24"></script>
+  <script src="edit-forms.js?v=24"></script>
+  <script src="report.js?v=24"></script>
+  <script src="reviews.js?v=24"></script>
 </body>
 </html>
