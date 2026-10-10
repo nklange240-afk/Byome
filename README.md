@@ -18,6 +18,7 @@ The site is plain HTML, CSS and JavaScript (no build step). Accounts and data li
 | `suggest-product.html` | Suggest a product for reviews (flags look-alikes of existing products) |
 | `notifications.html` | Your notifications |
 | `moderate-products.html` | Moderators only: automod holds, member reports, product suggestions |
+| `terms.html`, `privacy.html` | Terms of use and privacy policy (plain-language drafts) |
 
 ## Shared scripts
 
@@ -28,6 +29,12 @@ The site is plain HTML, CSS and JavaScript (no build step). Accounts and data li
 - `report.js`: the report (flag) button and pop-up
 - `product-match.js`: spots products that look like ones already listed
 - `profile-fields.js`: the skin & hair options, profile pictures, and how names show (including "Deleted member")
+- `ui.js`: the footer, friendly empty states, the pop-up that celebrates new achievements and purchases, and sparkles on rare items. Set `CONTACT_EMAIL` at the top to show a Contact link in the footer
+
+## Icons and link previews
+
+- `favicon-32.png` (browser tab) and `apple-touch-icon.png` (phone home screen) are the welcome sprout for now; swap in the real logo when it's ready, keeping the same names and sizes.
+- `og-image.png` (1200×630) is the picture shown when someone shares a byome link. It's made from the biome art.
 
 When you change a page's JS or CSS, bump the `?v=` number in the HTML files so browsers load the new version.
 

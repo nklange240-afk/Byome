@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Privacy policy — byome</title>
+  <!-- Tab icon and the preview card shown when a link is shared -->
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+  <meta name="theme-color" content="#24402F" />
+  <meta name="description" content="Honest beauty reviews from the people actually using the products, plus a community and a little shelf of plants to grow." />
+  <meta property="og:site_name" content="byome" />
+  <meta property="og:title" content="byome — honest beauty reviews, grown together" />
+  <meta property="og:description" content="Honest beauty reviews from the people actually using the products, plus a community and a little shelf of plants to grow." />
+  <meta property="og:image" content="https://byome.xyz/og-image.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css?v=22" />
+</head>
+<body>
+  <header class="site-header">
+    <a href="index.html" class="logo">by<span class="logo-accent">🌱</span>me</a>
+    <button id="menu-toggle" class="hamburger-btn" aria-expanded="false" aria-controls="nav-menu" aria-label="Open menu">
+      <span></span><span></span><span></span>
+    </button>
+
+    <!-- The menu items are filled in by nav-menu.js, the same on every page -->
+    <nav id="nav-menu" class="nav-menu" hidden></nav>
+  </header>
+  <main class="feed-page legal-page">
+    <h1>Privacy policy</h1>
+    <p class="legal-updated">Draft · last updated October 2026</p>
+    <p>We collect as little as we need to run byome, and we don't sell your information or show ads.</p>
+
+    <h2>What we store</h2>
+    <ul>
+      <li><strong>Your account:</strong> email address, username and password (stored scrambled, so nobody can read it).</li>
+      <li><strong>Your profile, if you add them:</strong> a profile picture, ring color, and skin and hair details. These are optional and shown on your profile.</li>
+      <li><strong>What you do on the site:</strong> your reviews, posts, comments, likes, reports, points, achievements and biome items.</li>
+      <li><strong>On your device:</strong> your browser remembers that you're logged in, and which achievement pop-ups you've already seen.</li>
+    </ul>
+
+    <h2>Who can see it</h2>
+    <p>Your username, profile picture, profile details, reviews, posts, comments, shelf and achievements are public to other members. Your email address, points history and reports are private. Moderators can see reports and content waiting for review.</p>
+
+    <h2>Services we use</h2>
+    <ul>
+      <li><strong>Supabase</strong> stores the site's data and handles logins.</li>
+      <li><strong>Resend</strong> sends our emails (account confirmation and password resets).</li>
+      <li><strong>GitHub Pages</strong> hosts the website.</li>
+      <li><strong>Google Fonts</strong> and <strong>jsDelivr</strong> provide the fonts and a code library, so your browser connects to them when pages load.</li>
+    </ul>
+
+    <h2>Deleting your account</h2>
+    <p>You can delete your account any time from <a class="inline-link" href="edit-profile.html">Edit profile</a>. Your email, profile picture and profile details are removed. You choose whether your reviews, posts and comments are deleted too, or stay up as "Deleted member".</p>
+
+    <h2>Changes</h2>
+    <p>If we change how we handle your information, we'll update this page and the date at the top.</p>
+
+    <p>See also our <a class="inline-link" href="terms.html">terms of use</a>.</p>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-client.js?v=22"></script>
+  <script src="nav-menu.js?v=22"></script>
+  <script src="ui.js?v=22"></script>
+</body>
+</html>

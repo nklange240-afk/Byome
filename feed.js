@@ -114,6 +114,7 @@ function buildLikeButton(table, idColumn, id, likes) {
       if (!error) { liked = true; count++; }
     }
     paint();
+    btn.classList.toggle("just-liked", liked); // the leaf gives a little pop
     btn.disabled = false;
   });
 
@@ -171,9 +172,9 @@ async function loadPosts(more) {
   if (posts.length === 0 && more !== true) {
     postsShown = 0;
     const text = selectedCategory
-      ? "No " + selectedCategory + " posts yet. Write the first one above."
-      : "No posts yet. Write the first one above.";
-    feedEl.appendChild(el("p", "feed-empty", text));
+      ? "No " + selectedCategory + " posts yet. Be the first to start one!"
+      : "No posts yet. Be the first to start one!";
+    feedEl.appendChild(UI.emptyState({ image: "biome-assets/plant-welcome-sprout.png", text: text }));
     return;
   }
 
@@ -439,7 +440,22 @@ postForm.addEventListener("submit", async (event) => {
   }
   postForm.reset();
   charCount.textContent = "0 / 1000";
+  setComposing(false);
   loadPosts();
+});
+
+// The post form stays folded into a slim "Start a post…" bar until needed
+const postStarter = document.getElementById("post-starter");
+function setComposing(open) {
+  postForm.hidden = !open;
+  postStarter.hidden = open;
+  postStarter.setAttribute("aria-expanded", String(open));
+  if (open) postTitle.focus();
+}
+postStarter.addEventListener("click", () => setComposing(true));
+document.getElementById("post-cancel").addEventListener("click", () => {
+  setComposing(false);
+  postStarter.focus();
 });
 
 postBody.addEventListener("input", () => {

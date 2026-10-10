@@ -2834,3 +2834,554 @@ div.biome-slot:focus-visible,
   border-radius: 50%;
   border: 1px solid rgba(0, 0, 0, 0.25);
 }
+
+/* =========================================================
+   VISUAL POLISH (before beta)
+   ========================================================= */
+
+/* Headings that wrap onto two lines stay snug */
+h1, h2, h3 {
+  line-height: 1.2;
+}
+
+/* Hidden-but-readable-by-screen-readers things never take up space, even
+   when another rule gives them a width (this caused sideways scrolling) */
+.visually-hidden {
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  border: 0 !important;
+  left: 0;
+  overflow: hidden;
+}
+
+/* Solid buttons get the same 1px edge as ghost buttons, in their own
+   color, instead of the browser's default dark button border */
+.btn-solid {
+  border: 1px solid var(--gold);
+}
+
+button.btn {
+  cursor: pointer;
+}
+
+/* On phones, Log in / Sign up live in the menu, so the homepage header
+   only shows the logo and the menu button */
+@media (max-width: 600px) {
+  .header-right #login-link,
+  .header-right #signup-link {
+    display: none;
+  }
+}
+
+/* Profile header: the buttons never squash onto two lines; on narrow
+   screens they move under the name instead */
+.profile-head {
+  flex-wrap: wrap;
+}
+
+.profile-head-actions .btn {
+  white-space: nowrap;
+}
+
+/* Like and comment counts on profile posts and reviews */
+.profile-counts {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+
+.profile-counts .leaf-icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.profile-counts .count-gap {
+  margin-left: 0.8rem;
+}
+
+/* A page title with a button beside it (Reviews: "Write a review") */
+.page-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.page-head h1 {
+  margin: 0;
+}
+
+.subcategory-chips {
+  margin-top: -0.6rem;
+}
+
+.subcategory-chips .category-chip {
+  font-size: 0.82rem;
+  padding: 0.25rem 0.8rem;
+}
+
+/* The folded post form on the community feed */
+.composer-starter {
+  -webkit-appearance: none;
+  appearance: none;
+  display: block;
+  width: 100%;
+  margin-bottom: 1.25rem;
+  padding: 0.9rem 1.2rem;
+  background-color: var(--forest-mid);
+  border: 1px solid var(--moss);
+  border-radius: 999px;
+  color: var(--cream);
+  opacity: 0.85;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  text-align: left;
+  cursor: text;
+}
+
+.composer-starter:hover {
+  border-color: var(--gold);
+  opacity: 1;
+}
+
+.composer-starter:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+.composer-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.composer-footer .btn-ghost {
+  border: 1px solid var(--moss);
+}
+
+.composer-footer .btn-solid {
+  border: 1px solid var(--gold);
+}
+
+/* Footer stays at the bottom of the screen even on short pages */
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+body > main {
+  flex: 1 0 auto;
+  width: 100%;
+}
+
+.site-footer {
+  opacity: 1;
+  color: rgba(243, 237, 224, 0.75);
+}
+
+.footer-links {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.5rem;
+  margin-top: 0.75rem;
+}
+
+.footer-links a {
+  color: var(--cream);
+  text-decoration: none;
+}
+
+.footer-links a:hover,
+.footer-links a:focus-visible {
+  color: var(--gold);
+  text-decoration: underline;
+}
+
+/* A small text-only button ("Show more activity") */
+.link-btn {
+  -webkit-appearance: none;
+  appearance: none;
+  background: none;
+  border: none;
+  padding: 0.5rem 0 0;
+  color: var(--gold);
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* Profile: "Member since ... · 3 reviews · 2 posts" on one line */
+.profile-meta {
+  opacity: 0.8;
+  margin: 0.25rem 0 0.5rem;
+}
+
+.profile-meta span:not(:empty) + span:not(:empty)::before {
+  content: " \00b7  ";
+}
+
+/* ----- Friendly empty states ----- */
+.empty-state {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem 1rem 0.5rem;
+  margin: 0.5rem 0 1rem;
+  background-color: rgba(53, 87, 63, 0.55);
+  border: 1px dashed var(--moss);
+  border-radius: 10px;
+}
+
+.empty-state-art {
+  flex: none;
+  width: 84px;
+  height: 84px;
+  object-fit: cover;
+}
+
+.empty-state p {
+  margin: 0;
+  opacity: 0.9;
+}
+
+/* ----- Notifications: an icon for each kind ----- */
+.notification {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.notification-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.notification-icon {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background-color: var(--forest-dark);
+  border: 1px solid var(--moss);
+}
+
+.notification-icon svg {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+.icon-achievement { color: var(--gold); border-color: var(--gold); }
+.icon-points { color: var(--gold); }
+.icon-like { color: var(--leaf); }
+.icon-comment { color: var(--cream); }
+.icon-moderation { color: #E07A5F; }
+
+/* ----- Shop: picture box, rarity edge, "Owned" tag ----- */
+.shop-art {
+  position: relative;
+  height: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.shop-art > img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* Plants are shown in the starter pot, using the shelf's layering */
+.shop-art.is-potted {
+  width: 130px;
+  height: auto;
+  aspect-ratio: 1;
+  margin: 40px auto 0;
+}
+
+.shop-art.is-potted > img {
+  height: auto;
+}
+
+.shop-art.is-potted > .biome-pot-front {
+  height: 100%;
+}
+
+.shop-card {
+  border-top: 3px solid transparent;
+}
+
+.shop-card.rarity-edge-uncommon { border-top-color: var(--leaf); }
+.shop-card.rarity-edge-rare { border-top-color: #8EC3E6; }
+.shop-card.rarity-edge-legendary { border-top-color: var(--gold); }
+
+.owned-tag {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 5;
+  padding: 0.1rem 0.55rem;
+  border-radius: 999px;
+  background-color: var(--leaf);
+  color: var(--forest-dark);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.shop-card .btn-solid {
+  border: 1px solid var(--gold);
+}
+
+@media (max-width: 600px) {
+  .shop-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
+
+  .shop-card {
+    padding: 0.75rem;
+  }
+
+  .shop-card h3 {
+    font-size: 1rem;
+  }
+
+  .shop-card .shop-meta {
+    font-size: 0.78rem;
+  }
+
+  .shop-art {
+    height: 120px;
+  }
+
+  .shop-art.is-potted {
+    width: 100px;
+    margin-top: 30px;
+  }
+
+  .shop-card .btn {
+    padding: 0.5rem 0.6rem;
+    font-size: 0.85rem;
+  }
+}
+
+/* ----- Sparkles on rare items ----- */
+.has-sparkles {
+  position: relative;
+}
+
+.sparkle {
+  position: absolute;
+  z-index: 6;
+  width: 14px;
+  height: 14px;
+  pointer-events: none;
+  background: #FFF6D8;
+  clip-path: polygon(50% 0, 61% 39%, 100% 50%, 61% 61%, 50% 100%, 39% 61%, 0 50%, 39% 39%);
+  filter: drop-shadow(0 0 3px rgba(255, 236, 170, 0.9));
+  opacity: 0;
+}
+
+.sparkle-1 { top: 18%; left: 16%; }
+.sparkle-2 { top: 8%; right: 18%; width: 10px; height: 10px; }
+.sparkle-3 { top: 52%; right: 10%; width: 8px; height: 8px; }
+
+/* Smaller on the shelf, where pots are small */
+.biome-slot .sparkle { width: 9px; height: 9px; }
+.biome-slot .sparkle-2 { width: 7px; height: 7px; }
+.biome-slot .sparkle-3 { width: 6px; height: 6px; }
+
+/* ----- Celebration pop-up ----- */
+dialog.celebrate {
+  margin: auto;
+  width: min(360px, calc(100vw - 32px));
+  padding: 1.75rem 1.5rem 1.5rem;
+  border: 1px solid var(--gold);
+  border-radius: 16px;
+  background-color: var(--forest-mid);
+  color: var(--cream);
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+}
+
+dialog.celebrate::backdrop {
+  background-color: rgba(20, 35, 26, 0.7);
+}
+
+.celebrate-label {
+  margin: 0 0 0.5rem;
+  color: var(--gold);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.celebrate-art {
+  position: relative;
+  width: 160px;
+  height: 160px;
+  margin: 0 auto 0.75rem;
+}
+
+.celebrate-art > img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* A potted plant needs room above the pot for the plant */
+.celebrate-art.is-potted {
+  width: 140px;
+  height: 140px;
+  margin-top: 90px;
+}
+
+.celebrate-art.is-potted > .biome-plant {
+  height: auto;
+}
+
+dialog.celebrate h2 {
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  margin: 0 0 0.4rem;
+}
+
+.celebrate-text {
+  margin: 0 0 1.25rem;
+  opacity: 0.9;
+}
+
+.celebrate-actions {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+/* =========================================================
+   MOTION
+   Only for people who haven't asked their device to reduce motion
+   ========================================================= */
+@media (prefers-reduced-motion: no-preference) {
+  /* Pages ease in */
+  body > main {
+    animation: page-in 0.35s ease-out both;
+  }
+
+  @keyframes page-in {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: none; }
+  }
+
+  /* Plants sway when you hover over or tap them on a shelf */
+  .biome-plant {
+    transform-origin: 50% 90%;
+  }
+
+  div.biome-slot:hover .biome-plant,
+  div.biome-slot.is-active .biome-plant {
+    animation: sway 1.4s ease-in-out;
+  }
+
+  @keyframes sway {
+    0%, 100% { transform: rotate(0); }
+    25% { transform: rotate(-3deg); }
+    60% { transform: rotate(2deg); }
+    85% { transform: rotate(-0.8deg); }
+  }
+
+  /* Leaves pop when you like something or pick a rating */
+  .like-btn.just-liked .leaf-icon,
+  .rating-leaf.pop {
+    animation: leaf-pop 0.4s ease-out both;
+  }
+
+  @keyframes leaf-pop {
+    0% { transform: scale(1); }
+    40% { transform: scale(1.35) rotate(-8deg); }
+    100% { transform: scale(1); }
+  }
+
+  /* Rare items twinkle */
+  .sparkle {
+    animation: twinkle 3.2s ease-in-out infinite;
+  }
+
+  .sparkle-2 { animation-delay: 1.1s; }
+  .sparkle-3 { animation-delay: 2.2s; }
+
+  @keyframes twinkle {
+    0%, 70%, 100% { opacity: 0; transform: scale(0.4) rotate(0); }
+    80% { opacity: 1; transform: scale(1) rotate(45deg); }
+  }
+
+  /* The celebration pop-up: the card bounces in, the item grows */
+  dialog.celebrate[open] {
+    animation: celebrate-in 0.35s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+  }
+
+  @keyframes celebrate-in {
+    from { opacity: 0; transform: scale(0.85); }
+    to { opacity: 1; transform: none; }
+  }
+
+  .celebrate-grow {
+    transform-origin: 50% 90%;
+    animation: grow 0.9s 0.2s cubic-bezier(0.2, 1.3, 0.4, 1) both;
+  }
+
+  @keyframes grow {
+    from { transform: scale(0.2); opacity: 0; }
+    to { transform: none; opacity: 1; }
+  }
+}
+
+/* Without motion, sparkles simply show */
+@media (prefers-reduced-motion: reduce) {
+  .sparkle { opacity: 0.8; }
+}
+
+/* Terms and privacy pages */
+.legal-page h2 {
+  font-family: var(--font-heading);
+  font-size: 1.25rem;
+  margin: 1.75rem 0 0.5rem;
+}
+
+.legal-page p,
+.legal-page li {
+  line-height: 1.6;
+  margin-bottom: 0.6rem;
+}
+
+.legal-page ul {
+  padding-left: 1.25rem;
+}
+
+.legal-updated {
+  opacity: 0.7;
+  font-size: 0.9rem;
+}
+
+.notification {
+  padding-right: 0.75rem;
+}
+
+/* An empty message line takes no room (kept on the page, so screen
+   readers still announce messages when they appear) */
+.auth-message:empty {
+  margin: 0;
+  min-height: 0;
+}

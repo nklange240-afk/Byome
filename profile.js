@@ -101,6 +101,15 @@ function ownerActions(article, parts, table, id, label, makeForm, reload) {
   return actions;
 }
 
+// Likes shown the same way as on the feed: a leaf and a number
+function countsRow(likes, extra) {
+  const row = el("p", "profile-counts");
+  row.setAttribute("aria-label", plural(likes, "like") + (extra ? ", " + extra : ""));
+  row.append(leafIcon(), el("span", null, String(likes)));
+  if (extra) row.appendChild(el("span", "count-gap", extra));
+  return row;
+}
+
 function buildPostCard(p, isMe, reload) {
   const article = el("article", "post");
   const parts = [];
@@ -110,7 +119,7 @@ function buildPostCard(p, isMe, reload) {
   parts.push(el("p", "post-body", p.body));
   const likes = p.likes ? p.likes.length : 0;
   const comments = p.comments && p.comments.length ? p.comments[0].count : 0;
-  parts.push(el("p", "profile-counts", plural(likes, "like") + " \u00b7 " + plural(comments, "comment")));
+  parts.push(countsRow(likes, plural(comments, "comment")));
   article.append(...parts);
   if (isMe) {
     article.appendChild(ownerActions(article, parts, "posts", p.id, "post",
@@ -153,7 +162,7 @@ function buildReviewCard(r, isMe, reload) {
   if (r.held_at) article.appendChild(heldNotice());
   article.appendChild(el("p", "post-body", r.body));
   const likes = r.review_likes ? r.review_likes.length : 0;
-  article.appendChild(el("p", "profile-counts", plural(likes, "like")));
+  article.appendChild(countsRow(likes));
   if (isMe) {
     // Everything above the buttons hides while the edit form is open
     const parts = Array.from(article.children);
@@ -203,6 +212,9 @@ function statTile(kind, label, value, pending, icon) {
   return tile;
 }
 
+// How many recent point changes show before "Show more activity"
+const SHOWN_ACTIVITY = 3;
+
 // Your own points: balances, how to earn more, and recent activity
 async function showPoints(userId) {
   const panel = document.getElementById("points-panel");
@@ -239,17 +251,18 @@ async function showPoints(userId) {
     statTile("biome", "Biome points", totals.biome, totals.pending_biome, leafIcon())
   );
   panel.appendChild(stats);
+  // The explanation and the earning list fold away, to keep the card short
   const note = el("p", "points-note",
     "Community points are for future real-world rewards. Biome points buy pots, plants and shelves in the ");
   const shopLink = el("a", "inline-link", "Biome shop");
   shopLink.href = "biome-shop.html";
   note.append(shopLink, document.createTextNode(". Pending points become available after a short waiting period."));
-  panel.appendChild(note);
 
   const earnable = rules.filter((r) => r.community_points || r.biome_points);
-  if (earnable.length) {
+  {
     const earn = el("details", "points-earn");
-    earn.appendChild(el("summary", null, "How to earn points"));
+    earn.appendChild(el("summary", null, "How points work"));
+    earn.appendChild(note);
     const list = el("ul", "earn-list");
     earnable.forEach((r) => {
       const li = el("li", "earn-item");
@@ -259,7 +272,7 @@ async function showPoints(userId) {
       li.append(main, chips(r.community_points, r.biome_points));
       list.appendChild(li);
     });
-    earn.appendChild(list);
+    if (earnable.length) earn.appendChild(list);
     panel.appendChild(earn);
   }
 
@@ -267,8 +280,9 @@ async function showPoints(userId) {
   if (rows.length) {
     panel.appendChild(el("h3", "points-subtitle", "Recent activity"));
     const list = el("ul", "points-log");
-    rows.forEach((row) => {
+    rows.forEach((row, i) => {
       const li = el("li", "points-entry" + (row.revoked_at ? " is-revoked" : ""));
+      li.hidden = i >= SHOWN_ACTIVITY; // the rest appear with "Show more"
       const main = el("div", "entry-main");
       main.appendChild(el("div", "entry-title", labels[row.action] || row.action));
       let meta = formatDate(row.created_at);
@@ -279,6 +293,15 @@ async function showPoints(userId) {
       list.appendChild(li);
     });
     panel.appendChild(list);
+    if (rows.length > SHOWN_ACTIVITY) {
+      const more = el("button", "link-btn", "Show more activity");
+      more.type = "button";
+      more.addEventListener("click", () => {
+        list.querySelectorAll(".points-entry").forEach((li) => { li.hidden = false; });
+        more.remove();
+      });
+      panel.appendChild(more);
+    }
   }
   panel.hidden = false;
 }
@@ -578,11 +601,23 @@ async function loadContent(profile, isMe) {
 
   reviewsEl.innerHTML = "";
   if (reviewsRes.error) showMessage(reviewsEl, "Couldn't load reviews: " + reviewsRes.error.message);
-  else if (!reviewsRes.data.length) showMessage(reviewsEl, "No reviews yet.");
+  else if (!reviewsRes.data.length) {
+    reviewsEl.appendChild(isMe
+      ? UI.emptyState({ image: "biome-assets/plant-daisies.png",
+          text: "No reviews yet. Your first one earns the First Bloom Daisies for your shelf.",
+          linkText: "Write a review", href: "reviews.html" })
+      : el("p", "feed-empty", "No reviews yet."));
+  }
   else reviewsRes.data.forEach((r) => reviewsEl.appendChild(buildReviewCard(r, isMe, reload)));
 
   postsEl.innerHTML = "";
   if (postsRes.error) showMessage(postsEl, "Couldn't load posts: " + postsRes.error.message);
-  else if (!postsRes.data.length) showMessage(postsEl, "No posts yet.");
+  else if (!postsRes.data.length) {
+    postsEl.appendChild(isMe
+      ? UI.emptyState({ image: "biome-assets/plant-welcome-sprout.png",
+          text: "No posts yet. Say hello! Introductions is a great place to start.",
+          linkText: "Go to the community", href: "feed.html" })
+      : el("p", "feed-empty", "No posts yet."));
+  }
   else postsRes.data.forEach((p) => postsEl.appendChild(buildPostCard(p, isMe, reload)));
 }
