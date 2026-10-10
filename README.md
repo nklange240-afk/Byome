@@ -22,7 +22,7 @@ The site is plain HTML, CSS and JavaScript (no build step). Accounts and data li
 ## Shared scripts
 
 - `supabase-client.js`: the connection to Supabase (used by every page)
-- `nav-menu.js`: the menu, notification and moderation badges, log out
+- `nav-menu.js`: builds the menu (the same on every page: guests see Reviews, Log in, Sign up), notification and moderation badges, log out
 - `biome.js`: draws a shelf; also shows the info box on hover/tap
 - `edit-forms.js`: the edit forms for posts and reviews
 - `report.js`: the report (flag) button and pop-up
@@ -43,3 +43,7 @@ When you change a page's JS or CSS, bump the `?v=` number in the HTML files so b
 ## Database (`database/`)
 
 A backup of the Supabase setup, plus every change that was run in the Supabase SQL Editor, oldest first. See [`database/README.md`](database/README.md).
+
+## Emails (`email-templates/`)
+
+The signup and password-reset emails, kept as a backup of what's pasted into Supabase. See [`email-templates/README.md`](email-templates/README.md).

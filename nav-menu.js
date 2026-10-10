@@ -1,8 +1,13 @@
-// Shared hamburger menu: open/close, username, moderator link,
-// notifications link with unread count, log out.
+// Shared hamburger menu. The items are built here, so every page shows the
+// same menu in the same order:
+//   Guests:  Reviews, Log in, Sign up
+//   Members: Community, Reviews, Suggest a product, Biome shop |
+//            My profile, Notifications (unread count), Moderate (moderators) |
+//            username, Log out
 (function () {
   const toggle = document.getElementById("menu-toggle");
   const menu = document.getElementById("nav-menu");
+  const here = window.location.pathname.split("/").pop() || "index.html";
 
   function setOpen(open) {
     menu.hidden = !open;
@@ -20,59 +25,86 @@
     if (!menu.hidden && !menu.contains(e.target) && !toggle.contains(e.target)) setOpen(false);
   });
 
-  document.getElementById("logout-btn").addEventListener("click", async () => {
-    await supabaseClient.auth.signOut();
-    window.location.href = "index.html";
-  });
+  function link(href, text, solid) {
+    const a = document.createElement("a");
+    a.href = href;
+    a.className = "btn " + (solid ? "btn-solid" : "btn-ghost");
+    a.textContent = text;
+    if (href === here) a.setAttribute("aria-current", "page");
+    menu.appendChild(a);
+    return a;
+  }
+
+  function line() {
+    menu.appendChild(document.createElement("hr"));
+  }
+
+  function badge(a, count, label) {
+    const b = document.createElement("span");
+    b.className = "nav-badge";
+    b.textContent = count > 9 ? "9+" : String(count);
+    a.appendChild(b);
+    a.setAttribute("aria-label", label + " (" + count + ")");
+    toggle.classList.add("has-unread");
+  }
+
+  function guestMenu() {
+    menu.replaceChildren();
+    link("reviews.html", "Reviews");
+    line();
+    link("login.html", "Log in");
+    link("signup.html", "Sign up", true);
+  }
 
   (async () => {
     const { data } = await supabaseClient.auth.getSession();
-    if (!data.session) return;
+    if (!data.session) { guestMenu(); return; }
 
-    // Notifications link, with a count of unread ones
+    menu.replaceChildren();
+    link("feed.html", "Community");
+    link("reviews.html", "Reviews");
+    link("suggest-product.html", "Suggest a product");
+    link("biome-shop.html", "Biome shop");
+    line();
+    link("profile.html", "My profile");
+    const notes = link("notifications.html", "Notifications");
+    const modLink = link("moderate-products.html", "Moderate");
+    modLink.hidden = true; // shown below for moderators
+    line();
+    const name = document.createElement("span");
+    name.id = "header-username"; // edit-profile.js updates this after a rename
+    name.className = "header-username";
+    menu.appendChild(name);
+    const logout = document.createElement("button");
+    logout.type = "button";
+    logout.className = "btn btn-ghost";
+    logout.textContent = "Log out";
+    logout.addEventListener("click", async () => {
+      await supabaseClient.auth.signOut();
+      window.location.href = "index.html";
+    });
+    menu.appendChild(logout);
+
+    // The homepage also has Log in / Sign up buttons in its header
+    ["login-link", "signup-link"].forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) el.hidden = true;
+    });
+
     const { count } = await supabaseClient
       .from("notifications").select("id", { count: "exact", head: true }).is("read_at", null);
-    const link = document.createElement("a");
-    link.href = "notifications.html";
-    link.className = "btn btn-ghost";
-    link.textContent = "Notifications";
-    if (count) {
-      const badge = document.createElement("span");
-      badge.className = "nav-badge";
-      badge.textContent = count > 9 ? "9+" : String(count);
-      link.appendChild(badge);
-      toggle.classList.add("has-unread");
-    }
-    const anchor = menu.querySelector('a[href="profile.html"]');
-    if (anchor) anchor.insertAdjacentElement("afterend", link);
+    if (count) badge(notes, count, "Notifications");
 
     const { data: profile } = await supabaseClient
       .from("profiles").select("username, is_moderator")
       .eq("id", data.session.user.id).single();
     if (!profile) return;
-    document.getElementById("header-username").textContent = profile.username;
+    name.textContent = profile.username;
     if (profile.is_moderator) {
-      const modLink = document.getElementById("moderate-link");
       modLink.hidden = false;
       // How many things are waiting for a moderator
       const { data: waiting } = await supabaseClient.rpc("moderation_counts");
-      if (waiting) {
-        const badge = document.createElement("span");
-        badge.className = "nav-badge";
-        badge.textContent = waiting > 9 ? "9+" : String(waiting);
-        modLink.appendChild(badge);
-        modLink.setAttribute("aria-label", "Moderate (" + waiting + " waiting)");
-        toggle.classList.add("has-unread");
-      }
+      if (waiting) badge(modLink, waiting, "Moderate, waiting");
     }
-
-    // On pages that show Log in / Sign up for guests (currently just
-    // the homepage), hide those and reveal Log out now that we know
-    // someone's signed in. Harmless no-op on pages without them.
-    const loginLink = document.getElementById("login-link");
-    const signupLink = document.getElementById("signup-link");
-    if (loginLink) loginLink.hidden = true;
-    if (signupLink) signupLink.hidden = true;
-    document.getElementById("logout-btn").hidden = false;
   })();
 })();

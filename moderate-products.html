@@ -7,7 +7,7 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=20" />
+  <link rel="stylesheet" href="style.css?v=21" />
 </head>
 <body>
 
@@ -18,17 +18,8 @@
       <span></span><span></span><span></span>
     </button>
 
-    <nav id="nav-menu" class="nav-menu" hidden>
-      <a href="feed.html" class="btn btn-ghost">Community</a>
-      <a href="reviews.html" class="btn btn-ghost">Reviews</a>
-      <a href="profile.html" class="btn btn-ghost">Profile</a>
-      <a href="biome-shop.html" class="btn btn-ghost">Biome shop</a>
-      <a href="suggest-product.html" class="btn btn-ghost">Suggest a product</a>
-      <a href="moderate-products.html" id="moderate-link" class="btn btn-ghost" hidden>Moderate</a>
-      <hr />
-      <span id="header-username" class="header-username"></span>
-      <button id="logout-btn" class="btn btn-ghost" type="button">Log out</button>
-    </nav>
+    <!-- The menu items are filled in by nav-menu.js, the same on every page -->
+    <nav id="nav-menu" class="nav-menu" hidden></nav>
   </header>
 
   <main class="feed-page">
@@ -53,10 +44,10 @@
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase-client.js?v=20"></script>
-  <script src="profile-fields.js?v=20"></script>
-  <script src="nav-menu.js?v=20"></script>
-  <script src="product-match.js?v=20"></script>
-  <script src="moderate-products.js?v=20"></script>
+  <script src="supabase-client.js?v=21"></script>
+  <script src="profile-fields.js?v=21"></script>
+  <script src="nav-menu.js?v=21"></script>
+  <script src="product-match.js?v=21"></script>
+  <script src="moderate-products.js?v=21"></script>
 </body>
 </html>

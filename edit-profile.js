@@ -151,7 +151,8 @@ document.getElementById("profile-form").addEventListener("submit", async (event)
   if (error) { say("profile-message", error.message, false); return; }
   if (result !== "ok") { say("profile-message", USERNAME_PROBLEMS[result] || "Couldn't save.", false); return; }
   profile.username = username;
-  document.getElementById("header-username").textContent = username;
+  const menuName = document.getElementById("header-username");
+  if (menuName) menuName.textContent = username;
   say("profile-message", "Saved!", true);
 });
 

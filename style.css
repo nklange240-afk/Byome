@@ -304,6 +304,16 @@ body {
   padding: 0.3rem 0.2rem;
 }
 
+/* The page you're on */
+.nav-menu a.btn-ghost[aria-current="page"] {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+.nav-menu [hidden] {
+  display: none;
+}
+
 /* =========================================================
    BACK LINK
    ========================================================= */
