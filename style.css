@@ -3479,7 +3479,9 @@ dialog.celebrate h2 {
   opacity: 0.6;
 }
 
-/* Meadow: soft spring petals drifting down (no glow) */
+/* Meadow: soft spring petals drifting down (no glow). Not in use right
+   now; add ["petal", 14] to the meadow's particles in ui.js to bring
+   them back. */
 .p-petal {
   --petal: #F7D3DC;
   width: calc(var(--size) * 2.4);

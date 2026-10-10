@@ -217,7 +217,7 @@ const UI = (function () {
   // The colors of cards and borders for each biome are in style.css.
   const BIOME_LOOKS = {
     forest: { name: "Forest", symbol: "\u{1F332}", top: [36, 64, 47], deep: [12, 26, 19], particles: [["firefly", 16]] },
-    meadow: { name: "Meadow", symbol: "\u{1F33C}", top: [44, 88, 74], deep: [35, 72, 61], particles: [["petal", 14]] },
+    meadow: { name: "Meadow", symbol: "\u{1F33C}", top: [44, 88, 74], deep: [35, 72, 61], particles: [] }, // hand-drawn florals to come
     desert: { name: "Desert", symbol: "☀️", top: [64, 44, 34], deep: [34, 23, 38], particles: [["mote", 18]] },
     tundra: { name: "Snowy tundra", symbol: "❄️", top: [34, 48, 61], deep: [16, 24, 34], particles: [["snow", 26]] },
     ocean: { name: "Open ocean", symbol: "\u{1F30A}", top: [20, 52, 78], deep: [4, 12, 26], particles: [["bubble", 16]], rays: true },
@@ -248,8 +248,8 @@ const UI = (function () {
     box.style.background = "linear-gradient(170deg, rgb(" + look.top.join(",") + "), rgb(" + look.deep.join(",") + "))";
     box.setAttribute("aria-hidden", "true");
     if (look.rays) box.appendChild(el("span", "swatch-rays"));
-    const [kind] = look.particles[0];
-    for (let i = 0; i < 7; i++) {
+    const kind = look.particles.length ? look.particles[0][0] : null;
+    for (let i = 0; kind && i < 7; i++) {
       const p = el("span", "swatch-dot dot-" + kind);
       p.style.left = (8 + ((i * 37) % 84)) + "%";
       p.style.top = (10 + ((i * 53) % 78)) + "%";
