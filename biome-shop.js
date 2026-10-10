@@ -1,4 +1,4 @@
-// Biome shop: spend biome points on pots, plants and shelves.
+// Biome shop: spend Byome points on pots, plants and shelves.
 // Prices, stock and balances are all checked by the database
 // (buy_biome_item), so this page only has to show them.
 const shopEl = document.getElementById("shop");
@@ -60,7 +60,7 @@ async function loadShop() {
   const balance = pointsRes.data ? pointsRes.data.biome : 0;
   const pending = pointsRes.data ? pointsRes.data.pending_biome : 0;
   balanceEl.innerHTML = "";
-  balanceEl.append(leafIcon(), el("strong", null, String(balance)), el("span", null, "biome points"));
+  balanceEl.append(leafIcon(), el("strong", null, String(balance)), el("span", null, "Byome points"));
   if (pending) balanceEl.appendChild(el("span", "shop-meta", "(+" + pending + " pending)"));
 
   const owned = {};
@@ -116,7 +116,7 @@ function buildCard(item, balance, ownedCount) {
   else if (balance < item.price) { buy.disabled = true; buy.textContent = "Need " + (item.price - balance) + " more"; }
 
   buy.addEventListener("click", async () => {
-    if (!confirm("Buy the " + item.name.toLowerCase() + " for " + item.price + " biome points?")) return;
+    if (!confirm("Buy the " + item.name.toLowerCase() + " for " + item.price + " Byome points?")) return;
     buy.disabled = true;
     const { data, error } = await supabaseClient.rpc("buy_biome_item", { p_key: item.key });
     if (error) {

@@ -3385,3 +3385,67 @@ dialog.celebrate h2 {
   margin: 0;
   min-height: 0;
 }
+
+/* =========================================================
+   BIOMES
+   ========================================================= */
+
+/* ----- Forest (Community) ----- */
+.biome-forest {
+  transition: background-color 1.2s linear;
+}
+
+/* Page content sits above the fireflies */
+.biome-forest .site-header {
+  z-index: 2;
+}
+
+.biome-forest > main,
+.biome-forest .site-footer {
+  position: relative;
+  z-index: 1;
+}
+
+.fireflies {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  /* Fireflies glow brighter the deeper you go */
+  opacity: calc(0.45 + var(--forest-depth, 0) * 0.55);
+}
+
+.firefly {
+  position: absolute;
+  width: var(--size, 4px);
+  height: var(--size, 4px);
+  border-radius: 50%;
+  background-color: #F4F8C8;
+  box-shadow: 0 0 8px 3px rgba(222, 240, 140, 0.7), 0 0 24px 10px rgba(200, 230, 110, 0.22);
+  opacity: 0.6;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .firefly {
+    opacity: 0;
+    animation:
+      firefly-blink var(--blink, 5s) ease-in-out var(--delay, 0s) infinite,
+      firefly-drift var(--drift, 20s) ease-in-out var(--delay, 0s) infinite alternate;
+  }
+
+  @keyframes firefly-blink {
+    0%, 100% { opacity: 0; }
+    30% { opacity: 0.15; }
+    45% { opacity: 1; }
+    60% { opacity: 0.35; }
+    75% { opacity: 0.8; }
+  }
+
+  @keyframes firefly-drift {
+    0% { transform: translate(0, 0); }
+    33% { transform: translate(var(--dx), calc(var(--dy) * -0.5)); }
+    66% { transform: translate(calc(var(--dx) * -0.4), var(--dy)); }
+    100% { transform: translate(calc(var(--dx) * 0.6), calc(var(--dy) * 0.3)); }
+  }
+}

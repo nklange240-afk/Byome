@@ -201,9 +201,80 @@ const UI = (function () {
     });
   }
 
+  // ---------- Biomes ----------
+  // A page picks its biome with <body data-biome="...">.
+
+  // Forest (Community): fireflies drift in the margins, and the page
+  // darkens very slowly as you scroll deeper into the forest.
+  const FOREST = {
+    top: [36, 64, 47],     // --forest-dark, at the edge of the forest
+    deep: [12, 26, 19],    // the darkest it gets
+    depth: 9000,           // pixels of scrolling to reach the deepest point
+    fireflies: 16,
+  };
+
+  function forest() {
+    document.body.classList.add("biome-forest");
+
+    // The darkening
+    let ticking = false;
+    function shade() {
+      ticking = false;
+      const t = Math.min(1, window.scrollY / FOREST.depth);
+      const eased = t * t * (3 - 2 * t); // gentle at both ends
+      const rgb = FOREST.top.map((c, i) => Math.round(c + (FOREST.deep[i] - c) * eased));
+      document.body.style.backgroundColor = "rgb(" + rgb.join(",") + ")";
+      document.body.style.setProperty("--forest-depth", eased.toFixed(3));
+    }
+    window.addEventListener("scroll", () => {
+      if (!ticking) { ticking = true; requestAnimationFrame(shade); }
+    }, { passive: true });
+    shade();
+
+    // The fireflies, kept to the empty space beside the page content
+    const layer = el("div", "fireflies");
+    layer.setAttribute("aria-hidden", "true");
+    document.body.insertBefore(layer, document.body.firstChild);
+    const flies = [];
+    for (let i = 0; i < FOREST.fireflies; i++) {
+      const fly = el("span", "firefly");
+      // Each one drifts and blinks on its own slow rhythm
+      fly.style.setProperty("--drift", (14 + Math.random() * 14).toFixed(1) + "s");
+      fly.style.setProperty("--blink", (3 + Math.random() * 4).toFixed(1) + "s");
+      fly.style.setProperty("--delay", (-Math.random() * 20).toFixed(1) + "s");
+      fly.style.setProperty("--dx", ((Math.random() - 0.5) * 60).toFixed(0) + "px");
+      fly.style.setProperty("--dy", ((Math.random() - 0.5) * 80).toFixed(0) + "px");
+      fly.style.setProperty("--size", (4 + Math.random() * 3).toFixed(1) + "px");
+      fly._side = i % 2;   // left or right
+      fly._x = Math.random();
+      fly._y = Math.random();
+      layer.appendChild(fly);
+      flies.push(fly);
+    }
+    function place() {
+      const main = document.querySelector("main");
+      const w = window.innerWidth;
+      const content = main ? main.getBoundingClientRect() : { left: w * 0.2, right: w * 0.8 };
+      const pad = 12;
+      // Room on each side of the content (at least a thin strip on phones)
+      const margin = Math.max(18, content.left - pad);
+      flies.forEach((fly) => {
+        const x = fly._side === 0 ? fly._x * margin : w - margin + fly._x * margin;
+        fly.style.left = Math.round(x) + "px";
+        fly.style.top = Math.round(8 + fly._y * 84) + "%";
+      });
+    }
+    window.addEventListener("resize", place);
+    place();
+  }
+
+  const BIOMES = { forest: forest };
+
   document.addEventListener("DOMContentLoaded", () => {
     buildFooter();
     checkAchievements();
+    const biome = BIOMES[document.body.dataset.biome];
+    if (biome) biome();
   });
 
   return { emptyState, celebrate, sparkles, itemArt };

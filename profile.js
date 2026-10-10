@@ -174,7 +174,7 @@ function buildReviewCard(r, isMe, reload) {
 
 // The order "how to earn" is listed in
 const EARN_ORDER = ["review", "first_review", "review_update", "review_liked", "review_standout",
-  "post_engaged", "comment_liked", "product_approved", "welcome"];
+  "post_engaged", "comment_liked", "product_approved", "welcome", "mod_decision", "mod_edit"];
 
 // A small coin for community points
 function coinIcon() {
@@ -194,7 +194,7 @@ function coinIcon() {
   return svg;
 }
 
-// "+10" pills: gold for community points, green for biome points. Zeros are
+// "+10" pills: gold for community points, green for Byome points. Zeros are
 // hidden. Spending (a negative number) shows as "−40".
 function chips(community, biome) {
   const wrap = el("div", "chips");
@@ -216,7 +216,7 @@ function statTile(kind, label, value, pending, icon) {
 const SHOWN_ACTIVITY = 3;
 
 // Your own points: balances, how to earn more, and recent activity
-async function showPoints(userId) {
+async function showPoints(userId, isModerator) {
   const panel = document.getElementById("points-panel");
 
   const [totalsRes, ledgerRes, rulesRes] = await Promise.all([
@@ -248,17 +248,19 @@ async function showPoints(userId) {
   const stats = el("div", "points-stats");
   stats.append(
     statTile("community", "Community points", totals.community, totals.pending_community, coinIcon()),
-    statTile("biome", "Biome points", totals.biome, totals.pending_biome, leafIcon())
+    statTile("biome", "Byome points", totals.biome, totals.pending_biome, leafIcon())
   );
   panel.appendChild(stats);
   // The explanation and the earning list fold away, to keep the card short
-  const note = el("p", "points-note",
-    "Community points are for future real-world rewards. Biome points buy pots, plants and shelves in the ");
+  const note = el("p", "points-note", "Byome points buy pots, plants and shelves in the ");
   const shopLink = el("a", "inline-link", "Biome shop");
   shopLink.href = "biome-shop.html";
-  note.append(shopLink, document.createTextNode(". Pending points become available after a short waiting period."));
+  note.append(shopLink, document.createTextNode(". Community points can't be spent on anything just yet, " +
+    "but we have big plans for them, so keep collecting! Pending points become available after a short waiting period."));
 
-  const earnable = rules.filter((r) => r.community_points || r.biome_points);
+  // Moderator rewards are only listed for moderators
+  const earnable = rules.filter((r) => (r.community_points || r.biome_points) &&
+    (isModerator || r.action.indexOf("mod_") !== 0));
   {
     const earn = el("details", "points-earn");
     earn.appendChild(el("summary", null, "How points work"));
@@ -535,7 +537,7 @@ async function showAchievements(profileId) {
   const postsEl = document.getElementById("profile-posts");
 
   let query = supabaseClient.from("profiles")
-    .select("id, username, created_at, avatar_path, avatar_ring, skin_type, skin_concerns, hair_type, hair_texture");
+    .select("id, username, created_at, avatar_path, avatar_ring, skin_type, skin_concerns, hair_type, hair_texture, is_moderator");
   query = wanted ? query.eq("username", wanted) : query.eq("id", me);
   const { data: profile } = await query.maybeSingle();
 
@@ -574,7 +576,7 @@ async function showAchievements(profileId) {
       "Member since " + new Date(profile.created_at).toLocaleDateString(undefined, { month: "long", year: "numeric" });
   }
 
-  if (isMe) showPoints(profile.id);
+  if (isMe) showPoints(profile.id, profile.is_moderator);
   showBiome(profile.id, isMe);
   showAchievements(profile.id);
 
