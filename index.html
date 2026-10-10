@@ -22,7 +22,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
 
   <!-- Our own stylesheet, kept in a separate file -->
-  <link rel="stylesheet" href="style.css?v=40" />
+  <link rel="stylesheet" href="style.css?v=41" />
 </head>
 <body>
 
@@ -48,6 +48,7 @@
   <main>
     <!-- Members who are logged in see a welcome back instead (home.js) -->
     <section class="hero">
+      <div class="hero-text">
       <h1 id="hero-title">A community for honest beauty reviews, grown together. </h1>
       <p class="hero-sub" id="hero-sub">
         Review what you use, skip what you don't, and grow a little shelf of plants along the way.
@@ -55,6 +56,12 @@
       <div class="hero-actions" id="hero-actions">
         <a href="reviews.html" class="btn btn-solid">Browse reviews</a>
         <a href="signup.html" class="btn btn-ghost">Join the community</a>
+      </div>
+      </div>
+      <!-- A little shelf of biome plants (made from the biome art; see README) -->
+      <div class="hero-art">
+        <img src="biome-assets/hero-shelf.png" width="1060" height="401"
+          alt="A row of potted plants on a painted shelf: a zebra haworthia, daisies, an African violet and a little sprout." />
       </div>
     </section>
 
@@ -81,9 +88,9 @@
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase-client.js?v=40"></script>
-  <script src="nav-menu.js?v=40"></script>
-  <script src="ui.js?v=40"></script>
-  <script src="home.js?v=40"></script>
+  <script src="supabase-client.js?v=41"></script>
+  <script src="nav-menu.js?v=41"></script>
+  <script src="ui.js?v=41"></script>
+  <script src="home.js?v=41"></script>
 </body>
 </html>

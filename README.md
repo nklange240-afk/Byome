@@ -41,6 +41,7 @@ Community is set in the forest and Reviews in the meadow (`<body data-biome="...
 - `logo-wordmark.png` (cream, for the dark header), `logo-wordmark-green.png` (green, used in the emails) and `logo-icon.png` (the sun-and-sprout mark).
 - `favicon-32.png` (browser tab) and `apple-touch-icon.png` (phone home screen, on the byome green) are made from the icon.
 - `og-image.png` (1200×630) is the picture shown when someone shares a byome link: the wordmark above a row of biome pots and plants.
+- `biome-assets/hero-shelf.png` is the homepage picture: the same pots and plants on a strip of the painted shelf. It's built from the biome art, so if a pot or plant drawing changes, it can be rebuilt the same way (or swapped for a drawn scene, about 1400×1100, transparent).
 
 ## Biome art (`biome-assets/`)
 
