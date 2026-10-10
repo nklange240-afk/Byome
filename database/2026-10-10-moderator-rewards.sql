@@ -1,7 +1,9 @@
 -- =========================================================
 -- byome: moderators earn 5 Byome points for each moderation action,
 -- and point messages say "Byome points". Run once in the Supabase SQL
--- Editor (after 2026-10-03-first-bloom.sql).
+-- Editor (after 2026-10-03-first-bloom.sql). Safe to run again if needed.
+-- Paste the WHOLE file and make sure nothing is highlighted when you
+-- press Run (Supabase only runs the highlighted part if there is one).
 --
 -- What counts (each one once per item, per moderator):
 --   - approving or removing held content (automod queue)
@@ -206,6 +208,7 @@ begin
 end $$;
 revoke execute on function public.reward_product_moderation() from public, anon, authenticated;
 
+drop trigger if exists products_reward_moderator on public.products;
 create trigger products_reward_moderator after update on public.products
   for each row execute function public.reward_product_moderation();
 
