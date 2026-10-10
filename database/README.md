@@ -32,3 +32,4 @@ byome's database lives in Supabase. These files are a backup and a history of ch
 
 **Not sure what's been run?** `check-what-has-run.sql` is read-only: run it in the SQL Editor and it lists every update above as "yes" or "MISSING".
 - `2026-10-11-capital-byome.sql`: "Byome" with a capital B in text stored in the database (the "Welcome to Byome" achievement, the sprout's story, and notifications already sent). Web and email addresses stay lowercase.
+- `2026-10-12-byome-shop.sql`: the Biome shop is now the Byome Shop (renames purchases in points activity).

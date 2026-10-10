@@ -1,7 +1,7 @@
 // Shared hamburger menu. The items are built here, so every page shows the
 // same menu in the same order:
 //   Guests:  Reviews, Log in, Sign up
-//   Members: Community, Reviews, Suggest a product, Biome shop |
+//   Members: Community, Reviews, Suggest a product, Byome Shop |
 //            My profile, Notifications (unread count), Moderate (moderators) |
 //            username, Log out
 (function () {
@@ -64,7 +64,7 @@
     link("feed.html", "Community");
     link("reviews.html", "Reviews");
     link("suggest-product.html", "Suggest a product");
-    link("biome-shop.html", "Biome shop");
+    link("biome-shop.html", "Byome Shop");
     line();
     link("profile.html", "My profile");
     const notes = link("notifications.html", "Notifications");

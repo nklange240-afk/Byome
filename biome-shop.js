@@ -1,4 +1,4 @@
-// Biome shop: spend Byome points on pots, plants and shelves.
+// Byome Shop: spend Byome points on pots, plants and shelves.
 // Prices, stock and balances are all checked by the database
 // (buy_biome_item), so this page only has to show them.
 const shopEl = document.getElementById("shop");
