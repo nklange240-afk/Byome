@@ -3399,10 +3399,15 @@ dialog.celebrate h2 {
    ========================================================= */
 
 /* Each biome re-colors the cards and borders to match */
+/* A spring meadow: fresh spring greens, a step brighter than the forest.
+   The accent is spring green itself (#BEF7BC), and gold turns a softer
+   buttercup so names and links stay easy to read on the brighter green. */
 .biome-meadow {
-  --forest-dark: #2C3B24;
-  --forest-mid: #3E5130;
-  --moss: #74895A;
+  --forest-dark: #366A34;
+  --forest-mid: #427740;
+  --moss: #8FC48C;
+  --leaf: #BEF7BC;
+  --gold: #F7D78C;
 }
 
 .biome-desert {
@@ -3478,12 +3483,21 @@ dialog.celebrate h2 {
   opacity: 0.6;
 }
 
-/* Meadow: dandelion seeds floating up */
-.p-seed {
-  background-color: rgba(255, 252, 238, 0.9);
-  box-shadow: 0 0 6px 2px rgba(255, 250, 230, 0.35);
-  opacity: 0.7;
+/* Meadow: soft spring petals drifting down (no glow). Not in use right
+   now; add ["petal", 14] to the meadow's particles in ui.js to bring
+   them back. */
+.p-petal {
+  --petal: #F7D3DC;
+  width: calc(var(--size) * 2.4);
+  height: calc(var(--size) * 1.5);
+  border-radius: 80% 0 80% 0;
+  background-color: var(--petal);
+  opacity: 0.85;
 }
+
+.p-petal[style*="--hue: 1"] { --petal: #FFF7EC; }
+.p-petal[style*="--hue: 2"] { --petal: #F8E7A6; }
+.p-petal[style*="--hue: 3"] { --petal: #DCCBF2; }
 
 /* Desert: warm specks of sand in the air */
 .p-mote {
@@ -3585,7 +3599,9 @@ dialog.celebrate h2 {
 }
 
 .dot-firefly { background: #F4F8C8; box-shadow: 0 0 6px 2px rgba(222, 240, 140, 0.7); }
-.dot-seed { background: #FFFCEE; box-shadow: 0 0 4px 1px rgba(255, 250, 230, 0.5); }
+.dot-petal { width: 8px; height: 5px; border-radius: 80% 0 80% 0; background: #F7D3DC; }
+.dot-petal:nth-child(3n) { background: #FFF7EC; }
+.dot-petal:nth-child(3n+1) { background: #F8E7A6; }
 .dot-mote { width: 3px; height: 3px; background: #F2C98B; box-shadow: 0 0 4px 1px rgba(242, 190, 120, 0.6); }
 .dot-snow { background: #FFFFFF; }
 .dot-bubble { width: 8px; height: 8px; border: 1px solid rgba(220, 245, 255, 0.7); }
@@ -3618,7 +3634,6 @@ dialog.celebrate h2 {
 
   /* Things that rise (seeds, bubbles) start below the screen and float
      up past the top; snow does the opposite */
-  .p-seed,
   .p-bubble {
     top: 102% !important;
     animation: rise var(--dur, 20s) linear var(--delay, 0s) infinite;
@@ -3627,6 +3642,20 @@ dialog.celebrate h2 {
   .p-snow {
     top: -3% !important;
     animation: fall var(--dur, 20s) linear var(--delay, 0s) infinite;
+  }
+
+  /* Petals tumble slowly as they drift down */
+  .p-petal {
+    top: -3% !important;
+    animation: petal-fall calc(var(--dur, 20s) * 1.3) linear var(--delay, 0s) infinite;
+  }
+
+  @keyframes petal-fall {
+    0% { transform: translate(0, 0) rotate(0deg); }
+    25% { transform: translate(var(--dx), 28vh) rotate(90deg); }
+    50% { transform: translate(calc(var(--dx) * -0.5), 56vh) rotate(160deg); }
+    75% { transform: translate(calc(var(--dx) * 0.7), 84vh) rotate(250deg); }
+    100% { transform: translate(0, 110vh) rotate(340deg); }
   }
 
   @keyframes rise {
