@@ -3868,3 +3868,47 @@ dialog.celebrate h2 {
   font-size: 0.82rem;
   padding: 0.25rem 0.8rem;
 }
+
+/* Moderation flags in notifications: green = good news, red = removed or
+   not approved, gold = something new for moderators to look at */
+.icon-moderation.is-positive { color: var(--leaf); border-color: var(--leaf); }
+.icon-moderation.is-negative { color: #E07A5F; border-color: #E07A5F; }
+.icon-moderation.is-queue { color: var(--gold); }
+
+/* Moderation log (moderators only) */
+.mod-log {
+  margin-bottom: 3rem;
+}
+
+.log-row {
+  display: grid;
+  grid-template-columns: 1.5rem 1fr;
+  column-gap: 0.5rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--moss);
+}
+
+.log-mark {
+  grid-row: span 2;
+  width: 1.5rem;
+  height: 1.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1px solid var(--moss);
+  font-size: 0.8rem;
+}
+
+.log-row.is-positive .log-mark { color: var(--leaf); border-color: var(--leaf); }
+.log-row.is-negative .log-mark { color: #E07A5F; border-color: #E07A5F; }
+
+.log-text {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.log-time {
+  font-size: 0.8rem;
+  opacity: 0.65;
+}

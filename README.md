@@ -17,7 +17,7 @@ The site is plain HTML, CSS and JavaScript (no build step). Accounts and data li
 | `biome-shop.html` | Spend Byome points on pots, plants and shelves |
 | `suggest-product.html` | Suggest a product for reviews (flags look-alikes of existing products) |
 | `notifications.html` | Your notifications |
-| `moderate-products.html` | Moderators only: automod holds, member reports, product suggestions |
+| `moderate-products.html` | Moderators only: automod holds, member reports, product suggestions, and the moderation log |
 | `terms.html`, `privacy.html` | Terms of use and privacy policy (plain-language drafts) |
 
 ## Shared scripts
