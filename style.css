@@ -3088,29 +3088,47 @@ body > main {
 .icon-moderation { color: #E07A5F; }
 
 /* ----- Shop: picture box, rarity edge, "Owned" tag ----- */
+/* Every picture box is the same height, with pots standing on the same
+   line. The room above a pot fits the tallest plant the 512px canvas
+   allows (its top can reach 60% of the pot's width above the pot). */
+.shop-grid {
+  --pot-w: 130px;
+  --art-h: calc(var(--pot-w) * 1.6);
+}
+
 .shop-art {
   position: relative;
-  height: 150px;
+  height: var(--art-h);
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: center;
 }
 
+/* A pot on its own: same size and spot as a pot with a plant in it */
 .shop-art > img {
-  width: 100%;
-  height: 100%;
+  width: var(--pot-w);
+  height: var(--pot-w);
   object-fit: contain;
+}
+
+/* Shelves fill the box */
+.shop-art > img.is-shelf {
+  width: auto;
+  max-width: 100%;
+  height: 100%;
 }
 
 /* Plants are shown in the starter pot, using the shelf's layering */
 .shop-art.is-potted {
-  width: 130px;
+  display: block;
+  width: var(--pot-w);
   height: auto;
   aspect-ratio: 1;
-  margin: 40px auto 0;
+  margin: calc(var(--art-h) - var(--pot-w)) auto 0;
 }
 
 .shop-art.is-potted > img {
+  width: 100%;
   height: auto;
 }
 
@@ -3119,6 +3137,7 @@ body > main {
 }
 
 .shop-card {
+  position: relative;
   border-top: 3px solid transparent;
 }
 
@@ -3128,8 +3147,8 @@ body > main {
 
 .owned-tag {
   position: absolute;
-  top: 0;
-  right: 0;
+  top: 0.6rem;
+  right: 0.6rem;
   z-index: 5;
   padding: 0.1rem 0.55rem;
   border-radius: 999px;
@@ -3161,13 +3180,8 @@ body > main {
     font-size: 0.78rem;
   }
 
-  .shop-art {
-    height: 120px;
-  }
-
-  .shop-art.is-potted {
-    width: 100px;
-    margin-top: 30px;
+  .shop-grid {
+    --pot-w: 100px;
   }
 
   .shop-card .btn {
@@ -3563,7 +3577,7 @@ dialog.celebrate h2 {
 .shop-art.biome-swatch,
 .celebrate-art.biome-swatch {
   width: 100%;
-  height: 150px;
+  height: var(--art-h, 150px);
 }
 
 .celebrate-art.biome-swatch {
