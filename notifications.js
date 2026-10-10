@@ -56,11 +56,14 @@ function typeIcon(type, tone) {
   const listEl = document.getElementById("notification-list");
   const markBtn = document.getElementById("mark-read-btn");
 
-  const { data: items, error } = await supabaseClient
-    .from("notifications")
-    .select("id, type, tone, message, link, created_at, read_at")
-    .order("created_at", { ascending: false })
-    .limit(50);
+  // "tone" (green/red flags) comes from database/2026-10-11-moderation-log.sql.
+  // If that hasn't been run yet, load without it rather than failing.
+  const load = (columns) => supabaseClient.from("notifications").select(columns)
+    .order("created_at", { ascending: false }).limit(50);
+  let { data: items, error } = await load("id, type, tone, message, link, created_at, read_at");
+  if (error && /tone/.test(error.message)) {
+    ({ data: items, error } = await load("id, type, message, link, created_at, read_at"));
+  }
 
   listEl.innerHTML = "";
   if (error) {

@@ -471,12 +471,18 @@ async function init() {
   } else {
     // No account — browsing and searching are still fully open, but
     // the write form isn't, since posting a review requires an account.
-    const prompt = el("p", "feed-empty");
-    const link = el("a", "inline-link", "Log in");
-    link.href = "login.html";
-    prompt.append(document.createTextNode("Want to write a review? "), link, document.createTextNode(" first."));
+    // One friendly line for visitors (suggesting a product needs an account too)
+    const prompt = el("p", "guest-prompt");
+    const login = el("a", "inline-link", "Log in");
+    login.href = "login.html";
+    const join = el("a", "inline-link", "join byome");
+    join.href = "signup.html";
+    prompt.append(login, document.createTextNode(" or "), join,
+      document.createTextNode(" to write a review or suggest a product."));
     form.replaceWith(prompt);
     writeToggle.remove();
+    const suggestLine = document.getElementById("suggest-line");
+    if (suggestLine) suggestLine.remove();
   }
 
   await loadProducts();
@@ -751,7 +757,7 @@ async function loadReviews(more) {
   if (reviews.length === to - from + 1) {
     const btn = el("button", "btn btn-ghost load-more", "Load more");
     btn.type = "button";
-    btn.addEventListener("click", () => { btn.disabled = true; btn.textContent = "Loading..."; loadReviews(true); });
+    btn.addEventListener("click", () => { btn.disabled = true; btn.textContent = "Loading…"; btn.classList.add("is-loading"); loadReviews(true); });
     listEl.appendChild(btn);
   }
 }
@@ -1009,9 +1015,7 @@ function buildReview(r) {
   article.appendChild(productRow);
 
   const meta = el("div", "post-meta");
-  const time = el("time", null, formatDate(r.created_at));
-  time.dateTime = r.created_at;
-  meta.append(authorLink(r.profiles), time);
+  meta.append(authorLink(r.profiles), UI.timeTag(r.created_at));
   if (r.edited_at) {
     const tag = el("span", "edited-tag", "edited");
     tag.title = "Edited " + formatDate(r.edited_at);

@@ -45,6 +45,50 @@ const UI = (function () {
     footer.appendChild(links);
   }
 
+  // ---------- Why something was removed ----------
+  // Must match removal_reason_label() in database/2026-10-11-returned-content.sql
+  const REMOVAL_REASONS = [
+    ["profanity", "Profanity or slurs"],
+    ["harassment", "Harassment or personal attacks"],
+    ["spam", "Spam or self-promotion"],
+    ["low_effort", "Low effort (too short or not useful)"],
+    ["off_topic", "Unrelated to the topic or product"],
+    ["misleading", "Misleading or false claims"],
+    ["not_genuine", "Not a genuine review (the product wasn't used)"],
+    ["personal_info", "Shares someone's personal information"],
+    ["other", "Something else"],
+  ];
+
+  function removalReasonLabel(key) {
+    const found = REMOVAL_REASONS.find(([k]) => k === key);
+    return found ? found[1] : null;
+  }
+
+  // ---------- Friendly dates ----------
+
+  // "just now", "5 minutes ago", "yesterday", "3 days ago"; older than a
+  // week shows the date ("Oct 2, 2026")
+  function friendlyDate(iso) {
+    const then = new Date(iso);
+    const mins = Math.floor((Date.now() - then) / 60000);
+    if (mins < 1) return "just now";
+    if (mins < 60) return mins + (mins === 1 ? " minute ago" : " minutes ago");
+    const hours = Math.floor(mins / 60);
+    if (hours < 24) return hours + (hours === 1 ? " hour ago" : " hours ago");
+    const days = Math.floor(hours / 24);
+    if (days === 1) return "yesterday";
+    if (days < 7) return days + " days ago";
+    return then.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+  }
+
+  // A <time> showing a friendly date, with the full date on hover
+  function timeTag(iso, className) {
+    const t = el("time", className, friendlyDate(iso));
+    t.dateTime = iso;
+    t.title = new Date(iso).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
+    return t;
+  }
+
   // ---------- Empty states ----------
 
   // options: { image, text, linkText, href }
@@ -217,7 +261,9 @@ const UI = (function () {
   // The colors of cards and borders for each biome are in style.css.
   const BIOME_LOOKS = {
     forest: { name: "Forest", symbol: "\u{1F332}", top: [36, 64, 47], deep: [12, 26, 19], particles: [["firefly", 16]] },
-    meadow: { name: "Meadow", symbol: "\u{1F33C}", top: [36, 64, 47], deep: [36, 64, 47], particles: [] }, // hand-drawn florals to come
+    meadow: { name: "Meadow", symbol: "\u{1F33C}", top: [36, 64, 47], deep: [36, 64, 47], particles: [], // hand-drawn florals to come
+              // its preview tile hints at spring green and petals
+              preview: { top: [78, 128, 72], deep: [36, 64, 47], dots: "petal" } },
     desert: { name: "Desert", symbol: "☀️", top: [64, 44, 34], deep: [34, 23, 38], particles: [["mote", 18]] },
     tundra: { name: "Snowy tundra", symbol: "❄️", top: [34, 48, 61], deep: [16, 24, 34], particles: [["snow", 26]] },
     ocean: { name: "Open ocean", symbol: "\u{1F30A}", top: [20, 52, 78], deep: [4, 12, 26], particles: [["bubble", 16]], rays: true },
@@ -244,11 +290,12 @@ const UI = (function () {
   // A small preview of a biome (shop cards, Edit profile, pop-ups)
   function biomeSwatch(key, className) {
     const look = biomeLook(key) || BIOME_LOOKS.forest;
+    const preview = look.preview || {};
     const box = el("div", (className || "biome-swatch") + " swatch-" + key);
-    box.style.background = "linear-gradient(170deg, rgb(" + look.top.join(",") + "), rgb(" + look.deep.join(",") + "))";
+    box.style.background = "linear-gradient(170deg, rgb(" + (preview.top || look.top).join(",") + "), rgb(" + (preview.deep || look.deep).join(",") + "))";
     box.setAttribute("aria-hidden", "true");
     if (look.rays) box.appendChild(el("span", "swatch-rays"));
-    const kind = look.particles.length ? look.particles[0][0] : null;
+    const kind = preview.dots || (look.particles.length ? look.particles[0][0] : null);
     for (let i = 0; kind && i < 7; i++) {
       const p = el("span", "swatch-dot dot-" + kind);
       p.style.left = (8 + ((i * 37) % 84)) + "%";
@@ -365,12 +412,34 @@ const UI = (function () {
     });
   }
 
+  // ---------- Password fields: Show / Hide ----------
+  function addPasswordToggles() {
+    document.querySelectorAll('input[type="password"]').forEach((input) => {
+      const wrap = el("span", "password-field");
+      input.parentNode.insertBefore(wrap, input);
+      wrap.appendChild(input);
+      const btn = el("button", "password-toggle", "Show");
+      btn.type = "button";
+      btn.setAttribute("aria-label", "Show password");
+      btn.setAttribute("aria-pressed", "false");
+      btn.addEventListener("click", () => {
+        const showing = input.type === "text";
+        input.type = showing ? "password" : "text";
+        btn.textContent = showing ? "Show" : "Hide";
+        btn.setAttribute("aria-label", showing ? "Show password" : "Hide password");
+        btn.setAttribute("aria-pressed", String(!showing));
+      });
+      wrap.appendChild(btn);
+    });
+  }
+
   document.addEventListener("DOMContentLoaded", () => {
+    addPasswordToggles();
     buildFooter();
     checkAchievements();
     thankModerator();
     if (document.body.dataset.biome) setBiome(document.body.dataset.biome);
   });
 
-  return { emptyState, celebrate, sparkles, itemArt, setBiome, biomeSymbol, biomeSwatch, biomeLook, startModSession };
+  return { REMOVAL_REASONS, removalReasonLabel, friendlyDate, timeTag, emptyState, celebrate, sparkles, itemArt, setBiome, biomeSymbol, biomeSwatch, biomeLook, startModSession };
 })();

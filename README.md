@@ -8,7 +8,7 @@ The site is plain HTML, CSS and JavaScript (no build step). Accounts and data li
 
 | Page | What it's for |
 |---|---|
-| `index.html` | Homepage |
+| `index.html` | Homepage (members who are logged in get a "Welcome back" with shortcuts, from `home.js`) |
 | `signup.html`, `login.html`, `reset-password.html` | Accounts (the reset page handles "forgot password") |
 | `feed.html` | Community posts and comments |
 | `reviews.html` | Product reviews, with search, category filters and Newest / Most helpful sorting. `reviews.html?product=<id>` is a product's page: average leaves, repurchase rate, holy grails, rating spread, and a skin-type filter |
@@ -19,6 +19,7 @@ The site is plain HTML, CSS and JavaScript (no build step). Accounts and data li
 | `notifications.html` | Your notifications |
 | `moderate-products.html` | Moderators only: automod holds, member reports, product suggestions, and the moderation log |
 | `terms.html`, `privacy.html` | Terms of use and privacy policy (plain-language drafts) |
+| `404.html` | "This page wandered off": shown for any address that doesn't exist |
 
 ## Shared scripts
 

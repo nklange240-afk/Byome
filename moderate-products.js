@@ -185,14 +185,14 @@ function buildQueueItem(product, matches) {
 
   const actions = el("div", "post-actions");
 
-  const approveBtn = el("button", "action-btn", "Approve");
+  const approveBtn = el("button", "action-btn mod-btn is-good", "Approve");
   approveBtn.type = "button";
   approveBtn.addEventListener("click", async () => {
     await supabaseClient.from("products").update({ status: "approved" }).eq("id", product.id);
     loadQueue();
   });
 
-  const editBtn = el("button", "action-btn", "Edit");
+  const editBtn = el("button", "action-btn mod-btn", "Edit");
   editBtn.type = "button";
   editBtn.addEventListener("click", () => {
     if (article.querySelector(".edit-form")) return;
@@ -207,7 +207,7 @@ function buildQueueItem(product, matches) {
     form.querySelector("input").focus();
   });
 
-  const rejectBtn = el("button", "action-btn", "Reject");
+  const rejectBtn = el("button", "action-btn mod-btn is-bad", "Reject");
   rejectBtn.type = "button";
   function openRejectForm(presetReason) {
     if (article.querySelector(".edit-form")) return;
@@ -238,7 +238,7 @@ function buildQueueItem(product, matches) {
     view.appendChild(box);
 
     const best = matches[0].product;
-    const dupBtn = el("button", "action-btn", "Reject as duplicate");
+    const dupBtn = el("button", "action-btn mod-btn is-bad", "Reject as duplicate");
     dupBtn.type = "button";
     dupBtn.addEventListener("click", () => openRejectForm(
       best.status === "approved"
@@ -266,6 +266,20 @@ function buildRejectForm(product, onSaved, onCancel, presetReason) {
   textarea.placeholder = "e.g. This product is already listed under a different name.";
   if (presetReason) textarea.value = presetReason;
 
+  // Quick picks that fill in the reason (it can still be edited)
+  const picks = el("div", "reason-choices quick-picks");
+  [
+    ["Already listed", "Thanks! This product is already listed, so you can review it there."],
+    ["Not a beauty product", "Thanks for the suggestion! byome is just for beauty and personal care products, so this one isn't a fit."],
+    ["Not enough detail", "Thanks! We couldn't tell exactly which product this is. Please suggest it again with the full name and brand."],
+    ["Spelling or name", "Thanks! The name or brand didn't quite match the real product. Please suggest it again as it appears on the packaging."],
+  ].forEach(([text, reason]) => {
+    const b = el("button", "category-chip", text);
+    b.type = "button";
+    b.addEventListener("click", () => { textarea.value = reason; textarea.focus(); });
+    picks.appendChild(b);
+  });
+
   const message = el("p", "auth-message");
   const buttons = el("div", "edit-buttons");
   const confirmBtn = el("button", "btn btn-solid", "Reject suggestion");
@@ -274,7 +288,7 @@ function buildRejectForm(product, onSaved, onCancel, presetReason) {
   cancel.type = "button";
   cancel.addEventListener("click", onCancel);
   buttons.append(confirmBtn, cancel);
-  form.append(label, textarea, buttons, message);
+  form.append(label, picks, textarea, buttons, message);
 
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -408,6 +422,58 @@ async function loadHeld() {
   items.forEach((item) => heldEl.appendChild(buildHeldItem(item)));
 }
 
+// Removing something: the moderator picks a reason (and can add a short
+// note). Both are shown to the member, with their private copy.
+// onConfirm(reason, note) should return an error message, or nothing.
+function reasonPicker(what, onConfirm, onCancel) {
+  const form = el("form", "reason-form");
+  const legend = el("p", "field-label", "Why is this " + what + " being removed? The member will see this.");
+  form.appendChild(legend);
+  const choices = el("div", "reason-choices");
+  choices.setAttribute("role", "radiogroup");
+  const name = "reason-" + Math.random().toString(36).slice(2);
+  UI.REMOVAL_REASONS.forEach(([key, label]) => {
+    const option = el("label", "choice reason-choice");
+    const input = el("input");
+    input.type = "radio";
+    input.name = name;
+    input.value = key;
+    input.required = true;
+    option.append(input, el("span", null, label));
+    choices.appendChild(option);
+  });
+  form.appendChild(choices);
+  const noteLabel = el("label", "field-label", "A short note (optional)");
+  const note = el("textarea", "reason-note");
+  note.id = name + "-note";
+  noteLabel.htmlFor = note.id;
+  note.rows = 2;
+  note.maxLength = 200;
+  note.placeholder = "e.g. Please keep it to your experience with the product.";
+  const message = el("p", "auth-message");
+  const buttons = el("div", "post-actions");
+  const go = el("button", "action-btn mod-btn is-bad", "Remove");
+  go.type = "submit";
+  const cancel = el("button", "action-btn mod-btn", "Cancel");
+  cancel.type = "button";
+  cancel.addEventListener("click", onCancel);
+  buttons.append(go, cancel);
+  form.append(noteLabel, note, buttons, message);
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const picked = form.querySelector("input:checked");
+    if (!picked) return;
+    go.disabled = true;
+    const problem = await onConfirm(picked.value, note.value.trim());
+    if (problem) {
+      message.textContent = problem;
+      message.style.color = "#E07A5F";
+      go.disabled = false;
+    }
+  });
+  return form;
+}
+
 function buildHeldItem(item) {
   const article = el("article", "post");
   const meta = el("div", "post-meta");
@@ -424,9 +490,20 @@ function buildHeldItem(item) {
   const actions = el("div", "post-actions");
   const message = el("span", "auth-message");
 
-  function decide(action, button) {
+  function decide(action, button, reason, note) {
     return async () => {
-      if (action === "remove" && !confirm("Remove this " + item.label.toLowerCase() + " for good? The author will be told it broke the guidelines.")) return;
+      if (action === "remove" && !reason) {
+        // Ask why first
+        actions.hidden = true;
+        const picker = reasonPicker(item.label.toLowerCase(), async (r, n) => {
+          const { error } = await supabaseClient.rpc("moderate_content",
+            { p_kind: item.kind, p_id: item.id, p_action: "remove", p_reason: r, p_note: n || null });
+          if (error) return "Couldn't remove: " + error.message;
+          loadHeld();
+        }, () => { picker.remove(); actions.hidden = false; });
+        article.appendChild(picker);
+        return;
+      }
       actions.querySelectorAll("button").forEach((b) => { b.disabled = true; });
       const { error } = await supabaseClient.rpc("moderate_content", { p_kind: item.kind, p_id: item.id, p_action: action });
       if (error) {
@@ -439,10 +516,10 @@ function buildHeldItem(item) {
     };
   }
 
-  const approve = el("button", "action-btn", "Approve");
+  const approve = el("button", "action-btn mod-btn is-good", "Approve");
   approve.type = "button";
   approve.addEventListener("click", decide("approve", approve));
-  const remove = el("button", "action-btn", "Remove");
+  const remove = el("button", "action-btn mod-btn is-bad", "Remove");
   remove.type = "button";
   remove.addEventListener("click", decide("remove", remove));
   actions.append(approve, remove, message);
@@ -528,7 +605,18 @@ function buildReportedItem(group) {
   const actions = el("div", "post-actions");
   const message = el("span", "auth-message");
   async function decide(action) {
-    if (action === "remove" && !confirm("Remove this " + group.kind + " for good? The author will be told it broke the guidelines.")) return;
+    if (action === "remove") {
+      // Ask why first
+      actions.hidden = true;
+      const picker = reasonPicker(group.kind, async (r, n) => {
+        const { error } = await supabaseClient.rpc("resolve_reports",
+          { p_kind: group.kind, p_id: c.id, p_action: "remove", p_reason: r, p_note: n || null });
+        if (error) return "Couldn't remove: " + error.message;
+        loadReports();
+      }, () => { picker.remove(); actions.hidden = false; });
+      article.appendChild(picker);
+      return;
+    }
     actions.querySelectorAll("button").forEach((b) => { b.disabled = true; });
     const { error } = await supabaseClient.rpc("resolve_reports", { p_kind: group.kind, p_id: c.id, p_action: action });
     if (error) {
@@ -539,7 +627,7 @@ function buildReportedItem(group) {
     }
     loadReports();
   }
-  const keep = el("button", "action-btn", "Keep it");
+  const keep = el("button", "action-btn mod-btn is-good", "Keep it");
   keep.type = "button";
   keep.addEventListener("click", () => decide("keep"));
   actions.appendChild(keep);
@@ -561,17 +649,17 @@ function buildReportedItem(group) {
       loadReports();
     }
     if (c.avatar_path) {
-      const pic = el("button", "action-btn", "Remove picture");
+      const pic = el("button", "action-btn mod-btn is-bad", "Remove picture");
       pic.type = "button";
       pic.addEventListener("click", () => fixProfile("remove_avatar", "Remove " + c.username + "'s profile picture? They'll be told why."));
       actions.appendChild(pic);
     }
-    const rename = el("button", "action-btn", "Reset username");
+    const rename = el("button", "action-btn mod-btn is-bad", "Reset username");
     rename.type = "button";
     rename.addEventListener("click", () => fixProfile("reset_username", "Reset the username \u201c" + c.username + "\u201d? They'll be asked to choose a new one."));
     actions.appendChild(rename);
   } else {
-    const remove = el("button", "action-btn", "Remove");
+    const remove = el("button", "action-btn mod-btn is-bad", "Remove");
     remove.type = "button";
     remove.addEventListener("click", () => decide("remove"));
     actions.appendChild(remove);
