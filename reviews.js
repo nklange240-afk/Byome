@@ -16,6 +16,21 @@ let currentUser = null;
 let isModerator = false;
 let products = [];
 
+// reviews.html?product=<id> is that product's page: a summary on top and
+// only its reviews below, which can be narrowed to one skin type
+const productParam = new URLSearchParams(window.location.search).get("product");
+let skinFilter = "";
+let sortBy = "newest"; // or "helpful"
+
+document.querySelectorAll("#sort-chips .category-chip").forEach((chip) => {
+  chip.addEventListener("click", () => {
+    if (sortBy === chip.dataset.sort) return;
+    sortBy = chip.dataset.sort;
+    document.querySelectorAll("#sort-chips .category-chip").forEach((c) => c.setAttribute("aria-pressed", String(c === chip)));
+    startOverReviews();
+  });
+});
+
 const SUBCATEGORIES = {
   "Hair Care": ["Shampoo & Conditioner", "Styling", "Treatments & Masks", "Scalp Care", "Tools & Accessories"],
   "Body Care": ["Body Wash & Soap", "Lotion & Moisturizer", "Exfoliants", "Sun Care", "Deodorant"],
@@ -311,6 +326,139 @@ function enhanceSelect(select) {
   return { refresh };
 }
 
+// ---------- Product pages ----------
+
+// The summary at the top of a product page: photo, name, average leaves,
+// how many would repurchase, holy grails, and the spread of ratings.
+// The skin-type pills narrow both the summary and the reviews below.
+async function showProductPage() {
+  const summary = document.getElementById("product-summary");
+  ["review-search", "category-chips", "subcategory-chips", "suggest-line"].forEach((id) => {
+    const node = document.getElementById(id);
+    if (node) (id === "review-search" ? node.closest(".review-search") : node).hidden = true;
+  });
+  document.getElementById("product-back").hidden = false;
+
+  const [productRes, statsRes] = await Promise.all([
+    supabaseClient.from("products").select("id, name, brand, photo_url, category, subcategory")
+      .eq("id", productParam).maybeSingle(),
+    supabaseClient.from("reviews").select("rating, would_repurchase, holy_grail, profiles!user_id(skin_type)")
+      .eq("product_id", productParam).is("held_at", null).limit(2000),
+  ]);
+  const product = productRes.data;
+  if (!product) {
+    document.querySelector(".page-head h1").textContent = "Product not found";
+    return;
+  }
+  document.title = product.brand + " " + product.name + " reviews — byome";
+  document.querySelector(".page-head h1").textContent = product.name;
+  const rows = statsRes.data || [];
+
+  summary.replaceChildren();
+  const head = el("div", "product-head");
+  const photo = product.photo_url ? safeUrl(product.photo_url) : null;
+  if (photo) {
+    const img = document.createElement("img");
+    img.className = "product-photo";
+    img.src = photo;
+    img.alt = product.name + " product photo";
+    img.referrerPolicy = "no-referrer";
+    img.addEventListener("error", () => img.remove());
+    head.appendChild(img);
+  }
+  const who = el("div", "product-who");
+  who.appendChild(el("p", "product-brand", product.brand));
+  if (product.category) {
+    who.appendChild(el("span", "product-category-tag",
+      product.subcategory ? product.category + " · " + product.subcategory : product.category));
+  }
+  head.appendChild(who);
+  summary.appendChild(head);
+
+  const statsBox = el("div", "product-stats");
+  summary.appendChild(statsBox);
+
+  // Skin type pills: everyone, or one skin type (your own is marked)
+  let mySkin = null;
+  if (currentUser) {
+    const { data: me } = await supabaseClient.from("profiles").select("skin_type").eq("id", currentUser.id).maybeSingle();
+    mySkin = me && me.skin_type;
+  }
+  const pills = el("div", "category-chips skin-chips");
+  pills.setAttribute("role", "group");
+  pills.setAttribute("aria-label", "Show reviews from people with this skin type");
+  const label = el("span", "sort-label", "Skin type:");
+  pills.appendChild(label);
+  [["", "Everyone"]].concat(PROFILES.SKIN_TYPES).forEach(([key, text]) => {
+    const count = key ? rows.filter((r) => r.profiles && r.profiles.skin_type === key).length : rows.length;
+    const chip = el("button", "category-chip", text + (key === mySkin && key ? " (you)" : "") + " · " + count);
+    chip.type = "button";
+    chip.setAttribute("aria-pressed", String(key === skinFilter));
+    chip.addEventListener("click", () => {
+      if (skinFilter === key) return;
+      skinFilter = key;
+      pills.querySelectorAll(".category-chip").forEach((c) => c.setAttribute("aria-pressed", String(c === chip)));
+      paintStats(statsBox, key ? rows.filter((r) => r.profiles && r.profiles.skin_type === key) : rows, key);
+      startOverReviews();
+    });
+    pills.appendChild(chip);
+  });
+  summary.appendChild(pills);
+  paintStats(statsBox, rows, "");
+  summary.hidden = false;
+}
+
+function paintStats(box, rows, skin) {
+  box.replaceChildren();
+  if (!rows.length) {
+    box.appendChild(el("p", "feed-empty", skin
+      ? "No reviews from people with " + PROFILES.label(PROFILES.SKIN_TYPES, skin).toLowerCase() + " skin yet."
+      : "No reviews yet. Be the first!"));
+    return;
+  }
+  const avg = rows.reduce((s, r) => s + r.rating, 0) / rows.length;
+
+  const top = el("div", "product-average");
+  top.appendChild(el("strong", "product-average-number", avg.toFixed(1)));
+  const leaves = el("div", "review-rating");
+  for (let i = 1; i <= 5; i++) {
+    // Half leaves round to the nearest whole leaf
+    const s = el("span", "rating-leaf static" + (i <= Math.round(avg) ? " on" : ""));
+    s.appendChild(leafIcon());
+    leaves.appendChild(s);
+  }
+  leaves.setAttribute("role", "img");
+  leaves.setAttribute("aria-label", "Average " + avg.toFixed(1) + " out of 5");
+  top.appendChild(leaves);
+  top.appendChild(el("span", "product-count", rows.length + (rows.length === 1 ? " review" : " reviews")));
+  box.appendChild(top);
+
+  const facts = el("ul", "product-facts");
+  const answered = rows.filter((r) => r.would_repurchase !== null && r.would_repurchase !== undefined);
+  if (answered.length) {
+    const yes = answered.filter((r) => r.would_repurchase).length;
+    facts.appendChild(el("li", null, Math.round((yes / answered.length) * 100) + "% would repurchase (" + yes + " of " + answered.length + ")"));
+  }
+  const grails = rows.filter((r) => r.holy_grail).length;
+  if (grails) facts.appendChild(el("li", null, grails + (grails === 1 ? " member calls it a holy grail" : " members call it a holy grail")));
+  if (facts.children.length) box.appendChild(facts);
+
+  // How the ratings spread out, 5 leaves down to 1
+  const bars = el("div", "rating-bars");
+  for (let n = 5; n >= 1; n--) {
+    const count = rows.filter((r) => r.rating === n).length;
+    const row = el("div", "rating-bar-row");
+    row.appendChild(el("span", "rating-bar-label", n + (n === 1 ? " leaf" : " leaves")));
+    const track = el("span", "rating-bar-track");
+    const fill = el("span", "rating-bar-fill");
+    fill.style.width = (count / rows.length) * 100 + "%";
+    track.appendChild(fill);
+    row.append(track, el("span", "rating-bar-count", String(count)));
+    bars.appendChild(row);
+  }
+  box.appendChild(bars);
+}
+
 async function init() {
   const { data } = await supabaseClient.auth.getSession();
 
@@ -332,6 +480,7 @@ async function init() {
   }
 
   await loadProducts();
+  if (productParam) await showProductPage();
   loadReviews();
 }
 
@@ -535,10 +684,15 @@ async function loadReviews(more) {
   // otherwise have shown up.
   let query = supabaseClient
     .from("reviews")
-    .select("id, rating, title, body, variation, would_repurchase, holy_grail, created_at, edited_at, held_at, user_id, profiles!user_id(username, avatar_path, avatar_ring, profile_biome, show_biome_symbol), products!product_id!inner(name, brand, photo_url, category, subcategory), review_likes(user_id), review_updates(id, body, created_at, held_at), review_standouts(review_id)")
-    .order("created_at", { ascending: false })
-    .order("id")
-    .range(from, to);
+    .select("id, product_id, rating, title, body, variation, would_repurchase, holy_grail, created_at, edited_at, held_at, user_id, helpful_count, " +
+      // filtering by skin type needs an inner join on the reviewer's profile
+      "profiles!user_id" + (skinFilter ? "!inner" : "") + "(username, avatar_path, avatar_ring, profile_biome, show_biome_symbol, skin_type), " +
+      "products!product_id!inner(name, brand, photo_url, category, subcategory), review_likes(user_id), review_updates(id, body, created_at, held_at), review_standouts(review_id)");
+  if (sortBy === "helpful") query = query.order("helpful_count", { ascending: false });
+  query = query.order("created_at", { ascending: false }).order("id").range(from, to);
+
+  if (productParam) query = query.eq("product_id", productParam);
+  if (skinFilter) query = query.eq("profiles.skin_type", skinFilter);
 
   if (categoryFilter.value) {
     query = query.eq("products.category", categoryFilter.value);
@@ -561,9 +715,15 @@ async function loadReviews(more) {
       listEl.appendChild(empty);
       return;
     }
-    searchStatus.textContent = matches.length === 1
-      ? "Reviews of " + matches[0].brand + " \u2014 " + matches[0].name
-      : matches.length + " products match \u201c" + q + "\u201d";
+    if (matches.length === 1) {
+      // One product: link to its page (average rating, skin types and more)
+      searchStatus.textContent = "Reviews of " + matches[0].brand + " \u2014 " + matches[0].name + ". ";
+      const link = el("a", "inline-link", "See its product page");
+      link.href = "reviews.html?product=" + encodeURIComponent(matches[0].id);
+      searchStatus.appendChild(link);
+    } else {
+      searchStatus.textContent = matches.length + " products match \u201c" + q + "\u201d";
+    }
     query = query.in("product_id", matches.slice(0, 200).map((p) => p.id));
   }
 
@@ -619,7 +779,8 @@ function starIcon() {
   return svg;
 }
 
-// Leaf like button, same behavior as on the message board
+// On reviews the leaf button means "Helpful". Same behavior as the leaf
+// likes on the community feed (and it earns the same points).
 function buildLikeButton(table, idColumn, id, likes) {
   let liked = currentUser ? likes.some((l) => l.user_id === currentUser.id) : false;
   let count = likes.length;
@@ -629,9 +790,9 @@ function buildLikeButton(table, idColumn, id, likes) {
 
   function paint() {
     btn.innerHTML = "";
-    btn.append(leafIcon(), el("span", null, String(count)));
+    btn.append(leafIcon(), el("span", null, "Helpful" + (count ? " \u00b7 " + count : "")));
     btn.setAttribute("aria-pressed", String(liked));
-    btn.setAttribute("aria-label", (liked ? "Unlike" : "Like") + " (" + count + " likes)");
+    btn.setAttribute("aria-label", (liked ? "Marked helpful" : "Mark helpful") + " (" + count + (count === 1 ? " person" : " people") + " found this helpful)");
     btn.classList.toggle("is-liked", liked);
   }
   paint();
@@ -805,7 +966,17 @@ function buildReview(r) {
 
   const info = el("div", "review-product-info");
   const product = r.products ? r.products.brand + " — " + r.products.name : "Unknown product";
-  info.appendChild(el("p", "review-product", r.variation ? product + " (" + r.variation + ")" : product));
+  const productLine = el("p", "review-product");
+  if (!productParam && r.product_id) {
+    // The product name opens that product's page
+    const a = el("a", "product-link", product);
+    a.href = "reviews.html?product=" + encodeURIComponent(r.product_id);
+    productLine.appendChild(a);
+    if (r.variation) productLine.append(" (" + r.variation + ")");
+  } else {
+    productLine.textContent = r.variation ? product + " (" + r.variation + ")" : product;
+  }
+  info.appendChild(productLine);
   if (r.products && r.products.category) {
     const catText = r.products.subcategory ? r.products.category + " · " + r.products.subcategory : r.products.category;
     info.appendChild(el("span", "product-category-tag", catText));
