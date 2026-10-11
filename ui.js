@@ -263,7 +263,7 @@ const UI = (function () {
   //     little slower than the page
   // The colors of cards and borders for each biome are in style.css.
   const BIOME_LOOKS = {
-    forest: { name: "Forest", symbol: "\u{1F332}", top: [36, 64, 47], deep: [8, 18, 13], particles: [["firefly", 16]],
+    forest: { name: "Forest", symbol: "\u{1F332}", top: [36, 64, 47], deep: [15, 31, 22], particles: [["firefly", 16]],
               overlay: "biome-assets/overlay-forest.webp" },
     meadow: { name: "Meadow", symbol: "\u{1F33C}", top: [36, 64, 47], deep: [36, 64, 47], particles: [], // hand-drawn florals to come
               // its preview tile hints at spring green and petals
