@@ -2980,9 +2980,18 @@ body > main {
   width: 100%;
 }
 
+/* The footer is a deeper shade of the page's own color (forest green,
+   or the biome's color on biome pages). Its shadow reaches far below
+   it, so when a phone "bounces" past the bottom of the page, more
+   footer shows instead of the page background and its overlay. */
 .site-footer {
+  --footer-bg: #13231A;
+  --footer-bg: color-mix(in srgb, var(--forest-dark) 55%, #000);
   opacity: 1;
   color: rgba(243, 237, 224, 0.75);
+  background-color: var(--footer-bg);
+  border-top: 1px solid rgba(243, 237, 224, 0.08);
+  box-shadow: 0 50vh 0 50vh var(--footer-bg);
 }
 
 .footer-links {
