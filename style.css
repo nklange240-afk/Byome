@@ -3033,8 +3033,10 @@ body > main {
   margin: 0.25rem 0 0.5rem;
 }
 
-/* Fully bright on the golden desert, so it stays easy to read */
-.biome-desert .profile-meta {
+/* Fully bright on the golden desert and pale tundra, so it stays easy
+   to read */
+.biome-desert .profile-meta,
+.biome-tundra .profile-meta {
   opacity: 1;
 }
 
@@ -3622,11 +3624,27 @@ body > .biome-overlay {
 .p-glint[style*="--hue: 1"] { --glint: #FFFFFF; }
 .p-glint[style*="--hue: 2"] { --glint: #F8D98A; }
 
-/* Tundra: snow */
+/* Tundra: snow. Flakes come in three depths (--hue): far-off ones are
+   small, soft and dim; near ones are bigger and brighter */
 .p-snow {
   background-color: #FFFFFF;
   box-shadow: 0 0 4px 1px rgba(255, 255, 255, 0.5);
-  opacity: 0.8;
+  opacity: 0.85;
+}
+
+.p-snow[style*="--hue: 0"],
+.p-snow[style*="--hue: 1"] {
+  width: calc(var(--size) * 0.55);
+  height: calc(var(--size) * 0.55);
+  filter: blur(0.6px);
+  opacity: 0.5;
+}
+
+.p-snow[style*="--hue: 3"] {
+  width: calc(var(--size) * 1.3);
+  height: calc(var(--size) * 1.3);
+  filter: blur(0.4px);
+  opacity: 0.95;
 }
 
 /* Ocean and reef: bubbles */
@@ -3754,9 +3772,28 @@ body > .biome-overlay {
     animation: rise var(--dur, 20s) linear var(--delay, 0s) infinite;
   }
 
+  /* Snow drifts down slowly and steadily, swaying gently side to side
+     on its own rhythm; far-off flakes fall slower */
   .p-snow {
     top: -3% !important;
-    animation: fall var(--dur, 20s) linear var(--delay, 0s) infinite;
+    animation:
+      snow-fall calc(var(--dur, 20s) * 1.5) linear var(--delay, 0s) infinite,
+      snow-sway calc(var(--blink, 5s) * 1.6) ease-in-out var(--delay, 0s) infinite alternate;
+  }
+
+  .p-snow[style*="--hue: 0"],
+  .p-snow[style*="--hue: 1"] {
+    animation-duration: calc(var(--dur, 20s) * 2.1), calc(var(--blink, 5s) * 2);
+  }
+
+  @keyframes snow-fall {
+    from { translate: 0 0; }
+    to { translate: 0 var(--travel, 110vh); }
+  }
+
+  @keyframes snow-sway {
+    from { transform: translateX(calc(var(--dx) * -0.5)); }
+    to { transform: translateX(calc(var(--dx) * 0.5)); }
   }
 
   /* Petals tumble slowly as they drift down */
