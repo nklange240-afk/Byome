@@ -34,7 +34,7 @@ The site is plain HTML, CSS and JavaScript (no build step). Accounts and data li
 
 ## Biomes
 
-Community is set in the forest and Reviews in the meadow (`<body data-biome="...">`). Profile pages use the member's chosen biome (Edit profile). Each biome's colors, symbol and drifting particles are in `BIOME_LOOKS` in `ui.js`; its card and border colors are under BIOMES in `style.css`. A new biome needs both, plus a row in `biome_items` with `kind = 'biome'`.
+Community and Reviews are both set in the forest, for a consistent brand (`<body data-biome="...">`); the other biomes, meadow included, are for profiles. Profile pages use the member's chosen biome (Edit profile). Each biome's colors, symbol and drifting particles are in `BIOME_LOOKS` in `ui.js`; its card and border colors are under BIOMES in `style.css`. A new biome needs both, plus a row in `biome_items` with `kind = 'biome'`.
 
 ## Logo, icons and link previews
 

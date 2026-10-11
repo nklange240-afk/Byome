@@ -259,8 +259,8 @@ const UI = (function () {
   //     between them as you scroll down
   //   particles: what drifts in the margins, and how many
   //   rays: light from the surface (water)
-  //   shadeFrom: how far down the page (0 to 1) the color starts to
-  //     change, if not straight away
+  //   shadeFrom: if set, the color reaches its deepest at the bottom of
+  //     the page (however long), starting this far down (0 to 1)
   //   overlay: hand-drawn art down both sides of the page (empty in the
   //     middle, behind the content); it repeats downward and scrolls a
   //     little slower than the page
@@ -275,7 +275,8 @@ const UI = (function () {
               shadeFrom: 0.65, // golden most of the way; dusk only near the bottom
               // its preview tile is brighter, like sand in the sun
               preview: { top: [184, 132, 54], deep: [128, 90, 30] } },
-    tundra: { name: "Snowy tundra", symbol: "❄️", top: [34, 48, 61], deep: [16, 24, 34], particles: [["snow", 26]] },
+    tundra: { name: "Snowy tundra", symbol: "❄️", top: [84, 104, 124], deep: [14, 24, 42], particles: [["snow", 34]],
+              shadeFrom: 0.15 }, // pale dusty blue, deepening to dark blue by the bottom
     ocean: { name: "Open ocean", symbol: "\u{1F30A}", top: [20, 52, 78], deep: [4, 12, 26], particles: [["bubble", 16]], rays: true },
     reef: { name: "Coral reef", symbol: "\u{1F420}", top: [16, 60, 64], deep: [8, 30, 42], particles: [["plankton", 18], ["bubble", 8]], rays: true },
   };
@@ -464,7 +465,7 @@ const UI = (function () {
       ticking = false;
       const room = document.documentElement.scrollHeight - window.innerHeight;
       // Biomes that only change near the bottom always reach it there
-      const depth = look.shadeFrom ? Math.max(1, room) : Math.min(MAX_DEPTH, Math.max(MIN_DEPTH, room));
+      const depth = look.shadeFrom !== undefined ? Math.max(1, room) : Math.min(MAX_DEPTH, Math.max(MIN_DEPTH, room));
       const from = look.shadeFrom || 0;
       const t = Math.max(0, (Math.min(1, window.scrollY / depth) - from) / (1 - from));
       const eased = t * t * (3 - 2 * t); // gentle at both ends
