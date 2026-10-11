@@ -70,8 +70,10 @@ function ownerActions(article, parts, table, id, label, makeForm, reload) {
   const message = el("span", "auth-message");
   const show = (visible) => parts.forEach((node) => { node.hidden = !visible; });
 
+  // No makeForm: this can't be edited here (polls are edited on Community)
   const edit = el("button", "action-btn", "Edit");
   edit.type = "button";
+  edit.hidden = !makeForm;
   edit.addEventListener("click", () => {
     if (article.querySelector(".edit-form")) return;
     show(false);
@@ -114,14 +116,25 @@ function buildPostCard(p, isMe, reload) {
   if (p.title) parts.push(el("h2", "post-title", p.title));
   parts.push(metaRow(p.created_at, p.edited_at));
   if (p.held_at) parts.push(heldNotice());
-  parts.push(el("p", "post-body", p.body));
+  if (p.body) parts.push(el("p", "post-body", p.body));
+  // A poll: its options in one line (voting happens on Community)
+  const poll = Array.isArray(p.polls) ? p.polls[0] : p.polls;
+  if (poll && poll.poll_options) {
+    const labels = poll.poll_options.slice().sort((a, b) => a.position - b.position).map((o) => o.label);
+    const line = el("p", "profile-poll");
+    line.append(el("strong", null, "Poll: "), document.createTextNode(labels.join(" \u00b7 ") + " "));
+    const go = el("a", "inline-link", "Vote on Community");
+    go.href = "feed.html";
+    line.appendChild(go);
+    parts.push(line);
+  }
   const likes = p.likes ? p.likes.length : 0;
   const comments = p.comments && p.comments.length ? p.comments[0].count : 0;
   parts.push(countsRow(likes, plural(comments, "comment")));
   article.append(...parts);
   if (isMe) {
-    article.appendChild(ownerActions(article, parts, "posts", p.id, "post",
-      (onSaved, onCancel) => EDIT_FORMS.post(p, onSaved, onCancel), reload));
+    article.appendChild(ownerActions(article, parts, "posts", p.id, poll ? "poll" : "post",
+      poll ? null : (onSaved, onCancel) => EDIT_FORMS.post(p, onSaved, onCancel), reload));
   }
   return article;
 }
@@ -718,7 +731,7 @@ async function loadContent(profile, isMe) {
       .select("id, rating, title, body, variation, would_repurchase, holy_grail, created_at, edited_at, held_at, products!product_id(name, brand), review_likes(user_id), review_standouts(review_id)", { count: "exact" })
       .eq("user_id", profile.id).order("created_at", { ascending: false }).limit(30),
     supabaseClient.from("posts")
-      .select("id, title, body, created_at, edited_at, held_at, likes(user_id), comments(count)", { count: "exact" })
+      .select("id, title, body, created_at, edited_at, held_at, likes(user_id), comments(count), polls(poll_options(label, position))", { count: "exact" })
       .eq("user_id", profile.id).order("created_at", { ascending: false }).limit(30),
   ]);
 

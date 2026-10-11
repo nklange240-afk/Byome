@@ -147,7 +147,7 @@ async function loadPosts(more) {
   const to = (more === true ? postsShown + PAGE_SIZE : Math.max(PAGE_SIZE, postsShown)) - 1;
   let query = supabaseClient
     .from("posts")
-    .select("id, title, body, category, created_at, edited_at, held_at, user_id, profiles!user_id(username, avatar_path, avatar_ring, profile_biome, show_biome_symbol), likes(user_id), comments(count)")
+    .select("id, title, body, category, created_at, edited_at, held_at, user_id, profiles!user_id(username, avatar_path, avatar_ring, profile_biome, show_biome_symbol), likes(user_id), comments(count), polls(closes_at, poll_options(id, label, position))")
     .order("created_at", { ascending: false })
     .order("id")
     .range(from, to);
@@ -176,7 +176,9 @@ async function loadPosts(more) {
     return;
   }
 
-  posts.forEach((post) => feedEl.appendChild(buildPost(post)));
+  // Poll results for any polls, in one go
+  const pollResults = await POLLS.results(posts.filter((p) => POLLS.pollOf(p)).map((p) => p.id));
+  posts.forEach((post) => feedEl.appendChild(buildPost(post, pollResults.get(post.id))));
   postsShown = from + posts.length;
   if (posts.length === to - from + 1) feedEl.appendChild(loadMoreButton(() => loadPosts(true)));
 }
@@ -188,8 +190,10 @@ function loadMoreButton(onClick) {
   return btn;
 }
 
-function buildPost(post) {
+function buildPost(post, pollResult) {
   const article = el("article", "post");
+  const poll = POLLS.pollOf(post);
+  if (poll) article.classList.add("has-poll");
 
   // Older posts made before headings existed have no title
   if (post.title) {
@@ -202,7 +206,15 @@ function buildPost(post) {
   }
   article.appendChild(buildMeta(post.profiles, post.created_at, post.edited_at));
   if (post.held_at) article.appendChild(heldNotice());
-  article.appendChild(el("p", "post-body", post.body));
+  if (post.body) article.appendChild(el("p", "post-body", post.body));
+  let pollVotes = pollResult ? pollResult.total : 0;
+  if (poll) {
+    const pollBox = POLLS.render(post, pollResult);
+    // Once anybody votes, the poll can't be edited any more
+    pollBox.onVoted = (r) => { pollVotes = r.total; if (pollVotes > 0 && editBtn) editBtn.remove(); };
+    article.appendChild(pollBox);
+  }
+  let editBtn = null;
 
   const likeBtn = buildLikeButton("likes", "post_id", post.id, post.likes);
 
@@ -246,17 +258,22 @@ function buildPost(post) {
   actions.append(likeBtn, commentsBtn);
 
   if (post.user_id === currentUser.id) {
-    const edit = actionButton("Edit");
-    edit.addEventListener("click", () => {
-      if (article.querySelector(".edit-form")) return;
-      const titleEl = article.querySelector(".post-title");
-      const bodyEl = article.querySelector(".post-body");
-      const show = (visible) => { if (titleEl) titleEl.hidden = !visible; bodyEl.hidden = !visible; };
-      show(false);
-      const editForm = EDIT_FORMS.post(post, loadPosts, () => { editForm.remove(); show(true); });
-      article.insertBefore(editForm, actions);
-    });
-    actions.appendChild(edit);
+    // Polls can only be edited until somebody votes
+    if (!poll || pollVotes === 0) {
+      const edit = actionButton("Edit");
+      editBtn = edit;
+      edit.addEventListener("click", () => {
+        if (article.querySelector(".edit-form")) return;
+        const parts = [".post-title", ".post-body", ".poll"].map((sel) => article.querySelector(sel)).filter(Boolean);
+        const show = (visible) => parts.forEach((p) => { p.hidden = !visible; });
+        show(false);
+        const editForm = poll
+          ? POLLS.editForm(post, loadPosts, () => { editForm.remove(); show(true); })
+          : EDIT_FORMS.post(post, loadPosts, () => { editForm.remove(); show(true); });
+        article.insertBefore(editForm, actions);
+      });
+      actions.appendChild(edit);
+    }
 
     const del = actionButton("Delete");
     del.addEventListener("click", async () => {
@@ -414,16 +431,41 @@ postForm.addEventListener("submit", async (event) => {
   const title = postTitle.value.trim();
   const body = postBody.value.trim();
   const category = postCategory.value;
-  if (!title || !body || !category) return;
+  const withPoll = pollComposer.isOn();
+  // A poll's details are optional; an ordinary post needs some text
+  if (!title || !category || (!body && !withPoll)) {
+    if (!body && !withPoll) {
+      postMessage.textContent = "Please write something in your post.";
+      postMessage.style.color = "#E07A5F";
+    }
+    return;
+  }
+  if (withPoll && pollComposer.problem()) {
+    postMessage.textContent = pollComposer.problem();
+    postMessage.style.color = "#E07A5F";
+    return;
+  }
 
   postMessage.textContent = "Posting...";
   postMessage.style.color = "var(--cream)";
 
-  const { data: saved, error } = await supabaseClient
-    .from("posts")
-    .insert({ title: title, body: body, category: category, user_id: currentUser.id })
-    .select("held_at")
-    .single();
+  let saved = null, error = null;
+  if (withPoll) {
+    const res = await supabaseClient.rpc("create_poll_post", {
+      p_title: title, p_body: body, p_category: category,
+      p_options: pollComposer.options(), p_days: pollComposer.days(),
+    });
+    error = res.error;
+    saved = res.data ? { held_at: res.data.held } : null;
+  } else {
+    const res = await supabaseClient
+      .from("posts")
+      .insert({ title: title, body: body, category: category, user_id: currentUser.id })
+      .select("held_at")
+      .single();
+    error = res.error;
+    saved = res.data;
+  }
 
   if (error) {
     postMessage.textContent = error.message;
@@ -438,10 +480,14 @@ postForm.addEventListener("submit", async (event) => {
     postMessage.textContent = "";
   }
   postForm.reset();
+  pollComposer.reset();
   charCount.textContent = "0 / 1000";
   setComposing(false);
   loadPosts();
 });
+
+// "Add a poll" in the post form (polls.js)
+const pollComposer = POLLS.composer(postForm);
 
 // The post form stays folded into a slim "Start a post…" bar until needed
 const postStarter = document.getElementById("post-starter");
@@ -453,6 +499,7 @@ function setComposing(open) {
 }
 postStarter.addEventListener("click", () => setComposing(true));
 document.getElementById("post-cancel").addEventListener("click", () => {
+  pollComposer.reset();
   setComposing(false);
   postStarter.focus();
 });

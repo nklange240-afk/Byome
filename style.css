@@ -2390,6 +2390,25 @@ div.biome-slot:focus-visible,
   height: 250px;
 }
 
+/* The middle sign (between Plants and Shelves) has no thank-you card:
+   it stays invisible until an ad has filled it, and disappears if none
+   comes */
+.ad-sign-wrap.is-middle {
+  margin: 2rem 0 0.5rem;
+}
+
+.is-middle .ad-sign {
+  transition: opacity 0.4s ease;
+}
+
+.is-middle:has(.adsbygoogle):not(:has(.adsbygoogle[data-ad-status="filled"])) .ad-sign {
+  opacity: 0;
+}
+
+.is-middle:has(.adsbygoogle[data-ad-status="unfilled"]) {
+  display: none;
+}
+
 .ad-slot .adsbygoogle[data-ad-status="unfilled"] {
   display: none !important;
 }
@@ -4690,4 +4709,208 @@ input[type="radio"] {
     max-width: 420px;
     margin: 0 auto;
   }
+}
+
+/* =========================================================
+   POLLS (Community posts with a poll; see polls.js)
+   ========================================================= */
+
+/* ----- Writing a poll ----- */
+.composer-extras {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.composer-footer .poll-toggle {
+  padding: 0.3rem 0.75rem;
+  border: 1px solid var(--moss);
+  border-radius: 999px;
+  background: none;
+  color: var(--cream);
+  font-size: 0.85rem;
+}
+
+.composer-footer .poll-toggle[aria-pressed="true"] {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+.poll-editor {
+  margin-top: 0.75rem;
+}
+
+.poll-option-inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.poll-option-row {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.poll-option-row input {
+  flex: 1;
+  min-width: 0;
+  background-color: var(--forest-dark);
+  border: 1px solid var(--moss);
+  border-radius: 6px;
+  padding: 0.55rem 0.75rem;
+  color: var(--cream);
+  font-family: var(--font-body);
+  font-size: 1rem;
+}
+
+.poll-option-row input:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 1px;
+}
+
+.poll-option-remove {
+  flex: none;
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid var(--moss);
+  border-radius: 50%;
+  background: none;
+  color: var(--cream);
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.poll-add-option {
+  align-self: flex-start;
+}
+
+.poll-length {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 0.75rem;
+  font-size: 0.9rem;
+}
+
+.composer .poll-length select {
+  width: auto;
+  margin: 0;
+  padding: 0.35rem 0.6rem;
+  font-size: 0.9rem;
+}
+
+.poll-edit-form .poll-option-inputs {
+  margin-bottom: 0.4rem;
+}
+
+/* ----- A poll in a post ----- */
+.poll {
+  margin: 0.75rem 0 0.25rem;
+}
+
+.poll-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.poll-option {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  min-height: 2.6rem;
+  padding: 0.55rem 0.85rem;
+  overflow: hidden;
+  border: 1px solid var(--moss);
+  border-radius: 10px;
+  background-color: rgba(243, 237, 224, 0.04);
+  color: var(--cream);
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  text-align: left;
+}
+
+button.poll-option {
+  cursor: pointer;
+}
+
+button.poll-option:hover:not(:disabled) {
+  border-color: var(--leaf);
+  background-color: rgba(243, 237, 224, 0.08);
+}
+
+button.poll-option:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+button.poll-option:disabled {
+  cursor: default;
+}
+
+/* Results: a bar behind each option */
+.poll-bar {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background-color: rgba(141, 187, 110, 0.22);
+  transition: width 0.5s ease;
+}
+
+.poll-option.is-mine {
+  border-color: var(--gold);
+}
+
+.poll-option.is-mine .poll-bar {
+  background-color: rgba(224, 168, 62, 0.28);
+}
+
+.poll-label,
+.poll-pct {
+  position: relative; /* above the bar */
+}
+
+.poll-pct {
+  flex: none;
+  font-weight: 600;
+}
+
+.poll-check {
+  color: var(--gold);
+  font-weight: 600;
+}
+
+.poll-option.is-voting {
+  opacity: 0.6;
+}
+
+.poll-meta {
+  margin: 0.45rem 0 0;
+  font-size: 0.8rem;
+  opacity: 0.75;
+}
+
+.poll-message:empty {
+  display: none;
+}
+
+/* A poll's options in the moderation queue */
+.mod-poll-options {
+  margin: 0.5rem 0 0.75rem;
+  padding-left: 1.4rem;
+}
+
+.mod-poll-options li {
+  margin: 0.15rem 0;
+}
+
+/* A poll on a profile: its options in one line */
+.profile-poll {
+  margin: 0.4rem 0;
+  font-size: 0.9rem;
 }

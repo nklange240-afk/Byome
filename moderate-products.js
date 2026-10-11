@@ -391,7 +391,7 @@ function formatDate(iso) {
 async function loadHeld() {
   const held = (q) => q.not("held_at", "is", null).order("held_at", { ascending: true });
   const [posts, comments, reviews, updates] = await Promise.all([
-    held(supabaseClient.from("posts").select("id, title, body, held_at, profiles!user_id(username)")),
+    held(supabaseClient.from("posts").select("id, title, body, held_at, profiles!user_id(username), polls(poll_options(label, position))")),
     held(supabaseClient.from("comments").select("id, body, held_at, profiles!user_id(username), posts!post_id(title)")),
     held(supabaseClient.from("reviews").select("id, title, body, held_at, profiles!user_id(username), products!product_id(brand, name)")),
     held(supabaseClient.from("review_updates").select("id, body, held_at, profiles!user_id(username), reviews!review_id(title)")),
@@ -406,7 +406,8 @@ async function loadHeld() {
 
   // One list, oldest first, whatever kind of thing it is
   const items = [].concat(
-    posts.data.map((p) => ({ kind: "post", label: "Post", id: p.id, title: p.title, body: p.body, held_at: p.held_at, author: p.profiles })),
+    posts.data.map((p) => ({ kind: "post", label: pollOptions(p) ? "Poll" : "Post", id: p.id, title: p.title, body: p.body,
+      held_at: p.held_at, author: p.profiles, options: pollOptions(p) })),
     comments.data.map((c) => ({ kind: "comment", label: "Comment", id: c.id, body: c.body, held_at: c.held_at, author: c.profiles,
       context: c.posts ? "On the post \u201c" + c.posts.title + "\u201d" : null })),
     reviews.data.map((r) => ({ kind: "review", label: "Review", id: r.id, title: r.title, body: r.body, held_at: r.held_at, author: r.profiles,
@@ -474,6 +475,21 @@ function reasonPicker(what, onConfirm, onCancel) {
   return form;
 }
 
+// A poll's options (in order), or null for an ordinary post
+function pollOptions(post) {
+  const poll = post && (Array.isArray(post.polls) ? post.polls[0] : post.polls);
+  if (!poll || !poll.poll_options) return null;
+  return poll.poll_options.slice().sort((a, b) => a.position - b.position).map((o) => o.label);
+}
+
+// The options of a poll, as a list moderators can read
+function pollList(options) {
+  const list = el("ol", "mod-poll-options");
+  list.setAttribute("aria-label", "Poll options");
+  options.forEach((o) => list.appendChild(el("li", null, o)));
+  return list;
+}
+
 function buildHeldItem(item) {
   const article = el("article", "post");
   const meta = el("div", "post-meta");
@@ -485,7 +501,8 @@ function buildHeldItem(item) {
   article.appendChild(meta);
   if (item.context) article.appendChild(el("p", "feed-empty", item.context));
   if (item.title) article.appendChild(el("h3", "post-title", item.title));
-  article.appendChild(el("p", "post-body", item.body));
+  if (item.body) article.appendChild(el("p", "post-body", item.body));
+  if (item.options) article.appendChild(pollList(item.options));
 
   const actions = el("div", "post-actions");
   const message = el("span", "auth-message");
@@ -538,7 +555,7 @@ async function loadReports() {
   const { data, error } = await supabaseClient
     .from("content_reports")
     .select("id, kind, reason, details, created_at, reporter:profiles!reporter_id(username), " +
-      "post:posts!post_id(id, title, body, author:profiles!user_id(username)), " +
+      "post:posts!post_id(id, title, body, author:profiles!user_id(username), polls(poll_options(label, position))), " +
       "comment:comments!comment_id(id, body, author:profiles!user_id(username), post:posts!post_id(title)), " +
       "review:reviews!review_id(id, title, body, author:profiles!user_id(username), product:products!product_id(brand, name)), " +
       "profile:profiles!profile_id(id, username, avatar_path, avatar_ring, profile_biome, show_biome_symbol)")
@@ -591,6 +608,7 @@ function buildReportedItem(group) {
   if (group.kind === "review" && c.product) article.appendChild(el("p", "feed-empty", "Review of " + c.product.brand + " \u2014 " + c.product.name));
   if (c.title) article.appendChild(el("h3", "post-title", c.title));
   if (c.body) article.appendChild(el("p", "post-body", c.body));
+  if (group.kind === "post" && pollOptions(c)) article.appendChild(pollList(pollOptions(c)));
 
   const list = el("ul", "report-list");
   group.reports.forEach((r) => {
