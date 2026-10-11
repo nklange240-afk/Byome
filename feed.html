@@ -19,7 +19,7 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=61" />
+  <link rel="stylesheet" href="style.css?v=62" />
 </head>
 <body data-biome="forest">
 
@@ -54,12 +54,18 @@
         <option value="Just for Fun">Just for Fun</option>
         <option value="Introductions">Introductions</option>
         <option value="Personal Wins">Personal Wins</option>
+        <option value="About Byome">About Byome</option>
       </select>
       <label for="post-body" class="visually-hidden">Write a post</label>
       <textarea id="post-body" maxlength="1000" rows="3"
         placeholder="What's working for you lately? Ask a question or share a product."></textarea>
+      <!-- "Add a poll": options and how long it runs (polls.js) -->
+      <div id="poll-editor" class="poll-editor" hidden></div>
       <div class="composer-footer">
-        <span id="char-count" class="char-count">0 / 1000</span>
+        <span class="composer-extras">
+          <button type="button" id="poll-toggle" class="action-btn poll-toggle" aria-pressed="false" aria-controls="poll-editor">Add a poll</button>
+          <span id="char-count" class="char-count">0 / 1000</span>
+        </span>
         <span class="composer-buttons">
           <button type="button" id="post-cancel" class="btn btn-ghost">Cancel</button>
           <button type="submit" class="btn btn-solid">Post</button>
@@ -77,12 +83,13 @@
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase-client.js?v=61"></script>
-  <script src="profile-fields.js?v=61"></script>
-  <script src="nav-menu.js?v=61"></script>
-  <script src="ui.js?v=61"></script>
-  <script src="edit-forms.js?v=61"></script>
-  <script src="report.js?v=61"></script>
-  <script src="feed.js?v=61"></script>
+  <script src="supabase-client.js?v=62"></script>
+  <script src="profile-fields.js?v=62"></script>
+  <script src="nav-menu.js?v=62"></script>
+  <script src="ui.js?v=62"></script>
+  <script src="edit-forms.js?v=62"></script>
+  <script src="report.js?v=62"></script>
+  <script src="polls.js?v=62"></script>
+  <script src="feed.js?v=62"></script>
 </body>
 </html>
