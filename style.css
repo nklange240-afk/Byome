@@ -2390,6 +2390,25 @@ div.biome-slot:focus-visible,
   height: 250px;
 }
 
+/* The middle sign (between Plants and Shelves) has no thank-you card:
+   it stays invisible until an ad has filled it, and disappears if none
+   comes */
+.ad-sign-wrap.is-middle {
+  margin: 2rem 0 0.5rem;
+}
+
+.is-middle .ad-sign {
+  transition: opacity 0.4s ease;
+}
+
+.is-middle:has(.adsbygoogle):not(:has(.adsbygoogle[data-ad-status="filled"])) .ad-sign {
+  opacity: 0;
+}
+
+.is-middle:has(.adsbygoogle[data-ad-status="unfilled"]) {
+  display: none;
+}
+
 .ad-slot .adsbygoogle[data-ad-status="unfilled"] {
   display: none !important;
 }

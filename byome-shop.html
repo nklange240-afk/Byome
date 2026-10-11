@@ -19,7 +19,7 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=60" />
+  <link rel="stylesheet" href="style.css?v=61" />
 </head>
 <body>
 
@@ -40,16 +40,19 @@
     <div id="shop-balance" class="shop-balance" aria-live="polite"></div>
     <p class="feed-empty">Arrange what you own on your <a href="profile.html" class="inline-link">profile</a>.</p>
     <p id="shop-message" class="auth-message" aria-live="polite"></p>
+    <!-- The shop, in two halves with an ad sign between them. Ads only
+         ever appear in these two signs (see biome-shop.js). -->
     <div id="shop"><p class="feed-empty is-loading">Loading…</p></div>
-    <!-- The hanging ad sign: ads only ever appear here (see biome-shop.js) -->
+    <div id="ad-sign-middle" class="ad-sign-wrap is-middle" hidden></div>
+    <div id="shop-more"></div>
     <div id="ad-sign" class="ad-sign-wrap" hidden></div>
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase-client.js?v=60"></script>
-  <script src="nav-menu.js?v=60"></script>
-  <script src="ui.js?v=60"></script>
-  <script src="biome.js?v=60"></script>
-  <script src="biome-shop.js?v=60"></script>
+  <script src="supabase-client.js?v=61"></script>
+  <script src="nav-menu.js?v=61"></script>
+  <script src="ui.js?v=61"></script>
+  <script src="biome.js?v=61"></script>
+  <script src="biome-shop.js?v=61"></script>
 </body>
 </html>

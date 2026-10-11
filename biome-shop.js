@@ -5,11 +5,14 @@ const shopEl = document.getElementById("shop");
 const balanceEl = document.getElementById("shop-balance");
 const messageEl = document.getElementById("shop-message");
 
+// The shop is in two halves, with an ad sign hanging between them
+// (shopEl above it, shopMoreEl below)
+const shopMoreEl = document.getElementById("shop-more");
 const SECTIONS = [
   { kind: "pot", title: "Pots" },
   { kind: "plant", title: "Plants", empty: "Plants are on their way. Check back soon!" },
-  { kind: "shelf", title: "Shelves" },
-  { kind: "biome", title: "Biomes" },
+  { kind: "shelf", title: "Shelves", lower: true },
+  { kind: "biome", title: "Biomes", lower: true },
 ];
 
 let currentUser = null;
@@ -53,6 +56,7 @@ async function loadShop() {
   ]);
 
   shopEl.innerHTML = "";
+  shopMoreEl.innerHTML = "";
   if (itemsRes.error) {
     shopEl.appendChild(el("p", "feed-empty", "The shop isn't open yet. Check back soon!"));
     return;
@@ -70,14 +74,15 @@ async function loadShop() {
   SECTIONS.forEach((section) => {
     const items = itemsRes.data.filter((it) => it.kind === section.kind);
     if (!items.length && !section.empty) return;
-    shopEl.appendChild(el("h2", "section-title", section.title));
+    const into = section.lower ? shopMoreEl : shopEl;
+    into.appendChild(el("h2", "section-title", section.title));
     if (!items.length) {
-      shopEl.appendChild(UI.emptyState({ image: "biome-assets/plant-welcome-sprout.png", text: section.empty }));
+      into.appendChild(UI.emptyState({ image: "biome-assets/plant-welcome-sprout.png", text: section.empty }));
       return;
     }
     const grid = el("div", "shop-grid");
     items.forEach((it) => grid.appendChild(buildCard(it, balance, owned[it.key] || 0)));
-    shopEl.appendChild(grid);
+    into.appendChild(grid);
   });
 }
 
@@ -149,17 +154,23 @@ function buildCard(item, balance, ownedCount) {
   return card;
 }
 
-// ---------- The hanging ad sign ----------
-// Ads only ever appear here in the Byome Shop, inside the hand-drawn sign,
-// and never on Reviews or in the Community. The AdSense code is loaded
-// on this page only. (In AdSense, keep Auto ads off, so Google never adds
-// ads anywhere else.) Set AD_CLIENT to null to turn ads off;
-// byome-shop.html?adpreview then shows the sign with a sample ad.
-// Behind the ad is one of Byome's own cards (HOUSE_ADS, picked at random),
-// which shows whenever Google has no ad to fill the space. A card about
-// an item (hideIfOwned) isn't shown to members who already own it.
+// ---------- The hanging ad signs ----------
+// Ads only ever appear here in the Byome Shop, inside the hand-drawn
+// signs, and never on Reviews or in the Community. The AdSense code is
+// loaded on this page only. (In AdSense, keep Auto ads off, so Google
+// never adds ads anywhere else.) Set AD_CLIENT to null to turn ads off;
+// byome-shop.html?adpreview then shows the signs with sample ads.
+// Two signs: one midway (between Plants and Shelves) and one at the
+// bottom with the note about ads.
+// Behind the bottom ad is one of Byome's own cards (HOUSE_ADS, picked at
+// random), which shows whenever Google has no ad to fill the space; the
+// middle sign just disappears instead, so cards never stack up. A card
+// about an item (hideIfOwned) isn't shown to members who already own it.
 const AD_CLIENT = "ca-pub-1517865451153702"; // Byome's AdSense account
-const AD_SLOT = "4710247604";                // the "Byome 300x250" ad unit
+const AD_SIGNS = [
+  { box: "ad-sign-middle", slot: "5772047833" },             // "Byome 300x250 Mid-Scroll"
+  { box: "ad-sign", slot: "4710247604", bottom: true },      // "Byome 300x250"
+];
 
 const HOUSE_ADS = [
   { image: "biome-assets/ad-house-thanks.png", text: "Thank you for joining Byome!" },
@@ -180,38 +191,45 @@ async function houseAd() {
   return img;
 }
 
-async function showAdSign() {
+async function showAdSigns() {
   const preview = new URLSearchParams(window.location.search).has("adpreview");
-  if (!(AD_CLIENT && AD_SLOT) && !preview) return;
-  const box = document.getElementById("ad-sign");
+  if (!AD_CLIENT && !preview) return;
 
-  const sign = el("aside", "ad-sign");
-  sign.setAttribute("aria-label", "Advertisement"); // the word on the sign is painted
-  const frame = el("img", "ad-sign-frame");
-  frame.src = "biome-assets/ad-sign.png";
-  frame.alt = "";
-  const slot = el("div", "ad-slot");
-  if (AD_CLIENT && AD_SLOT) {
-    slot.appendChild(await houseAd());
-    const ad = el("ins", "adsbygoogle");
-    ad.style.cssText = "display:inline-block;width:300px;height:250px";
-    ad.dataset.adClient = AD_CLIENT;
-    ad.dataset.adSlot = AD_SLOT;
-    slot.appendChild(ad);
-    const script = document.createElement("script");
-    script.async = true;
-    script.crossOrigin = "anonymous";
-    script.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=" + AD_CLIENT;
-    document.head.appendChild(script);
-  } else {
-    slot.classList.add("is-sample");
-    slot.textContent = "Sample ad (300 × 250)";
+  for (const spot of AD_SIGNS) {
+    const box = document.getElementById(spot.box);
+    const sign = el("aside", "ad-sign");
+    sign.setAttribute("aria-label", "Advertisement"); // the word on the sign is painted
+    const frame = el("img", "ad-sign-frame");
+    frame.src = "biome-assets/ad-sign.png";
+    frame.alt = "";
+    const slot = el("div", "ad-slot");
+    if (AD_CLIENT) {
+      if (spot.bottom) slot.appendChild(await houseAd());
+      const ad = el("ins", "adsbygoogle");
+      ad.style.cssText = "display:inline-block;width:300px;height:250px";
+      ad.dataset.adClient = AD_CLIENT;
+      ad.dataset.adSlot = spot.slot;
+      slot.appendChild(ad);
+    } else {
+      slot.classList.add("is-sample");
+      slot.textContent = "Sample ad (300 × 250)";
+    }
+    sign.append(frame, slot);
+    box.appendChild(sign);
+    if (spot.bottom) {
+      box.appendChild(el("p", "ad-note",
+        "Ads help keep Byome running. They only appear here in the shop, never on Reviews or in the Community."));
+    }
+    box.hidden = false;
   }
-  sign.append(frame, slot);
-  box.append(sign, el("p", "ad-note",
-    "Ads help keep Byome running. They only appear here in the shop, never on Reviews or in the Community."));
-  box.hidden = false;
-  if (AD_CLIENT && AD_SLOT) (window.adsbygoogle = window.adsbygoogle || []).push({});
+
+  if (!AD_CLIENT) return;
+  const script = document.createElement("script");
+  script.async = true;
+  script.crossOrigin = "anonymous";
+  script.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=" + AD_CLIENT;
+  document.head.appendChild(script);
+  AD_SIGNS.forEach(() => (window.adsbygoogle = window.adsbygoogle || []).push({}));
 }
 
 (async function () {
@@ -219,5 +237,5 @@ async function showAdSign() {
   if (!data.session) { window.location.href = "login.html"; return; }
   currentUser = data.session.user;
   loadShop();
-  showAdSign();
+  showAdSigns();
 })();
