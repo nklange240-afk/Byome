@@ -19,7 +19,7 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=56" />
+  <link rel="stylesheet" href="style.css?v=57" />
 </head>
 <body>
 
@@ -52,6 +52,11 @@
         <input type="password" id="password" required minlength="8" autocomplete="new-password" aria-describedby="password-hint" />
         <p class="field-hint" id="password-hint">At least 8 characters.</p>
 
+        <label class="age-check" for="age-confirm">
+          <input type="checkbox" id="age-confirm" required />
+          <span>I'm 18 or older, and I agree to the <a class="inline-link" href="terms.html" target="_blank">terms of use</a> and <a class="inline-link" href="privacy.html" target="_blank">privacy policy</a>.</span>
+        </label>
+
         <button type="submit" class="btn btn-solid">Sign up</button>
       </form>
 
@@ -66,11 +71,11 @@
   <!-- Supabase's own code library, loaded from their servers -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <!-- Our shared connection setup -->
-  <script src="supabase-client.js?v=56"></script>
+  <script src="supabase-client.js?v=57"></script>
   <!-- Hamburger menu behavior -->
-  <script src="nav-menu.js?v=56"></script>
-  <script src="ui.js?v=56"></script>
+  <script src="nav-menu.js?v=57"></script>
+  <script src="ui.js?v=57"></script>
   <!-- The logic specific to this page -->
-  <script src="signup.js?v=56"></script>
+  <script src="signup.js?v=57"></script>
 </body>
 </html>

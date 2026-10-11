@@ -4386,6 +4386,25 @@ input[type="radio"] {
   outline: 2px solid var(--gold);
 }
 
+/* Sign up: "I'm 18 or older, and I agree to..." */
+.stacked-form .age-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  margin-top: 1rem;
+  line-height: 1.4;
+  cursor: pointer;
+}
+
+.stacked-form .age-check input {
+  flex: none;
+  width: 1.1rem;
+  height: 1.1rem;
+  margin: 0.15rem 0 0;
+  padding: 0;
+  accent-color: var(--gold);
+}
+
 .stacked-form .field-hint {
   margin: 0 0 0.4rem;
   font-size: 0.8rem;

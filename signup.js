@@ -9,6 +9,12 @@ signupForm.addEventListener("submit", async (event) => {
   const username = document.getElementById("username").value.trim();
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
+  // The browser already requires the box; this is a second check
+  if (!document.getElementById("age-confirm").checked) {
+    messageEl.textContent = "Please confirm you're 18 or older to join Byome.";
+    messageEl.style.color = "#E07A5F";
+    return;
+  }
 
   messageEl.textContent = "Creating your account...";
   messageEl.style.color = "var(--cream)";
@@ -31,12 +37,13 @@ signupForm.addEventListener("submit", async (event) => {
   // security and automatically rejects duplicate emails — we don't
   // have to write that logic ourselves. The username is attached as
   // metadata; a database trigger (set up in Supabase) uses it to
-  // create the matching profile row automatically.
+  // create the matching profile row automatically. The age confirmation
+  // is kept with the account too, as a record of when they confirmed.
   const { data, error } = await supabaseClient.auth.signUp({
     email: email,
     password: password,
     options: {
-      data: { username: username },
+      data: { username: username, confirmed_18_plus_at: new Date().toISOString() },
     },
   });
 
