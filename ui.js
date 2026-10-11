@@ -561,6 +561,32 @@ const UI = (function () {
     });
   }
 
+  // ---------- The bottom of the page on phones ----------
+  // Phones "bounce" past the bottom of a page, showing the browser's
+  // background (and the leaves and fireflies, which stay put) below the
+  // footer. Near the bottom, the browser is asked not to bounce there;
+  // pull-to-refresh at the top still works. In case it bounces anyway,
+  // the space behind the page takes the footer's color.
+  function calmBottomBounce() {
+    const root = document.documentElement;
+    let ticking = false;
+    function check() {
+      ticking = false;
+      const footer = document.querySelector(".site-footer");
+      const room = root.scrollHeight - window.innerHeight;
+      const nearBottom = room <= 0 || window.scrollY > room / 2;
+      root.classList.toggle("near-bottom", nearBottom);
+      root.style.backgroundColor = nearBottom && footer ? getComputedStyle(footer).backgroundColor : "";
+    }
+    window.addEventListener("scroll", () => {
+      if (!ticking) { ticking = true; requestAnimationFrame(check); }
+    }, { passive: true });
+    window.addEventListener("resize", check);
+    // Pages grow as posts and reviews load in, so check again when they do
+    if (window.ResizeObserver) new ResizeObserver(() => check()).observe(document.body);
+    check();
+  }
+
   // ---------- Password fields: Show / Hide ----------
   function addPasswordToggles() {
     document.querySelectorAll('input[type="password"]').forEach((input) => {
@@ -585,6 +611,7 @@ const UI = (function () {
   document.addEventListener("DOMContentLoaded", () => {
     addPasswordToggles();
     buildFooter();
+    calmBottomBounce();
     checkAchievements();
     thankModerator();
     if (document.body.dataset.biome) setBiome(document.body.dataset.biome);
