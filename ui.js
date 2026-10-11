@@ -258,9 +258,13 @@ const UI = (function () {
   //     its deepest point; the page shifts very slowly between them as
   //     you scroll down
   //   particles: what drifts in the margins, and how many
+  //   overlay: hand-drawn art down both sides of the page (empty in the
+  //     middle, behind the content); it repeats downward and scrolls a
+  //     little slower than the page
   // The colors of cards and borders for each biome are in style.css.
   const BIOME_LOOKS = {
-    forest: { name: "Forest", symbol: "\u{1F332}", top: [36, 64, 47], deep: [12, 26, 19], particles: [["firefly", 16]] },
+    forest: { name: "Forest", symbol: "\u{1F332}", top: [36, 64, 47], deep: [12, 26, 19], particles: [["firefly", 16]],
+              overlay: "biome-assets/overlay-forest.webp" },
     meadow: { name: "Meadow", symbol: "\u{1F33C}", top: [36, 64, 47], deep: [36, 64, 47], particles: [], // hand-drawn florals to come
               // its preview tile hints at spring green and petals
               preview: { top: [78, 128, 72], deep: [36, 64, 47], dots: "petal" } },
@@ -330,6 +334,11 @@ const UI = (function () {
     box.style.background = "linear-gradient(180deg, rgb(" + look.top.join(",") + "), rgb(" + look.deep.join(",") + "))";
 
     const layer = el("div", "biome-layer");
+    if (look.overlay) {
+      const overlay = el("div", "biome-overlay");
+      overlay.style.backgroundImage = "url(" + art(look.overlay) + ")";
+      layer.appendChild(overlay);
+    }
     if (look.rays) layer.appendChild(el("div", "light-rays"));
     look.particles.forEach(([kind, count]) => {
       for (let i = 0; i < Math.ceil(count * 0.6); i++) {
@@ -439,6 +448,8 @@ const UI = (function () {
     document.body.classList.add("biome-page", "biome-" + key);
 
     // The slow shift in color as you go deeper
+    const stillMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let overlay = null;
     let ticking = false;
     function shade() {
       ticking = false;
@@ -447,17 +458,26 @@ const UI = (function () {
       const rgb = look.top.map((c, i) => Math.round(c + (look.deep[i] - c) * eased));
       document.body.style.backgroundColor = "rgb(" + rgb.join(",") + ")";
       document.body.style.setProperty("--biome-depth", eased.toFixed(3));
+      // The overlay drifts up at half the page's speed, so it feels further back
+      if (overlay && !stillMotion) overlay.style.backgroundPositionY = Math.round(-window.scrollY * 0.5) + "px";
     }
     window.addEventListener("scroll", () => {
       if (!ticking) { ticking = true; requestAnimationFrame(shade); }
     }, { passive: true });
-    shade();
 
     // What drifts in the margins, kept beside the page content
     const layer = el("div", "biome-layer");
     layer.setAttribute("aria-hidden", "true");
     if (look.rays) layer.appendChild(el("div", "light-rays"));
     document.body.insertBefore(layer, document.body.firstChild);
+    // The hand-drawn art sits behind the particles
+    if (look.overlay) {
+      overlay = el("div", "biome-overlay");
+      overlay.setAttribute("aria-hidden", "true");
+      overlay.style.backgroundImage = "url(" + art(look.overlay) + ")";
+      document.body.insertBefore(overlay, layer);
+    }
+    shade();
     const bits = [];
     look.particles.forEach(([kind, count]) => {
       for (let i = 0; i < count; i++) {

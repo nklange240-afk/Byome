@@ -3474,6 +3474,34 @@ dialog.celebrate h2 {
   overflow: hidden;
 }
 
+/* Hand-drawn art down both sides of the page, empty in the middle.
+   It fills the screen's width, but never shrinks below 1400px (so the
+   empty middle stays wider than the content); it repeats downward, and
+   ui.js scrolls it at half the page's speed. */
+.biome-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-repeat: repeat-y;
+  background-position: center 0;
+  background-size: max(1400px, 100vw) auto;
+  opacity: 0.6;
+}
+
+/* Phones are too narrow to show the sides */
+@media (max-width: 900px) {
+  body > .biome-overlay {
+    display: none;
+  }
+}
+
+/* In a biome preview it's scaled down to fit the little page */
+.biome-preview .biome-overlay {
+  position: absolute;
+  background-size: auto 100%;
+}
+
 .particle {
   position: absolute;
   width: var(--size, 4px);
