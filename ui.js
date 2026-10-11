@@ -258,6 +258,9 @@ const UI = (function () {
   //     its deepest point (the bottom of the page); it shifts slowly
   //     between them as you scroll down
   //   particles: what drifts in the margins, and how many
+  //   rays: light from the surface (water)
+  //   shadeFrom: how far down the page (0 to 1) the color starts to
+  //     change, if not straight away
   //   overlay: hand-drawn art down both sides of the page (empty in the
   //     middle, behind the content); it repeats downward and scrolls a
   //     little slower than the page
@@ -268,7 +271,10 @@ const UI = (function () {
     meadow: { name: "Meadow", symbol: "\u{1F33C}", top: [36, 64, 47], deep: [36, 64, 47], particles: [], // hand-drawn florals to come
               // its preview tile hints at spring green and petals
               preview: { top: [78, 128, 72], deep: [36, 64, 47], dots: "petal" } },
-    desert: { name: "Desert", symbol: "☀️", top: [64, 44, 34], deep: [34, 23, 38], particles: [["mote", 18]] },
+    desert: { name: "Desert", symbol: "☀️", top: [128, 90, 30], deep: [58, 36, 38], particles: [["glint", 34]],
+              shadeFrom: 0.65, // golden most of the way; dusk only near the bottom
+              // its preview tile is brighter, like sand in the sun
+              preview: { top: [184, 132, 54], deep: [128, 90, 30] } },
     tundra: { name: "Snowy tundra", symbol: "❄️", top: [34, 48, 61], deep: [16, 24, 34], particles: [["snow", 26]] },
     ocean: { name: "Open ocean", symbol: "\u{1F30A}", top: [20, 52, 78], deep: [4, 12, 26], particles: [["bubble", 16]], rays: true },
     reef: { name: "Coral reef", symbol: "\u{1F420}", top: [16, 60, 64], deep: [8, 30, 42], particles: [["plankton", 18], ["bubble", 8]], rays: true },
@@ -457,8 +463,10 @@ const UI = (function () {
     function shade() {
       ticking = false;
       const room = document.documentElement.scrollHeight - window.innerHeight;
-      const depth = Math.min(MAX_DEPTH, Math.max(MIN_DEPTH, room));
-      const t = Math.min(1, window.scrollY / depth);
+      // Biomes that only change near the bottom always reach it there
+      const depth = look.shadeFrom ? Math.max(1, room) : Math.min(MAX_DEPTH, Math.max(MIN_DEPTH, room));
+      const from = look.shadeFrom || 0;
+      const t = Math.max(0, (Math.min(1, window.scrollY / depth) - from) / (1 - from));
       const eased = t * t * (3 - 2 * t); // gentle at both ends
       const rgb = look.top.map((c, i) => Math.round(c + (look.deep[i] - c) * eased));
       document.body.style.backgroundColor = "rgb(" + rgb.join(",") + ")";

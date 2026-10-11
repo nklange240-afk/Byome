@@ -2980,9 +2980,18 @@ body > main {
   width: 100%;
 }
 
+/* The footer is a deeper shade of the page's own color (forest green,
+   or the biome's color on biome pages). Its shadow reaches far below
+   it, so when a phone "bounces" past the bottom of the page, more
+   footer shows instead of the page background and its overlay. */
 .site-footer {
+  --footer-bg: #13231A;
+  --footer-bg: color-mix(in srgb, var(--forest-dark) 55%, #000);
   opacity: 1;
   color: rgba(243, 237, 224, 0.75);
+  background-color: var(--footer-bg);
+  border-top: 1px solid rgba(243, 237, 224, 0.08);
+  box-shadow: 0 50vh 0 50vh var(--footer-bg);
 }
 
 .footer-links {
@@ -3022,6 +3031,11 @@ body > main {
 .profile-meta {
   opacity: 0.8;
   margin: 0.25rem 0 0.5rem;
+}
+
+/* Fully bright on the golden desert, so it stays easy to read */
+.biome-desert .profile-meta {
+  opacity: 1;
 }
 
 .profile-meta span:not(:empty) + span:not(:empty)::before {
@@ -3421,10 +3435,12 @@ dialog.celebrate h2 {
   --gold: #F7D78C;
 }
 
+/* Desert: golden sand; the cards are a little darker, like shade */
 .biome-desert {
-  --forest-dark: #402C22;
-  --forest-mid: #5A3E30;
-  --moss: #94694E;
+  --forest-dark: #4A3116;
+  --forest-mid: #5C3E1C;
+  --moss: #B98A4A;
+  --leaf: #F2C66D;
 }
 
 .biome-tundra {
@@ -3449,9 +3465,9 @@ dialog.celebrate h2 {
   transition: background-color 1.2s linear;
 }
 
-/* The desert sun: a soft warm glow in the top corner */
+/* The desert sun: a warm golden glow in the top corner */
 .biome-desert {
-  background-image: radial-gradient(circle at 92% 4%, rgba(255, 196, 120, 0.22), transparent 38%);
+  background-image: radial-gradient(circle at 92% 4%, rgba(255, 214, 130, 0.38), rgba(255, 196, 110, 0.12) 22%, transparent 45%);
   background-attachment: fixed;
 }
 
@@ -3587,6 +3603,25 @@ body > .biome-overlay {
   opacity: 0.55;
 }
 
+/* Desert: glints of sunlight catching the sand, here and there: a
+   soft glow with four thin rays that taper off */
+.p-glint {
+  --glint: #FFF3C8;
+  width: calc(var(--size) * 4);
+  height: calc(var(--size) * 4);
+  border-radius: 0;
+  background:
+    radial-gradient(circle, var(--glint) 0 7%, rgba(255, 236, 180, 0.45) 15%, transparent 38%),
+    linear-gradient(90deg, transparent 46%, var(--glint) 46% 54%, transparent 54%),
+    linear-gradient(0deg, transparent 46%, var(--glint) 46% 54%, transparent 54%);
+  -webkit-mask-image: radial-gradient(circle, #000 18%, transparent 68%);
+  mask-image: radial-gradient(circle, #000 18%, transparent 68%);
+  opacity: 0.5;
+}
+
+.p-glint[style*="--hue: 1"] { --glint: #FFFFFF; }
+.p-glint[style*="--hue: 2"] { --glint: #F8D98A; }
+
 /* Tundra: snow */
 .p-snow {
   background-color: #FFFFFF;
@@ -3683,6 +3718,7 @@ body > .biome-overlay {
 .dot-petal:nth-child(3n+1) { background: #F8E7A6; }
 .dot-mote { width: 3px; height: 3px; background: #F2C98B; box-shadow: 0 0 4px 1px rgba(242, 190, 120, 0.6); }
 .dot-snow { background: #FFFFFF; }
+.dot-glint { width: 8px; height: 8px; border-radius: 0; background: #FFF3C8; clip-path: polygon(50% 0, 60% 40%, 100% 50%, 60% 60%, 50% 100%, 40% 60%, 0 50%, 40% 40%); }
 .dot-bubble { width: 8px; height: 8px; border: 1px solid rgba(220, 245, 255, 0.7); }
 .dot-plankton { background: #FF9AA8; box-shadow: 0 0 6px 2px #FF9AA8; }
 .dot-plankton:nth-child(3n) { background: #FFD27A; box-shadow: 0 0 6px 2px #FFD27A; }
@@ -3766,6 +3802,18 @@ body > .biome-overlay {
     0%, 100% { opacity: 0.2; }
     50% { opacity: 0.85; }
   }
+
+  /* Each glint flashes briefly, then rests for a while */
+  .p-glint {
+    opacity: 0;
+    animation: glint calc(var(--blink, 5s) * 1.4) ease-in-out var(--delay, 0s) infinite;
+  }
+
+  @keyframes glint {
+    0%, 70%, 100% { opacity: 0; transform: scale(0.2) rotate(0deg); }
+    80% { opacity: 1; transform: scale(1) rotate(45deg); }
+    90% { opacity: 0.35; transform: scale(0.6) rotate(70deg); }
+  }
 }
 
 /* ----- Biome previews: a pretend profile set in the biome ----- */
@@ -3806,7 +3854,7 @@ body > .biome-overlay {
   content: "";
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at 92% 4%, rgba(255, 196, 120, 0.28), transparent 45%);
+  background: radial-gradient(circle at 92% 4%, rgba(255, 214, 130, 0.42), rgba(255, 196, 110, 0.12) 25%, transparent 50%);
 }
 
 .preview-page {
