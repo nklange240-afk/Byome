@@ -339,7 +339,7 @@ const UI = (function () {
     const layer = el("div", "biome-layer");
     if (look.overlay) {
       const overlay = el("div", "biome-overlay");
-      overlay.style.backgroundImage = "url(" + art(look.overlay) + ")";
+      overlay.style.setProperty("--ov-img", "url(" + art(look.overlay) + ")");
       layer.appendChild(overlay);
     }
     if (look.rays) layer.appendChild(el("div", "light-rays"));
@@ -464,7 +464,7 @@ const UI = (function () {
       document.body.style.backgroundColor = "rgb(" + rgb.join(",") + ")";
       document.body.style.setProperty("--biome-depth", eased.toFixed(3));
       // The overlay drifts up at half the page's speed, so it feels further back
-      if (overlay && !stillMotion) overlay.style.backgroundPositionY = Math.round(-window.scrollY * 0.5) + "px";
+      if (overlay && !stillMotion) overlay.style.setProperty("--ov-y", Math.round(-window.scrollY * 0.5) + "px");
     }
     window.addEventListener("scroll", () => {
       if (!ticking) { ticking = true; requestAnimationFrame(shade); }
@@ -479,7 +479,7 @@ const UI = (function () {
     if (look.overlay) {
       overlay = el("div", "biome-overlay");
       overlay.setAttribute("aria-hidden", "true");
-      overlay.style.backgroundImage = "url(" + art(look.overlay) + ")";
+      overlay.style.setProperty("--ov-img", "url(" + art(look.overlay) + ")");
       document.body.insertBefore(overlay, layer);
     }
     shade();
