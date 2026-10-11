@@ -154,12 +154,33 @@ function buildCard(item, balance, ownedCount) {
 // and never on Reviews or in the Community. The AdSense code is loaded
 // on this page only. (In AdSense, keep Auto ads off, so Google never adds
 // ads anywhere else.) Set AD_CLIENT to null to turn ads off;
-// biome-shop.html?adpreview then shows the sign with a sample ad.
-// If no ad is available, the sign hides itself (see style.css).
+// byome-shop.html?adpreview then shows the sign with a sample ad.
+// Behind the ad is one of Byome's own cards (HOUSE_ADS, picked at random),
+// which shows whenever Google has no ad to fill the space. A card about
+// an item (hideIfOwned) isn't shown to members who already own it.
 const AD_CLIENT = "ca-pub-1517865451153702"; // Byome's AdSense account
 const AD_SLOT = "4710247604";                // the "Byome 300x250" ad unit
 
-function showAdSign() {
+const HOUSE_ADS = [
+  { image: "biome-assets/ad-house-thanks.png", text: "Thank you for joining Byome!" },
+  { image: "biome-assets/ad-house-better-place.png", text: "You make Byome a better place!" },
+  { image: "biome-assets/ad-house-terry.png", text: "Rare: Terry pot now available!", hideIfOwned: "terry" },
+];
+
+async function houseAd() {
+  const items = HOUSE_ADS.filter((c) => c.hideIfOwned).map((c) => c.hideIfOwned);
+  const { data } = await supabaseClient.from("biome_inventory").select("item_key")
+    .eq("user_id", currentUser.id).in("item_key", items);
+  const owned = new Set((data || []).map((r) => r.item_key));
+  const cards = HOUSE_ADS.filter((c) => !owned.has(c.hideIfOwned));
+  const card = cards[Math.floor(Math.random() * cards.length)];
+  const img = el("img", "ad-house");
+  img.src = card.image;
+  img.alt = card.text;
+  return img;
+}
+
+async function showAdSign() {
   const preview = new URLSearchParams(window.location.search).has("adpreview");
   if (!(AD_CLIENT && AD_SLOT) && !preview) return;
   const box = document.getElementById("ad-sign");
@@ -171,6 +192,7 @@ function showAdSign() {
   frame.alt = "";
   const slot = el("div", "ad-slot");
   if (AD_CLIENT && AD_SLOT) {
+    slot.appendChild(await houseAd());
     const ad = el("ins", "adsbygoogle");
     ad.style.cssText = "display:inline-block;width:300px;height:250px";
     ad.dataset.adClient = AD_CLIENT;

@@ -2380,10 +2380,18 @@ div.biome-slot:focus-visible,
   font-size: 0.9rem;
 }
 
-/* No ad to show (for example, before AdSense approves the site): hide
-   the whole sign rather than hang an empty frame */
-.ad-sign-wrap:has(ins[data-ad-status="unfilled"]) {
-  display: none;
+/* Byome's own thank-you card sits behind the ad, so it shows whenever
+   there's no ad (for example, before AdSense approves the site) */
+.ad-house,
+.ad-slot .adsbygoogle {
+  position: absolute;
+  inset: 0;
+  width: 300px;
+  height: 250px;
+}
+
+.ad-slot .adsbygoogle[data-ad-status="unfilled"] {
+  display: none !important;
 }
 
 .ad-note {
@@ -4384,6 +4392,25 @@ input[type="radio"] {
 
 .password-toggle:focus-visible {
   outline: 2px solid var(--gold);
+}
+
+/* Sign up: "I'm 18 or older, and I agree to..." */
+.stacked-form .age-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  margin-top: 1rem;
+  line-height: 1.4;
+  cursor: pointer;
+}
+
+.stacked-form .age-check input {
+  flex: none;
+  width: 1.1rem;
+  height: 1.1rem;
+  margin: 0.15rem 0 0;
+  padding: 0;
+  accent-color: var(--gold);
 }
 
 .stacked-form .field-hint {

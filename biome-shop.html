@@ -2,54 +2,14 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Byome Shop — Byome</title>
-  <!-- Tab icon and the preview card shown when a link is shared -->
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon-badge-32.png" />
-  <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2" />
-  <meta name="theme-color" content="#24402F" />
-  <meta name="description" content="Honest beauty reviews from the people actually using the products, plus a community and a little shelf of plants to grow." />
-  <meta property="og:site_name" content="Byome" />
-  <meta property="og:title" content="Byome — honest beauty reviews, grown together" />
-  <meta property="og:description" content="Honest beauty reviews from the people actually using the products, plus a community and a little shelf of plants to grow." />
-  <meta property="og:image" content="https://byome.xyz/og-image.png" />
-  <meta property="og:image:width" content="1200" />
-  <meta property="og:image:height" content="630" />
-  <meta name="twitter:card" content="summary_large_image" />
-
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=56" />
+  <!-- The Byome Shop moved to byome-shop.html; this keeps old links working -->
+  <title>Byome Shop</title>
+  <meta name="robots" content="noindex" />
+  <link rel="canonical" href="https://byome.xyz/byome-shop.html" />
+  <meta http-equiv="refresh" content="0; url=byome-shop.html" />
+  <script>location.replace("byome-shop.html" + location.search + location.hash);</script>
 </head>
 <body>
-
-  <header class="site-header">
-    <a href="index.html" class="logo"><img src="logo-wordmark.png" alt="Byome home" width="1052" height="261" /></a>
-
-    <button id="menu-toggle" class="hamburger-btn" aria-expanded="false" aria-controls="nav-menu" aria-label="Open menu">
-      <span></span><span></span><span></span>
-    </button>
-
-    <!-- The menu items are filled in by nav-menu.js, the same on every page -->
-    <nav id="nav-menu" class="nav-menu" hidden></nav>
-  </header>
-
-  <main class="feed-page">
-    <h1>Byome Shop</h1>
-    <p class="feed-empty">Spend Byome points on pots, plants and shelves for the biome on your profile.</p>
-    <div id="shop-balance" class="shop-balance" aria-live="polite"></div>
-    <p class="feed-empty">Arrange what you own on your <a href="profile.html" class="inline-link">profile</a>.</p>
-    <p id="shop-message" class="auth-message" aria-live="polite"></p>
-    <div id="shop"><p class="feed-empty is-loading">Loading…</p></div>
-    <!-- The hanging ad sign: ads only ever appear here (see biome-shop.js) -->
-    <div id="ad-sign" class="ad-sign-wrap" hidden></div>
-  </main>
-
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase-client.js?v=56"></script>
-  <script src="nav-menu.js?v=56"></script>
-  <script src="ui.js?v=56"></script>
-  <script src="biome.js?v=56"></script>
-  <script src="biome-shop.js?v=56"></script>
+  <p>The Byome Shop has moved: <a href="byome-shop.html">byome-shop.html</a>.</p>
 </body>
 </html>
