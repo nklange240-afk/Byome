@@ -155,7 +155,8 @@ function buildCard(item, balance, ownedCount) {
 // on this page only. (In AdSense, keep Auto ads off, so Google never adds
 // ads anywhere else.) Set AD_CLIENT to null to turn ads off;
 // biome-shop.html?adpreview then shows the sign with a sample ad.
-// If no ad is available, the sign hides itself (see style.css).
+// Behind the ad is Byome's own "Thank you for joining Byome!" card, which
+// shows whenever Google has no ad to fill the space.
 const AD_CLIENT = "ca-pub-1517865451153702"; // Byome's AdSense account
 const AD_SLOT = "4710247604";                // the "Byome 300x250" ad unit
 
@@ -171,6 +172,10 @@ function showAdSign() {
   frame.alt = "";
   const slot = el("div", "ad-slot");
   if (AD_CLIENT && AD_SLOT) {
+    const thanks = el("img", "ad-house");
+    thanks.src = "biome-assets/ad-house-thanks.png";
+    thanks.alt = "Thank you for joining Byome!";
+    slot.appendChild(thanks);
     const ad = el("ins", "adsbygoogle");
     ad.style.cssText = "display:inline-block;width:300px;height:250px";
     ad.dataset.adClient = AD_CLIENT;

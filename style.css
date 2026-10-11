@@ -2380,10 +2380,18 @@ div.biome-slot:focus-visible,
   font-size: 0.9rem;
 }
 
-/* No ad to show (for example, before AdSense approves the site): hide
-   the whole sign rather than hang an empty frame */
-.ad-sign-wrap:has(ins[data-ad-status="unfilled"]) {
-  display: none;
+/* Byome's own thank-you card sits behind the ad, so it shows whenever
+   there's no ad (for example, before AdSense approves the site) */
+.ad-house,
+.ad-slot .adsbygoogle {
+  position: absolute;
+  inset: 0;
+  width: 300px;
+  height: 250px;
+}
+
+.ad-slot .adsbygoogle[data-ad-status="unfilled"] {
+  display: none !important;
 }
 
 .ad-note {
