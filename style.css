@@ -3489,6 +3489,11 @@ dialog.celebrate h2 {
   opacity: 0.6;
 }
 
+/* Deeper into the forest, the foliage fades into the dark */
+.biome-forest > .biome-overlay {
+  opacity: calc(0.6 - var(--biome-depth, 0) * 0.3);
+}
+
 /* Phones are too narrow to show the sides */
 @media (max-width: 900px) {
   body > .biome-overlay {

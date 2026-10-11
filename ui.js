@@ -255,15 +255,15 @@ const UI = (function () {
   // the member's chosen biome (UI.setBiome). Each biome has:
   //   symbol: shown next to usernames (if the member turns it on)
   //   top / deep: the background color at the top of the page, and at
-  //     its deepest point; the page shifts very slowly between them as
-  //     you scroll down
+  //     its deepest point (the bottom of the page); it shifts slowly
+  //     between them as you scroll down
   //   particles: what drifts in the margins, and how many
   //   overlay: hand-drawn art down both sides of the page (empty in the
   //     middle, behind the content); it repeats downward and scrolls a
   //     little slower than the page
   // The colors of cards and borders for each biome are in style.css.
   const BIOME_LOOKS = {
-    forest: { name: "Forest", symbol: "\u{1F332}", top: [36, 64, 47], deep: [12, 26, 19], particles: [["firefly", 16]],
+    forest: { name: "Forest", symbol: "\u{1F332}", top: [36, 64, 47], deep: [8, 18, 13], particles: [["firefly", 16]],
               overlay: "biome-assets/overlay-forest.webp" },
     meadow: { name: "Meadow", symbol: "\u{1F33C}", top: [36, 64, 47], deep: [36, 64, 47], particles: [], // hand-drawn florals to come
               // its preview tile hints at spring green and petals
@@ -273,7 +273,10 @@ const UI = (function () {
     ocean: { name: "Open ocean", symbol: "\u{1F30A}", top: [20, 52, 78], deep: [4, 12, 26], particles: [["bubble", 16]], rays: true },
     reef: { name: "Coral reef", symbol: "\u{1F420}", top: [16, 60, 64], deep: [8, 30, 42], particles: [["plankton", 18], ["bubble", 8]], rays: true },
   };
-  const DEPTH = 9000; // pixels of scrolling to reach the deepest point
+  // Pixels of scrolling to reach the deepest point: the bottom of the page,
+  // but at least MIN_DEPTH (so short pages only darken a little) and at
+  // most MAX_DEPTH
+  const MIN_DEPTH = 2500, MAX_DEPTH = 9000;
 
   function biomeLook(key) {
     return BIOME_LOOKS[key] || null;
@@ -453,7 +456,9 @@ const UI = (function () {
     let ticking = false;
     function shade() {
       ticking = false;
-      const t = Math.min(1, window.scrollY / DEPTH);
+      const room = document.documentElement.scrollHeight - window.innerHeight;
+      const depth = Math.min(MAX_DEPTH, Math.max(MIN_DEPTH, room));
+      const t = Math.min(1, window.scrollY / depth);
       const eased = t * t * (3 - 2 * t); // gentle at both ends
       const rgb = look.top.map((c, i) => Math.round(c + (look.deep[i] - c) * eased));
       document.body.style.backgroundColor = "rgb(" + rgb.join(",") + ")";
