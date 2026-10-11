@@ -2340,6 +2340,69 @@ div.biome-slot:focus-visible,
   opacity: 0.55;
 }
 
+/* ----- The hanging ad sign (Byome Shop only) -----
+   The hand-drawn frame is 380 x 400; the ad (300 x 250) sits in its
+   opening, on top of the frame. Nothing is drawn over the ad. */
+.ad-sign-wrap {
+  margin-top: 2.5rem;
+  text-align: center;
+}
+
+.ad-sign {
+  position: relative;
+  width: 380px;
+  height: 400px;
+  margin: 0 auto;
+}
+
+.ad-sign-frame {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.ad-slot {
+  position: absolute;
+  left: 40px;
+  top: 112px;
+  width: 300px;
+  height: 250px;
+  overflow: hidden;
+}
+
+.ad-slot.is-sample {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #E8ECF0;
+  color: #6B7280;
+  font-size: 0.9rem;
+}
+
+.ad-note {
+  max-width: 340px;
+  margin: 0.5rem auto 0;
+  font-size: 0.8rem;
+  opacity: 0.75;
+}
+
+/* Small phones: the sign is wider than the page's content, so it spans
+   the full screen width, and on the very narrowest phones the frame's
+   outer edges are trimmed (the ad itself always fits) */
+@media (max-width: 440px) {
+  .ad-sign-wrap {
+    width: 100vw;
+    margin-left: calc(50% - 50vw);
+    overflow: hidden;
+  }
+
+  .ad-sign {
+    left: 50%;
+    margin-left: -190px;
+  }
+}
+
 /* ----- Points lists: "How to earn" and "Recent activity" ----- */
 .earn-item,
 .points-entry {

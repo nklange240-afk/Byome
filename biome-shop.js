@@ -149,9 +149,52 @@ function buildCard(item, balance, ownedCount) {
   return card;
 }
 
+// ---------- The hanging ad sign ----------
+// Ads only ever appear here in the Byome Shop, inside the hand-drawn sign,
+// and never on Reviews or in the Community. They're off until an ad
+// provider is set up: fill in AD_CLIENT and AD_SLOT from Google AdSense
+// to turn them on. Meanwhile, biome-shop.html?adpreview shows the sign
+// with a sample ad.
+const AD_CLIENT = null; // e.g. "ca-pub-1234567890123456"
+const AD_SLOT = null;   // e.g. "1234567890"
+
+function showAdSign() {
+  const preview = new URLSearchParams(window.location.search).has("adpreview");
+  if (!(AD_CLIENT && AD_SLOT) && !preview) return;
+  const box = document.getElementById("ad-sign");
+
+  const sign = el("aside", "ad-sign");
+  sign.setAttribute("aria-label", "Advertisement"); // the word on the sign is painted
+  const frame = el("img", "ad-sign-frame");
+  frame.src = "biome-assets/ad-sign.png";
+  frame.alt = "";
+  const slot = el("div", "ad-slot");
+  if (AD_CLIENT && AD_SLOT) {
+    const ad = el("ins", "adsbygoogle");
+    ad.style.cssText = "display:inline-block;width:300px;height:250px";
+    ad.dataset.adClient = AD_CLIENT;
+    ad.dataset.adSlot = AD_SLOT;
+    slot.appendChild(ad);
+    const script = document.createElement("script");
+    script.async = true;
+    script.crossOrigin = "anonymous";
+    script.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=" + AD_CLIENT;
+    document.head.appendChild(script);
+  } else {
+    slot.classList.add("is-sample");
+    slot.textContent = "Sample ad (300 × 250)";
+  }
+  sign.append(frame, slot);
+  box.append(sign, el("p", "ad-note",
+    "Ads help keep Byome running. They only appear here in the shop, never on Reviews or in the Community."));
+  box.hidden = false;
+  if (AD_CLIENT && AD_SLOT) (window.adsbygoogle = window.adsbygoogle || []).push({});
+}
+
 (async function () {
   const { data } = await supabaseClient.auth.getSession();
   if (!data.session) { window.location.href = "login.html"; return; }
   currentUser = data.session.user;
   loadShop();
+  showAdSign();
 })();
