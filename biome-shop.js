@@ -151,12 +151,13 @@ function buildCard(item, balance, ownedCount) {
 
 // ---------- The hanging ad sign ----------
 // Ads only ever appear here in the Byome Shop, inside the hand-drawn sign,
-// and never on Reviews or in the Community. They're off until an ad
-// provider is set up: fill in AD_CLIENT and AD_SLOT from Google AdSense
-// to turn them on. Meanwhile, biome-shop.html?adpreview shows the sign
-// with a sample ad.
-const AD_CLIENT = null; // e.g. "ca-pub-1234567890123456"
-const AD_SLOT = null;   // e.g. "1234567890"
+// and never on Reviews or in the Community. The AdSense code is loaded
+// on this page only. (In AdSense, keep Auto ads off, so Google never adds
+// ads anywhere else.) Set AD_CLIENT to null to turn ads off;
+// biome-shop.html?adpreview then shows the sign with a sample ad.
+// If no ad is available, the sign hides itself (see style.css).
+const AD_CLIENT = "ca-pub-1517865451153702"; // Byome's AdSense account
+const AD_SLOT = "4710247604";                // the "Byome 300x250" ad unit
 
 function showAdSign() {
   const preview = new URLSearchParams(window.location.search).has("adpreview");

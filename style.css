@@ -2380,6 +2380,12 @@ div.biome-slot:focus-visible,
   font-size: 0.9rem;
 }
 
+/* No ad to show (for example, before AdSense approves the site): hide
+   the whole sign rather than hang an empty frame */
+.ad-sign-wrap:has(ins[data-ad-status="unfilled"]) {
+  display: none;
+}
+
 .ad-note {
   max-width: 340px;
   margin: 0.5rem auto 0;
