@@ -268,7 +268,7 @@ const UI = (function () {
     meadow: { name: "Meadow", symbol: "\u{1F33C}", top: [36, 64, 47], deep: [36, 64, 47], particles: [], // hand-drawn florals to come
               // its preview tile hints at spring green and petals
               preview: { top: [78, 128, 72], deep: [36, 64, 47], dots: "petal" } },
-    desert: { name: "Desert", symbol: "☀️", top: [64, 44, 34], deep: [34, 23, 38], particles: [["mote", 18]] },
+    desert: { name: "Desert", symbol: "☀️", top: [64, 44, 34], deep: [34, 23, 38], particles: [] },
     tundra: { name: "Snowy tundra", symbol: "❄️", top: [34, 48, 61], deep: [16, 24, 34], particles: [["snow", 26]] },
     ocean: { name: "Open ocean", symbol: "\u{1F30A}", top: [20, 52, 78], deep: [4, 12, 26], particles: [["bubble", 16]], rays: true },
     reef: { name: "Coral reef", symbol: "\u{1F420}", top: [16, 60, 64], deep: [8, 30, 42], particles: [["plankton", 18], ["bubble", 8]], rays: true },
