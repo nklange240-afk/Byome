@@ -258,8 +258,9 @@ const UI = (function () {
   //     its deepest point (the bottom of the page); it shifts slowly
   //     between them as you scroll down
   //   particles: what drifts in the margins, and how many
-  //   rays / haze: light from the surface (water), or heat shimmering
-  //     near the ground (desert)
+  //   rays: light from the surface (water)
+  //   shadeFrom: how far down the page (0 to 1) the color starts to
+  //     change, if not straight away
   //   overlay: hand-drawn art down both sides of the page (empty in the
   //     middle, behind the content); it repeats downward and scrolls a
   //     little slower than the page
@@ -270,9 +271,10 @@ const UI = (function () {
     meadow: { name: "Meadow", symbol: "\u{1F33C}", top: [36, 64, 47], deep: [36, 64, 47], particles: [], // hand-drawn florals to come
               // its preview tile hints at spring green and petals
               preview: { top: [78, 128, 72], deep: [36, 64, 47], dots: "petal" } },
-    desert: { name: "Desert", symbol: "☀️", top: [100, 68, 28], deep: [58, 36, 38], particles: [], haze: true,
+    desert: { name: "Desert", symbol: "☀️", top: [128, 90, 30], deep: [58, 36, 38], particles: [["glint", 34]],
+              shadeFrom: 0.65, // golden most of the way; dusk only near the bottom
               // its preview tile is brighter, like sand in the sun
-              preview: { top: [168, 118, 52], deep: [96, 62, 34] } },
+              preview: { top: [184, 132, 54], deep: [128, 90, 30] } },
     tundra: { name: "Snowy tundra", symbol: "❄️", top: [34, 48, 61], deep: [16, 24, 34], particles: [["snow", 26]] },
     ocean: { name: "Open ocean", symbol: "\u{1F30A}", top: [20, 52, 78], deep: [4, 12, 26], particles: [["bubble", 16]], rays: true },
     reef: { name: "Coral reef", symbol: "\u{1F420}", top: [16, 60, 64], deep: [8, 30, 42], particles: [["plankton", 18], ["bubble", 8]], rays: true },
@@ -347,7 +349,6 @@ const UI = (function () {
       layer.appendChild(overlay);
     }
     if (look.rays) layer.appendChild(el("div", "light-rays"));
-    if (look.haze) layer.appendChild(el("div", "heat-haze"));
     look.particles.forEach(([kind, count]) => {
       for (let i = 0; i < Math.ceil(count * 0.6); i++) {
         const bit = particle(kind);
@@ -462,8 +463,10 @@ const UI = (function () {
     function shade() {
       ticking = false;
       const room = document.documentElement.scrollHeight - window.innerHeight;
-      const depth = Math.min(MAX_DEPTH, Math.max(MIN_DEPTH, room));
-      const t = Math.min(1, window.scrollY / depth);
+      // Biomes that only change near the bottom always reach it there
+      const depth = look.shadeFrom ? Math.max(1, room) : Math.min(MAX_DEPTH, Math.max(MIN_DEPTH, room));
+      const from = look.shadeFrom || 0;
+      const t = Math.max(0, (Math.min(1, window.scrollY / depth) - from) / (1 - from));
       const eased = t * t * (3 - 2 * t); // gentle at both ends
       const rgb = look.top.map((c, i) => Math.round(c + (look.deep[i] - c) * eased));
       document.body.style.backgroundColor = "rgb(" + rgb.join(",") + ")";
@@ -479,7 +482,6 @@ const UI = (function () {
     const layer = el("div", "biome-layer");
     layer.setAttribute("aria-hidden", "true");
     if (look.rays) layer.appendChild(el("div", "light-rays"));
-    if (look.haze) layer.appendChild(el("div", "heat-haze"));
     document.body.insertBefore(layer, document.body.firstChild);
     // The hand-drawn art sits behind the particles
     if (look.overlay) {

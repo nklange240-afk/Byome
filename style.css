@@ -3033,6 +3033,11 @@ body > main {
   margin: 0.25rem 0 0.5rem;
 }
 
+/* Fully bright on the golden desert, so it stays easy to read */
+.biome-desert .profile-meta {
+  opacity: 1;
+}
+
 .profile-meta span:not(:empty) + span:not(:empty)::before {
   content: " \00b7  ";
 }
@@ -3466,31 +3471,6 @@ dialog.celebrate h2 {
   background-attachment: fixed;
 }
 
-/* Desert: heat shimmering above the sand, along the bottom of the
-   screen. Thin bright streaks that waver and drift like a mirage. */
-.heat-haze {
-  position: absolute;
-  left: -40px;
-  right: -40px;
-  bottom: 0;
-  height: 38vh;
-  transform-origin: 50% 100%;
-  background:
-    radial-gradient(ellipse 60% 18% at 50% 100%, rgba(255, 210, 130, 0.16), transparent 70%),
-    radial-gradient(ellipse 50% 28% at 50% 50%, rgba(255, 226, 170, 0.13), transparent 72%) 0 0 / 150px 13px;
-  filter: blur(1px);
-  -webkit-mask-image: linear-gradient(to top, #000, rgba(0, 0, 0, 0.6) 45%, transparent);
-  mask-image: linear-gradient(to top, #000, rgba(0, 0, 0, 0.6) 45%, transparent);
-}
-
-/* A second row of shimmer, spaced differently so it never looks even */
-.heat-haze::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(ellipse 45% 25% at 50% 50%, rgba(255, 236, 190, 0.11), transparent 72%) 60px 6px / 95px 19px;
-}
-
 /* Page content sits above the particles */
 .biome-page .site-header {
   z-index: 2;
@@ -3623,6 +3603,25 @@ body > .biome-overlay {
   opacity: 0.55;
 }
 
+/* Desert: glints of sunlight catching the sand, here and there: a
+   soft glow with four thin rays that taper off */
+.p-glint {
+  --glint: #FFF3C8;
+  width: calc(var(--size) * 4);
+  height: calc(var(--size) * 4);
+  border-radius: 0;
+  background:
+    radial-gradient(circle, var(--glint) 0 7%, rgba(255, 236, 180, 0.45) 15%, transparent 38%),
+    linear-gradient(90deg, transparent 46%, var(--glint) 46% 54%, transparent 54%),
+    linear-gradient(0deg, transparent 46%, var(--glint) 46% 54%, transparent 54%);
+  -webkit-mask-image: radial-gradient(circle, #000 18%, transparent 68%);
+  mask-image: radial-gradient(circle, #000 18%, transparent 68%);
+  opacity: 0.5;
+}
+
+.p-glint[style*="--hue: 1"] { --glint: #FFFFFF; }
+.p-glint[style*="--hue: 2"] { --glint: #F8D98A; }
+
 /* Tundra: snow */
 .p-snow {
   background-color: #FFFFFF;
@@ -3719,6 +3718,7 @@ body > .biome-overlay {
 .dot-petal:nth-child(3n+1) { background: #F8E7A6; }
 .dot-mote { width: 3px; height: 3px; background: #F2C98B; box-shadow: 0 0 4px 1px rgba(242, 190, 120, 0.6); }
 .dot-snow { background: #FFFFFF; }
+.dot-glint { width: 8px; height: 8px; border-radius: 0; background: #FFF3C8; clip-path: polygon(50% 0, 60% 40%, 100% 50%, 60% 60%, 50% 100%, 40% 60%, 0 50%, 40% 40%); }
 .dot-bubble { width: 8px; height: 8px; border: 1px solid rgba(220, 245, 255, 0.7); }
 .dot-plankton { background: #FF9AA8; box-shadow: 0 0 6px 2px #FF9AA8; }
 .dot-plankton:nth-child(3n) { background: #FFD27A; box-shadow: 0 0 6px 2px #FFD27A; }
@@ -3803,19 +3803,16 @@ body > .biome-overlay {
     50% { opacity: 0.85; }
   }
 
-  /* The heat haze wavers side to side and pulses gently */
-  .heat-haze {
-    animation: haze 7s ease-in-out infinite alternate;
+  /* Each glint flashes briefly, then rests for a while */
+  .p-glint {
+    opacity: 0;
+    animation: glint calc(var(--blink, 5s) * 1.4) ease-in-out var(--delay, 0s) infinite;
   }
 
-  .heat-haze::before {
-    animation: haze 4.5s ease-in-out -2s infinite alternate-reverse;
-  }
-
-  @keyframes haze {
-    0% { transform: translateX(-14px) scaleY(1); opacity: 0.55; }
-    50% { transform: translateX(6px) scaleY(1.05); opacity: 1; }
-    100% { transform: translateX(14px) scaleY(0.97); opacity: 0.7; }
+  @keyframes glint {
+    0%, 70%, 100% { opacity: 0; transform: scale(0.2) rotate(0deg); }
+    80% { opacity: 1; transform: scale(1) rotate(45deg); }
+    90% { opacity: 0.35; transform: scale(0.6) rotate(70deg); }
   }
 }
 
@@ -3858,10 +3855,6 @@ body > .biome-overlay {
   position: absolute;
   inset: 0;
   background: radial-gradient(circle at 92% 4%, rgba(255, 214, 130, 0.42), rgba(255, 196, 110, 0.12) 25%, transparent 50%);
-}
-
-.biome-preview .heat-haze {
-  height: 45%;
 }
 
 .preview-page {
