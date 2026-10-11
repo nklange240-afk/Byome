@@ -83,6 +83,7 @@ async function loadShop() {
 
 function buildCard(item, balance, ownedCount) {
   const card = el("article", "shop-card rarity-edge-" + item.rarity);
+  card.id = "item-" + item.key; // so the shop sign's cards can link here
 
   // Plants are shown in the starter pot; rare things sparkle
   const pic = UI.itemArt(item, "shop-art");
@@ -155,10 +156,29 @@ function buildCard(item, balance, ownedCount) {
 // on this page only. (In AdSense, keep Auto ads off, so Google never adds
 // ads anywhere else.) Set AD_CLIENT to null to turn ads off;
 // biome-shop.html?adpreview then shows the sign with a sample ad.
-// Behind the ad is Byome's own "Thank you for joining Byome!" card, which
-// shows whenever Google has no ad to fill the space.
+// Behind the ad is one of Byome's own cards (HOUSE_ADS, picked at random),
+// which shows whenever Google has no ad to fill the space. A card with an
+// item key jumps to that item in the shop when clicked.
 const AD_CLIENT = "ca-pub-1517865451153702"; // Byome's AdSense account
 const AD_SLOT = "4710247604";                // the "Byome 300x250" ad unit
+
+const HOUSE_ADS = [
+  { image: "biome-assets/ad-house-thanks.png", text: "Thank you for joining Byome!" },
+  { image: "biome-assets/ad-house-better-place.png", text: "You make Byome a better place!" },
+  { image: "biome-assets/ad-house-terry.png", text: "Rare: Terry pot now available!", item: "terry" },
+];
+
+function houseAd() {
+  const card = HOUSE_ADS[Math.floor(Math.random() * HOUSE_ADS.length)];
+  const img = el("img");
+  img.src = card.image;
+  img.alt = card.text;
+  if (!card.item) { img.className = "ad-house"; return img; }
+  const link = el("a", "ad-house");
+  link.href = "#item-" + card.item;
+  link.appendChild(img);
+  return link;
+}
 
 function showAdSign() {
   const preview = new URLSearchParams(window.location.search).has("adpreview");
@@ -172,10 +192,7 @@ function showAdSign() {
   frame.alt = "";
   const slot = el("div", "ad-slot");
   if (AD_CLIENT && AD_SLOT) {
-    const thanks = el("img", "ad-house");
-    thanks.src = "biome-assets/ad-house-thanks.png";
-    thanks.alt = "Thank you for joining Byome!";
-    slot.appendChild(thanks);
+    slot.appendChild(houseAd());
     const ad = el("ins", "adsbygoogle");
     ad.style.cssText = "display:inline-block;width:300px;height:250px";
     ad.dataset.adClient = AD_CLIENT;
