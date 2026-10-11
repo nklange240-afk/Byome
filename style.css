@@ -3477,16 +3477,41 @@ dialog.celebrate h2 {
 /* Hand-drawn art down both sides of the page, empty in the middle.
    It fills the screen's width, but never shrinks below 1400px (so the
    empty middle stays wider than the content); it repeats downward, and
-   ui.js scrolls it at half the page's speed. */
+   ui.js scrolls it at half the page's speed (--ov-y). ui.js also sets
+   the picture (--ov-img). */
 .biome-overlay {
   position: fixed;
   inset: 0;
   z-index: 0;
   pointer-events: none;
+  background-image: var(--ov-img);
   background-repeat: repeat-y;
-  background-position: center 0;
+  background-position: center var(--ov-y, 0px);
   background-size: max(1400px, 100vw) auto;
   opacity: 0.6;
+}
+
+/* Behind the posts the foliage is softened to about half strength, so
+   text always stays easy to read; it's at full strength at the edges */
+body > .biome-overlay {
+  -webkit-mask-image: linear-gradient(to right, #000 calc(50% - 440px), rgba(0, 0, 0, 0.45) calc(50% - 290px),
+    rgba(0, 0, 0, 0.45) calc(50% + 290px), #000 calc(50% + 440px));
+  mask-image: linear-gradient(to right, #000 calc(50% - 440px), rgba(0, 0, 0, 0.45) calc(50% - 290px),
+    rgba(0, 0, 0, 0.45) calc(50% + 290px), #000 calc(50% + 440px));
+}
+
+/* A second, fainter copy behind it, shifted 500px down, so the two
+   don't line up: the foliage looks fuller and the repeat is harder to
+   spot */
+body > .biome-overlay::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: var(--ov-img);
+  background-repeat: repeat-y;
+  background-size: max(1400px, 100vw) auto;
+  background-position: center calc(500px + var(--ov-y, 0px));
+  opacity: 0.37;
 }
 
 /* Deeper into the forest, the foliage fades into the dark */
@@ -3494,10 +3519,25 @@ dialog.celebrate h2 {
   opacity: calc(0.6 - var(--biome-depth, 0) * 0.3);
 }
 
-/* Phones are too narrow to show the sides */
+/* Phones and small tablets have no side margins, so the art is
+   rearranged: the inner tips of each side peek in from the screen's
+   edges, and the faint copy behind them is shrunk to the screen's
+   width */
 @media (max-width: 900px) {
   body > .biome-overlay {
-    display: none;
+    background-image: var(--ov-img), var(--ov-img);
+    background-size: 1000px auto;
+    /* The art's inner edges are at 278px and 722px of the 1000px; 110px
+       of each side shows */
+    background-position: -168px var(--ov-y, 0px), calc(100% - 832px) var(--ov-y, 0px);
+    -webkit-mask-image: linear-gradient(to right, #000 16px, rgba(0, 0, 0, 0.45) 56px,
+      rgba(0, 0, 0, 0.45) calc(100% - 56px), #000 calc(100% - 16px));
+    mask-image: linear-gradient(to right, #000 16px, rgba(0, 0, 0, 0.45) 56px,
+      rgba(0, 0, 0, 0.45) calc(100% - 56px), #000 calc(100% - 16px));
+  }
+
+  body > .biome-overlay::before {
+    background-size: 100% auto;
   }
 }
 
