@@ -134,7 +134,9 @@ async function buildBiomePicker() {
     input.className = "visually-hidden";
     input.disabled = !have;
     input.checked = (profile.profile_biome || "forest") === it.key;
-    label.append(input, UI.biomeSwatch(it.key, "biome-swatch option-swatch"));
+    const swatch = UI.biomeSwatch(it.key, "biome-swatch option-swatch");
+    UI.previewOnHover(swatch, it);
+    label.append(input, swatch);
     const text = el("span", "biome-option-text");
     text.appendChild(el("strong", null, it.name));
     text.appendChild(el("span", "biome-option-note", have ? (it.starter ? "Free" : "Yours") : it.price + " Byome points"));
@@ -143,7 +145,10 @@ async function buildBiomePicker() {
       label.title = "Find this one in the Byome Shop";
       label.addEventListener("click", () => { window.location.href = "biome-shop.html"; });
     }
-    grid.appendChild(label);
+    // The Preview button sits outside the label, so it doesn't pick the biome
+    const option = el("div", "biome-option-wrap");
+    option.append(label, UI.previewButton(it));
+    grid.appendChild(option);
   });
   box.appendChild(grid);
 

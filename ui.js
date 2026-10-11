@@ -255,12 +255,16 @@ const UI = (function () {
   // the member's chosen biome (UI.setBiome). Each biome has:
   //   symbol: shown next to usernames (if the member turns it on)
   //   top / deep: the background color at the top of the page, and at
-  //     its deepest point; the page shifts very slowly between them as
-  //     you scroll down
+  //     its deepest point (the bottom of the page); it shifts slowly
+  //     between them as you scroll down
   //   particles: what drifts in the margins, and how many
+  //   overlay: hand-drawn art down both sides of the page (empty in the
+  //     middle, behind the content); it repeats downward and scrolls a
+  //     little slower than the page
   // The colors of cards and borders for each biome are in style.css.
   const BIOME_LOOKS = {
-    forest: { name: "Forest", symbol: "\u{1F332}", top: [36, 64, 47], deep: [12, 26, 19], particles: [["firefly", 16]] },
+    forest: { name: "Forest", symbol: "\u{1F332}", top: [36, 64, 47], deep: [15, 31, 22], particles: [["firefly", 16]],
+              overlay: "biome-assets/overlay-forest.webp" },
     meadow: { name: "Meadow", symbol: "\u{1F33C}", top: [36, 64, 47], deep: [36, 64, 47], particles: [], // hand-drawn florals to come
               // its preview tile hints at spring green and petals
               preview: { top: [78, 128, 72], deep: [36, 64, 47], dots: "petal" } },
@@ -269,7 +273,10 @@ const UI = (function () {
     ocean: { name: "Open ocean", symbol: "\u{1F30A}", top: [20, 52, 78], deep: [4, 12, 26], particles: [["bubble", 16]], rays: true },
     reef: { name: "Coral reef", symbol: "\u{1F420}", top: [16, 60, 64], deep: [8, 30, 42], particles: [["plankton", 18], ["bubble", 8]], rays: true },
   };
-  const DEPTH = 9000; // pixels of scrolling to reach the deepest point
+  // Pixels of scrolling to reach the deepest point: the bottom of the page,
+  // but at least MIN_DEPTH (so short pages only darken a little) and at
+  // most MAX_DEPTH
+  const MIN_DEPTH = 2500, MAX_DEPTH = 9000;
 
   function biomeLook(key) {
     return BIOME_LOOKS[key] || null;
@@ -306,6 +313,134 @@ const UI = (function () {
     return box;
   }
 
+  // One drifting particle; each moves on its own slow rhythm
+  function particle(kind) {
+    const bit = el("span", "particle p-" + kind);
+    bit.style.setProperty("--dur", (14 + Math.random() * 16).toFixed(1) + "s");
+    bit.style.setProperty("--blink", (3 + Math.random() * 4).toFixed(1) + "s");
+    bit.style.setProperty("--delay", (-Math.random() * 30).toFixed(1) + "s");
+    bit.style.setProperty("--dx", ((Math.random() - 0.5) * 60).toFixed(0) + "px");
+    bit.style.setProperty("--dy", ((Math.random() - 0.5) * 80).toFixed(0) + "px");
+    bit.style.setProperty("--size", (3 + Math.random() * 4).toFixed(1) + "px");
+    bit.style.setProperty("--hue", String(Math.floor(Math.random() * 4)));
+    return bit;
+  }
+
+  // ---------- Biome previews ----------
+  // A little profile set in the biome, with its colors and what drifts
+  // there, so members can see a biome before they buy or choose it.
+  // size: "small" for the hover preview
+  function biomePreview(key, size) {
+    const look = biomeLook(key) || BIOME_LOOKS.forest;
+    const box = el("div", "biome-preview biome-" + key + (size ? " is-" + size : ""));
+    box.setAttribute("aria-hidden", "true");
+    box.style.background = "linear-gradient(180deg, rgb(" + look.top.join(",") + "), rgb(" + look.deep.join(",") + "))";
+
+    const layer = el("div", "biome-layer");
+    if (look.overlay) {
+      const overlay = el("div", "biome-overlay");
+      overlay.style.backgroundImage = "url(" + art(look.overlay) + ")";
+      layer.appendChild(overlay);
+    }
+    if (look.rays) layer.appendChild(el("div", "light-rays"));
+    look.particles.forEach(([kind, count]) => {
+      for (let i = 0; i < Math.ceil(count * 0.6); i++) {
+        const bit = particle(kind);
+        bit.style.left = (3 + Math.random() * 94).toFixed(1) + "%";
+        bit.style.top = (5 + Math.random() * 88).toFixed(1) + "%";
+        layer.appendChild(bit);
+      }
+    });
+    box.appendChild(layer);
+
+    // A pretend profile: name, shelf, and a review
+    const page = el("div", "preview-page");
+    const head = el("div", "preview-head");
+    head.appendChild(el("span", "preview-avatar"));
+    const name = el("span", "preview-name", "Your profile");
+    name.appendChild(el("span", "biome-symbol", look.symbol));
+    head.appendChild(name);
+    page.appendChild(head);
+    const shelf = el("div", "preview-card preview-shelf");
+    const img = el("img");
+    img.src = art("biome-assets/hero-shelf.png");
+    img.alt = "";
+    shelf.appendChild(img);
+    page.appendChild(shelf);
+    const review = el("div", "preview-card preview-review");
+    review.appendChild(el("span", "preview-stars", "\u2605\u2605\u2605\u2605\u2605"));
+    for (let i = 0; i < 2; i++) review.appendChild(el("span", "preview-line"));
+    review.appendChild(el("span", "preview-chip", "Holy grail"));
+    page.appendChild(review);
+    box.appendChild(page);
+    return box;
+  }
+
+  // The full preview, in a pop-up. item: { key, name, description, rarity, price }
+  function openBiomePreview(item) {
+    const look = biomeLook(item.key) || BIOME_LOOKS.forest;
+    const dialog = el("dialog", "celebrate biome-preview-dialog");
+    dialog.setAttribute("aria-labelledby", "biome-preview-heading");
+    dialog.appendChild(el("p", "celebrate-label", "Biome preview"));
+    dialog.appendChild(biomePreview(item.key));
+    const h = el("h2", null, item.name || look.name);
+    h.id = "biome-preview-heading";
+    dialog.appendChild(h);
+    if (item.description) dialog.appendChild(el("p", "celebrate-text", item.description));
+    const ok = el("button", "btn btn-solid", "Close");
+    ok.type = "button";
+    ok.addEventListener("click", () => dialog.close());
+    const actions = el("div", "celebrate-actions");
+    actions.appendChild(ok);
+    dialog.appendChild(actions);
+    dialog.addEventListener("close", () => dialog.remove());
+    dialog.addEventListener("click", (e) => { if (e.target === dialog) dialog.close(); });
+    document.body.appendChild(dialog);
+    dialog.showModal();
+    ok.focus();
+  }
+
+  // On computers with a mouse, resting the pointer on a biome's picture
+  // shows a smaller preview beside it
+  let hoverBox = null;
+  function previewOnHover(target, item) {
+    if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+    let timer = null;
+    target.addEventListener("mouseenter", () => {
+      timer = setTimeout(() => {
+        hidePreview();
+        hoverBox = el("div", "biome-hover");
+        hoverBox.appendChild(biomePreview(item.key, "small"));
+        hoverBox.appendChild(el("p", "biome-hover-name", item.name || item.key));
+        document.body.appendChild(hoverBox);
+        const r = target.getBoundingClientRect();
+        const w = hoverBox.offsetWidth, h = hoverBox.offsetHeight;
+        // Beside the picture if there's room, otherwise on the other side
+        let left = r.right + 12;
+        if (left + w > window.innerWidth - 8) left = r.left - w - 12;
+        left = Math.max(8, left);
+        const top = Math.min(Math.max(8, r.top + r.height / 2 - h / 2), window.innerHeight - h - 8);
+        hoverBox.style.left = Math.round(left) + "px";
+        hoverBox.style.top = Math.round(top) + "px";
+      }, 350);
+    });
+    target.addEventListener("mouseleave", () => { clearTimeout(timer); hidePreview(); });
+    target.addEventListener("click", () => { clearTimeout(timer); hidePreview(); });
+  }
+  function hidePreview() {
+    if (hoverBox) { hoverBox.remove(); hoverBox = null; }
+  }
+  window.addEventListener("scroll", hidePreview, { passive: true });
+
+  // A "Preview" button for a biome
+  function previewButton(item) {
+    const btn = el("button", "btn btn-ghost btn-preview", "Preview");
+    btn.type = "button";
+    btn.setAttribute("aria-label", "Preview the " + (item.name || item.key) + " biome");
+    btn.addEventListener("click", (e) => { e.preventDefault(); e.stopPropagation(); openBiomePreview(item); });
+    return btn;
+  }
+
   let biomeStarted = false;
 
   function setBiome(key) {
@@ -316,37 +451,42 @@ const UI = (function () {
     document.body.classList.add("biome-page", "biome-" + key);
 
     // The slow shift in color as you go deeper
+    const stillMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let overlay = null;
     let ticking = false;
     function shade() {
       ticking = false;
-      const t = Math.min(1, window.scrollY / DEPTH);
+      const room = document.documentElement.scrollHeight - window.innerHeight;
+      const depth = Math.min(MAX_DEPTH, Math.max(MIN_DEPTH, room));
+      const t = Math.min(1, window.scrollY / depth);
       const eased = t * t * (3 - 2 * t); // gentle at both ends
       const rgb = look.top.map((c, i) => Math.round(c + (look.deep[i] - c) * eased));
       document.body.style.backgroundColor = "rgb(" + rgb.join(",") + ")";
       document.body.style.setProperty("--biome-depth", eased.toFixed(3));
+      // The overlay drifts up at half the page's speed, so it feels further back
+      if (overlay && !stillMotion) overlay.style.backgroundPositionY = Math.round(-window.scrollY * 0.5) + "px";
     }
     window.addEventListener("scroll", () => {
       if (!ticking) { ticking = true; requestAnimationFrame(shade); }
     }, { passive: true });
-    shade();
 
     // What drifts in the margins, kept beside the page content
     const layer = el("div", "biome-layer");
     layer.setAttribute("aria-hidden", "true");
     if (look.rays) layer.appendChild(el("div", "light-rays"));
     document.body.insertBefore(layer, document.body.firstChild);
+    // The hand-drawn art sits behind the particles
+    if (look.overlay) {
+      overlay = el("div", "biome-overlay");
+      overlay.setAttribute("aria-hidden", "true");
+      overlay.style.backgroundImage = "url(" + art(look.overlay) + ")";
+      document.body.insertBefore(overlay, layer);
+    }
+    shade();
     const bits = [];
     look.particles.forEach(([kind, count]) => {
       for (let i = 0; i < count; i++) {
-        const bit = el("span", "particle p-" + kind);
-        // Each one moves on its own slow rhythm
-        bit.style.setProperty("--dur", (14 + Math.random() * 16).toFixed(1) + "s");
-        bit.style.setProperty("--blink", (3 + Math.random() * 4).toFixed(1) + "s");
-        bit.style.setProperty("--delay", (-Math.random() * 30).toFixed(1) + "s");
-        bit.style.setProperty("--dx", ((Math.random() - 0.5) * 60).toFixed(0) + "px");
-        bit.style.setProperty("--dy", ((Math.random() - 0.5) * 80).toFixed(0) + "px");
-        bit.style.setProperty("--size", (3 + Math.random() * 4).toFixed(1) + "px");
-        bit.style.setProperty("--hue", String(Math.floor(Math.random() * 4)));
+        const bit = particle(kind);
         bit._side = i % 2;   // left or right margin
         bit._x = Math.random();
         bit._y = Math.random();
@@ -441,5 +581,5 @@ const UI = (function () {
     if (document.body.dataset.biome) setBiome(document.body.dataset.biome);
   });
 
-  return { REMOVAL_REASONS, removalReasonLabel, friendlyDate, timeTag, emptyState, celebrate, sparkles, itemArt, setBiome, biomeSymbol, biomeSwatch, biomeLook, startModSession };
+  return { REMOVAL_REASONS, removalReasonLabel, friendlyDate, timeTag, emptyState, celebrate, sparkles, itemArt, setBiome, biomeSymbol, biomeSwatch, biomeLook, biomePreview, openBiomePreview, previewOnHover, previewButton, startModSession };
 })();
