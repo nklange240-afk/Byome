@@ -3500,20 +3500,6 @@ body > .biome-overlay {
     rgba(0, 0, 0, 0.45) calc(50% + 290px), #000 calc(50% + 440px));
 }
 
-/* A second, fainter copy behind it, shifted 500px down, so the two
-   don't line up: the foliage looks fuller and the repeat is harder to
-   spot */
-body > .biome-overlay::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background-image: var(--ov-img);
-  background-repeat: repeat-y;
-  background-size: max(1400px, 100vw) auto;
-  background-position: center calc(500px + var(--ov-y, 0px));
-  opacity: 0.37;
-}
-
 /* Deeper into the forest, the foliage fades into the dark */
 .biome-forest > .biome-overlay {
   opacity: calc(0.6 - var(--biome-depth, 0) * 0.3);
@@ -3521,8 +3507,9 @@ body > .biome-overlay::before {
 
 /* Phones and small tablets have no side margins, so the art is
    rearranged: the inner tips of each side peek in from the screen's
-   edges, and the faint copy behind them is shrunk to the screen's
-   width */
+   edges, and behind them a faint full copy, shrunk to the screen's
+   width and shifted 500px down so the two don't line up, fills in the
+   gaps */
 @media (max-width: 900px) {
   body > .biome-overlay {
     background-image: var(--ov-img), var(--ov-img);
@@ -3536,8 +3523,16 @@ body > .biome-overlay::before {
       rgba(0, 0, 0, 0.45) calc(100% - 56px), #000 calc(100% - 16px));
   }
 
+  /* The smaller leaves of the faint copy read as further away */
   body > .biome-overlay::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: var(--ov-img);
+    background-repeat: repeat-y;
     background-size: 100% auto;
+    background-position: center calc(500px + var(--ov-y, 0px));
+    opacity: 0.37;
   }
 }
 
