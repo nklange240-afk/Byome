@@ -3430,10 +3430,12 @@ dialog.celebrate h2 {
   --gold: #F7D78C;
 }
 
+/* Desert: golden sand; the cards are a little darker, like shade */
 .biome-desert {
-  --forest-dark: #402C22;
-  --forest-mid: #5A3E30;
-  --moss: #94694E;
+  --forest-dark: #4A3116;
+  --forest-mid: #5C3E1C;
+  --moss: #B98A4A;
+  --leaf: #F2C66D;
 }
 
 .biome-tundra {
@@ -3458,10 +3460,35 @@ dialog.celebrate h2 {
   transition: background-color 1.2s linear;
 }
 
-/* The desert sun: a soft warm glow in the top corner */
+/* The desert sun: a warm golden glow in the top corner */
 .biome-desert {
-  background-image: radial-gradient(circle at 92% 4%, rgba(255, 196, 120, 0.22), transparent 38%);
+  background-image: radial-gradient(circle at 92% 4%, rgba(255, 214, 130, 0.38), rgba(255, 196, 110, 0.12) 22%, transparent 45%);
   background-attachment: fixed;
+}
+
+/* Desert: heat shimmering above the sand, along the bottom of the
+   screen. Thin bright streaks that waver and drift like a mirage. */
+.heat-haze {
+  position: absolute;
+  left: -40px;
+  right: -40px;
+  bottom: 0;
+  height: 38vh;
+  transform-origin: 50% 100%;
+  background:
+    radial-gradient(ellipse 60% 18% at 50% 100%, rgba(255, 210, 130, 0.16), transparent 70%),
+    radial-gradient(ellipse 50% 28% at 50% 50%, rgba(255, 226, 170, 0.13), transparent 72%) 0 0 / 150px 13px;
+  filter: blur(1px);
+  -webkit-mask-image: linear-gradient(to top, #000, rgba(0, 0, 0, 0.6) 45%, transparent);
+  mask-image: linear-gradient(to top, #000, rgba(0, 0, 0, 0.6) 45%, transparent);
+}
+
+/* A second row of shimmer, spaced differently so it never looks even */
+.heat-haze::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 45% 25% at 50% 50%, rgba(255, 236, 190, 0.11), transparent 72%) 60px 6px / 95px 19px;
 }
 
 /* Page content sits above the particles */
@@ -3775,6 +3802,21 @@ body > .biome-overlay {
     0%, 100% { opacity: 0.2; }
     50% { opacity: 0.85; }
   }
+
+  /* The heat haze wavers side to side and pulses gently */
+  .heat-haze {
+    animation: haze 7s ease-in-out infinite alternate;
+  }
+
+  .heat-haze::before {
+    animation: haze 4.5s ease-in-out -2s infinite alternate-reverse;
+  }
+
+  @keyframes haze {
+    0% { transform: translateX(-14px) scaleY(1); opacity: 0.55; }
+    50% { transform: translateX(6px) scaleY(1.05); opacity: 1; }
+    100% { transform: translateX(14px) scaleY(0.97); opacity: 0.7; }
+  }
 }
 
 /* ----- Biome previews: a pretend profile set in the biome ----- */
@@ -3815,7 +3857,11 @@ body > .biome-overlay {
   content: "";
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at 92% 4%, rgba(255, 196, 120, 0.28), transparent 45%);
+  background: radial-gradient(circle at 92% 4%, rgba(255, 214, 130, 0.42), rgba(255, 196, 110, 0.12) 25%, transparent 50%);
+}
+
+.biome-preview .heat-haze {
+  height: 45%;
 }
 
 .preview-page {
