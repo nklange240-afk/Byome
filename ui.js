@@ -6,7 +6,7 @@
 const UI = (function () {
   // Shown in the footer as "Contact" once there's an inbox to send to,
   // e.g. "hello@byome.xyz". Left empty, the Contact link doesn't show.
-  const CONTACT_EMAIL = "";
+  const CONTACT_EMAIL = "hello@byome.xyz";
 
   // Rarities that get sparkles
   const SPARKLY = ["rare", "legendary"];
