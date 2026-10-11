@@ -252,7 +252,7 @@ async function showPoints(userId, isModerator) {
   // The explanation and the earning list fold away, to keep the card short
   const note = el("p", "points-note", "Byome points buy pots, plants and shelves in the ");
   const shopLink = el("a", "inline-link", "Byome Shop");
-  shopLink.href = "biome-shop.html";
+  shopLink.href = "byome-shop.html";
   note.append(shopLink, document.createTextNode(". Community points can't be spent on anything just yet, " +
     "but we have big plans for them, so keep collecting! Pending points become available after a short waiting period."));
 
@@ -451,7 +451,7 @@ async function showBiome(profileId, isMe) {
     }
     const more = el("p", "feed-empty");
     const link = el("a", "inline-link", "Byome Shop");
-    link.href = "biome-shop.html";
+    link.href = "byome-shop.html";
     more.append(document.createTextNode("Want more? Visit the "), link, document.createTextNode("."));
     editorEl.appendChild(more);
   }

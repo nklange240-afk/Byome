@@ -143,7 +143,7 @@ async function buildBiomePicker() {
     label.appendChild(text);
     if (!have) {
       label.title = "Find this one in the Byome Shop";
-      label.addEventListener("click", () => { window.location.href = "biome-shop.html"; });
+      label.addEventListener("click", () => { window.location.href = "byome-shop.html"; });
     }
     // The Preview button sits outside the label, so it doesn't pick the biome
     const option = el("div", "biome-option-wrap");

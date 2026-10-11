@@ -64,7 +64,7 @@
     link("feed.html", "Community");
     link("reviews.html", "Reviews");
     link("suggest-product.html", "Suggest a product");
-    link("biome-shop.html", "Byome Shop");
+    link("byome-shop.html", "Byome Shop");
     line();
     link("profile.html", "My profile");
     const notes = link("notifications.html", "Notifications");

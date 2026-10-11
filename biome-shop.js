@@ -154,7 +154,7 @@ function buildCard(item, balance, ownedCount) {
 // and never on Reviews or in the Community. The AdSense code is loaded
 // on this page only. (In AdSense, keep Auto ads off, so Google never adds
 // ads anywhere else.) Set AD_CLIENT to null to turn ads off;
-// biome-shop.html?adpreview then shows the sign with a sample ad.
+// byome-shop.html?adpreview then shows the sign with a sample ad.
 // Behind the ad is one of Byome's own cards (HOUSE_ADS, picked at random),
 // which shows whenever Google has no ad to fill the space. A card about
 // an item (hideIfOwned) isn't shown to members who already own it.

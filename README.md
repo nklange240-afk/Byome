@@ -14,7 +14,7 @@ The site is plain HTML, CSS and JavaScript (no build step). Accounts and data li
 | `reviews.html` | Product reviews, with search, category filters and Newest / Most helpful sorting. `reviews.html?product=<id>` is a product's page: average leaves, repurchase rate, holy grails, rating spread, and a skin-type filter |
 | `profile.html` | A member's picture, skin & hair details, shelf, achievements, points, reviews and posts. Your own profile lets you arrange your shelf and edit or delete your posts and reviews; others' profiles can be reported |
 | `edit-profile.html` | Change your picture, username and skin & hair details, or delete your account |
-| `biome-shop.html` | Spend Byome points on pots, plants and shelves |
+| `byome-shop.html` | The Byome Shop: spend Byome points on pots, plants, shelves and biomes (`biome-shop.html` just redirects here) |
 | `suggest-product.html` | Suggest a product for reviews (flags look-alikes of existing products) |
 | `notifications.html` | Your notifications |
 | `moderate-products.html` | Moderators only: automod holds, member reports, product suggestions, and the moderation log |
