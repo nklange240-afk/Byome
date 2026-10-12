@@ -558,7 +558,7 @@ async function loadReports() {
       "post:posts!post_id(id, title, body, author:profiles!user_id(username), polls(poll_options(label, position))), " +
       "comment:comments!comment_id(id, body, author:profiles!user_id(username), post:posts!post_id(title)), " +
       "review:reviews!review_id(id, title, body, author:profiles!user_id(username), product:products!product_id(brand, name)), " +
-      "profile:profiles!profile_id(id, username, avatar_path, avatar_ring, profile_biome, show_biome_symbol)")
+      "profile:profiles!profile_id(id, username, avatar_path, avatar_ring, profile_biome, show_biome_symbol, is_moderator, badge)")
     .is("resolved_at", null)
     .order("created_at", { ascending: true });
 

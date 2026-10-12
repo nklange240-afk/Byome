@@ -324,6 +324,17 @@ const UI = (function () {
     return span;
   }
 
+  // The badge after a username: "Founder" for the founder, "Mod" for
+  // moderators, or null. Needs the profile's is_moderator and badge.
+  function memberBadge(profile) {
+    if (!profile || profile.deleted_at) return null;
+    const kind = profile.badge === "founder" ? "founder" : profile.is_moderator ? "mod" : null;
+    if (!kind) return null;
+    const badge = el("span", "member-badge is-" + kind, kind === "founder" ? "Founder" : "Mod");
+    badge.title = kind === "founder" ? "Byome's founder" : "Byome moderator";
+    return badge;
+  }
+
   // A small preview of a biome (shop cards, Edit profile, pop-ups)
   function biomeSwatch(key, className) {
     const look = biomeLook(key) || BIOME_LOOKS.forest;
@@ -640,5 +651,5 @@ const UI = (function () {
     if (document.body.dataset.biome) setBiome(document.body.dataset.biome);
   });
 
-  return { REMOVAL_REASONS, removalReasonLabel, friendlyDate, timeTag, emptyState, celebrate, sparkles, itemArt, setBiome, biomeSymbol, biomeSwatch, biomeLook, biomePreview, openBiomePreview, previewOnHover, previewButton, startModSession };
+  return { REMOVAL_REASONS, removalReasonLabel, friendlyDate, timeTag, emptyState, celebrate, sparkles, itemArt, setBiome, biomeSymbol, memberBadge, biomeSwatch, biomeLook, biomePreview, openBiomePreview, previewOnHover, previewButton, startModSession };
 })();

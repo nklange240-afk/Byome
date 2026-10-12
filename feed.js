@@ -147,7 +147,7 @@ async function loadPosts(more) {
   const to = (more === true ? postsShown + PAGE_SIZE : Math.max(PAGE_SIZE, postsShown)) - 1;
   let query = supabaseClient
     .from("posts")
-    .select("id, title, body, category, created_at, edited_at, held_at, user_id, profiles!user_id(username, avatar_path, avatar_ring, profile_biome, show_biome_symbol), likes(user_id), comments(count), polls(closes_at, poll_options(id, label, position))")
+    .select("id, title, body, category, created_at, edited_at, held_at, user_id, profiles!user_id(username, avatar_path, avatar_ring, profile_biome, show_biome_symbol, is_moderator, badge), likes(user_id), comments(count), polls(closes_at, poll_options(id, label, position))")
     .order("created_at", { ascending: false })
     .order("id")
     .range(from, to);
@@ -295,7 +295,7 @@ function buildPost(post, pollResult) {
 async function fetchComments(postId) {
   const { data, error } = await supabaseClient
     .from("comments")
-    .select("id, parent_id, body, created_at, held_at, user_id, profiles!user_id(username, avatar_path, avatar_ring, profile_biome, show_biome_symbol), comment_likes(user_id)")
+    .select("id, parent_id, body, created_at, held_at, user_id, profiles!user_id(username, avatar_path, avatar_ring, profile_biome, show_biome_symbol, is_moderator, badge), comment_likes(user_id)")
     .eq("post_id", postId)
     .order("created_at", { ascending: true });
 

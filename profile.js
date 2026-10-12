@@ -552,7 +552,7 @@ async function showAchievements(profileId) {
   const postsEl = document.getElementById("profile-posts");
 
   let query = supabaseClient.from("profiles")
-    .select("id, username, created_at, avatar_path, avatar_ring, skin_type, skin_concerns, hair_type, hair_texture, is_moderator, profile_biome, show_biome_symbol");
+    .select("id, username, created_at, avatar_path, avatar_ring, skin_type, skin_concerns, hair_type, hair_texture, is_moderator, badge, profile_biome, show_biome_symbol");
   query = wanted ? query.eq("username", wanted) : query.eq("id", me);
   const { data: profile } = await query.maybeSingle();
 
@@ -573,6 +573,8 @@ async function showAchievements(profileId) {
   UI.setBiome(deleted ? "forest" : profile.profile_biome || "forest");
   const symbol = deleted ? null : UI.biomeSymbol(profile);
   if (symbol) nameEl.appendChild(symbol);
+  const badge = deleted ? null : UI.memberBadge(profile);
+  if (badge) nameEl.appendChild(badge);
   document.getElementById("profile-avatar").replaceChildren(PROFILES.avatar(profile, "large"));
   showTraits(profile);
 

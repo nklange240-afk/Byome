@@ -35,3 +35,4 @@ byome's database lives in Supabase. These files are a backup and a history of ch
 - `2026-10-12-byome-shop.sql`: the Biome shop is now the Byome Shop (renames purchases in points activity).
 - `2026-10-13-polls.sql`: polls on Community posts (tables, voting, results after you vote, 1 Byome point for voting in someone else's poll, up to 5 a day). **Run before publishing** the site update that came with it.
 - `2026-10-14-byome-points-right-away.sql`: Byome points can be spent straight away; only community points wait out an activity's delay. Releases Byome points already waiting.
+- `2026-10-15-badges-and-held-points.sql`: Mod and Founder badges by usernames (the founder badge is set in the SQL Editor), and reviews held by automod only earn points once a moderator approves them.

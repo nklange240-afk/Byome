@@ -3827,6 +3827,35 @@ body > .biome-overlay {
   opacity: calc(1 - var(--biome-depth, 0) * 1.2);
 }
 
+/* "Founder" or "Mod" after a username */
+.member-badge {
+  display: inline-block;
+  margin-left: 0.35rem;
+  padding: 0.05rem 0.45rem;
+  border-radius: 999px;
+  font-family: var(--font-body);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  line-height: 1.4;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.member-badge.is-mod {
+  border: 1px solid var(--leaf);
+  color: var(--leaf);
+}
+
+.member-badge.is-founder {
+  background-color: var(--gold);
+  color: var(--forest-dark);
+}
+
+#profile-name .member-badge {
+  font-size: 0.8rem;
+}
+
 /* The symbol after a username */
 .biome-symbol {
   margin-left: 0.3rem;
