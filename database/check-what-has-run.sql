@@ -38,5 +38,6 @@ from (values
   ('2026-10-12-byome-shop.sql',           exists (select 1 from public.point_rules where action = 'biome_purchase' and label = 'Byome Shop purchase')),
   ('2026-10-13-polls.sql',                exists (select 1 from fn where name = 'vote_poll')),
   ('2026-10-14-byome-points-right-away.sql', exists (select 1 from col where t = 'point_ledger' and c = 'biome_available_at')),
-  ('2026-10-15-badges-and-held-points.sql', exists (select 1 from col where t = 'profiles' and c = 'badge'))
+  ('2026-10-15-badges-and-held-points.sql', exists (select 1 from col where t = 'profiles' and c = 'badge')),
+  ('2026-10-16-comment-edits.sql',        exists (select 1 from col where t = 'comments' and c = 'edited_at'))
 ) as checks(file, ok);
