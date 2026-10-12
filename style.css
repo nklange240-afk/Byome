@@ -243,7 +243,8 @@ body {
 .auth-switch {
   margin-top: 1.5rem;
   font-size: 0.9rem;
-  color: rgba(243, 237, 224, 0.88);
+  color: var(--cream);
+  color: color-mix(in srgb, var(--cream) 88%, transparent);
 }
 
 .auth-switch a {
@@ -409,7 +410,8 @@ body {
 
 .char-count {
   font-size: 0.85rem;
-  color: rgba(243, 237, 224, 0.8); /* dimmed text, but links inside stay full strength */
+  color: var(--cream);
+  color: color-mix(in srgb, var(--cream) 80%, transparent); /* dimmed text, but links inside stay full strength */
 }
 
 .feed {
@@ -463,7 +465,8 @@ body {
 }
 
 .feed-empty {
-  color: rgba(243, 237, 224, 0.85); /* dimmed text, but links inside stay full strength */
+  color: var(--cream);
+  color: color-mix(in srgb, var(--cream) 85%, transparent); /* dimmed text, but links inside stay full strength */
   padding: 1rem 0;
 }
 
@@ -2198,7 +2201,8 @@ div.biome-slot:focus-visible,
 .biome-hint {
   text-align: center;
   font-size: 0.9rem;
-  color: rgba(243, 237, 224, 0.85); /* dimmed text, but links inside stay full strength */
+  color: var(--cream);
+  color: color-mix(in srgb, var(--cream) 85%, transparent); /* dimmed text, but links inside stay full strength */
   margin-top: 0.6rem;
 }
 
@@ -2807,7 +2811,8 @@ div.biome-slot:focus-visible,
 
 .field-hint {
   font-size: 0.85rem;
-  color: rgba(243, 237, 224, 0.82); /* dimmed text, but links inside stay full strength */
+  color: var(--cream);
+  color: color-mix(in srgb, var(--cream) 82%, transparent); /* dimmed text, but links inside stay full strength */
   margin: 0.25rem 0 0.75rem;
 }
 
@@ -3605,9 +3610,72 @@ dialog.celebrate h2 {
 /* The meadow keeps the usual dark byome green; its spring feel comes
    from the accents (spring green and buttercup) and, later, hand-drawn
    florals in the margins */
+/* Meadow: the light biome. Bright fresh green at the top, deepening to
+   rich meadow green (ui.js shades the page), with dark green text and
+   buttons, so it feels nothing like the Forest */
 .biome-meadow {
-  --leaf: #BEF7BC;
-  --gold: #F7D78C;
+  --cream: #22382A;            /* text: deep green */
+  --forest-dark: #FFFCF4;      /* text on buttons, field backgrounds */
+  --forest-mid: #F6FBEE;       /* cards, menus and pop-ups */
+  --moss: rgba(34, 56, 42, 0.28); /* borders */
+  --gold: #255428;             /* accents: dark meadow green (readable even on the deepest green) */
+  --leaf: #255428;
+  --gold-text: #255428;
+  --leaf-text: #255428;
+  --blue-text: #1B4F78;
+  --red-text: #7F2E1E;
+  color: var(--cream);
+}
+
+.biome-meadow .btn-solid,
+.biome-meadow .btn-solid:hover {
+  background: #2F5A3D;
+  border-color: #2F5A3D;
+  color: #FFFCF4;
+}
+
+.biome-meadow .btn-ghost {
+  color: #22382A;
+  border-color: rgba(34, 56, 42, 0.45);
+}
+
+.biome-meadow .member-badge {
+  background: #2F5A3D;
+  color: #FFFCF4;
+}
+
+.biome-meadow .hamburger-btn span {
+  background: #22382A;
+}
+
+/* Softened text a little stronger, so it reads well on the deeper greens
+   (and on the snowy tundra's pale blue sky) */
+.biome-tundra :is(.post-meta time, .profile-meta, .action-btn, .points-label, .edited-tag, .entry-meta,
+  .points-note, .profile-counts, .char-count, .celebrate-text) {
+  opacity: 1;
+}
+
+.biome-meadow :is(.post-meta time, .profile-meta, .action-btn, .points-label, .edited-tag, .entry-meta,
+  .points-note, .profile-counts, .char-count) {
+  opacity: 0.92;
+}
+
+/* The footer: deep meadow green */
+body.biome-meadow .site-footer {
+  --cream: #F6EEE4;
+  opacity: 1;
+  background-color: #2C4A33;
+  color: #F6EEE4;
+}
+
+/* The pretend review in a meadow preview: dark lines on the light card */
+.biome-meadow .preview-line {
+  background-color: rgba(34, 56, 42, 0.25);
+}
+
+/* Higher contrast on the meadow: firmer borders */
+html.a11y-contrast .biome-meadow {
+  --moss: rgba(34, 56, 42, 0.6);
 }
 
 /* Desert: golden sand; the cards are a little darker, like shade */
@@ -3622,6 +3690,13 @@ dialog.celebrate h2 {
   --forest-dark: #22303D;
   --forest-mid: #34485B;
   --moss: #6A8599;
+  /* frosty, paler accents, so names, links and tags stay easy to read
+     on the pale blue sky at the top */
+  --gold: #FAE6B8;
+  --leaf: #D6F0C4;
+  --gold-text: #FAE6B8;
+  --leaf-text: #D6F0C4;
+  --blue-text: #E1F1FC;
 }
 
 .biome-ocean {
@@ -4691,7 +4766,8 @@ input[type="radio"] {
 .stacked-form .field-hint {
   margin: 0 0 0.4rem;
   font-size: 0.8rem;
-  color: rgba(243, 237, 224, 0.82); /* dimmed text, but links inside stay full strength */
+  color: var(--cream);
+  color: color-mix(in srgb, var(--cream) 82%, transparent); /* dimmed text, but links inside stay full strength */
 }
 
 /* After signing up: "Almost there!" */

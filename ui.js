@@ -360,13 +360,22 @@ const UI = (function () {
   //   overlays: several layers of art instead, back to front, each with
   //     its own speed (0.5 = half the page's speed; slower feels farther
   //     away) and strength (opacity)
+  //   stops: more than two colors to pass through, top to bottom
+  //   light: a light biome (dark text), which uses the dark green logo
+  //   shadeFrom: when set, the colors follow how far down the page you are
+  //     (from this fraction on), instead of a fixed scrolling distance
   // The colors of cards and borders for each biome are in style.css.
   const BIOME_LOOKS = {
     forest: { name: "Forest", symbol: "\u{1F332}", top: [36, 64, 47], deep: [15, 31, 22], particles: [["firefly", 16]],
               overlay: "biome-assets/overlay-forest.webp" },
-    meadow: { name: "Meadow", symbol: "\u{1F33C}", top: [36, 64, 47], deep: [36, 64, 47], particles: [], // hand-drawn florals to come
+    // Meadow is the light biome (dark text; its colors are in style.css):
+    // bright, fresh green at the top, deepening to rich meadow green by the
+    // bottom of the page, however long the page is
+    meadow: { name: "Meadow", symbol: "\u{1F33C}", top: [238, 248, 221], deep: [159, 203, 126], particles: [], // hand-drawn florals to come
+              stops: [[238, 248, 221], [203, 230, 170], [159, 203, 126]],
+              shadeFrom: 0, light: true,
               // its preview tile hints at spring green and petals
-              preview: { top: [78, 128, 72], deep: [36, 64, 47], dots: "petal" } },
+              preview: { top: [238, 248, 221], deep: [159, 203, 126], dots: "petal" } },
     desert: { name: "Desert", symbol: "☀️", top: [128, 90, 30], deep: [58, 36, 38], particles: [["glint", 34]],
               shadeFrom: 0.65, // golden most of the way; dusk only near the bottom
               // its preview tile is brighter, like sand in the sun
@@ -584,6 +593,14 @@ const UI = (function () {
     biomeStarted = true;
     document.body.dataset.biome = key;
     document.body.classList.add("biome-page", "biome-" + key);
+    // A light biome gets the dark green logo, and the phone's browser bar
+    // matches the top of the page
+    if (look.light) {
+      const logo = document.querySelector(".site-header .logo img");
+      if (logo) logo.src = "logo-wordmark-green.png";
+      const bar = document.querySelector('meta[name="theme-color"]');
+      if (bar) bar.content = "rgb(" + look.top.join(",") + ")";
+    }
 
     // The slow shift in color as you go deeper
     // (the device's setting, or Reduce motion in the Accessibility panel)
@@ -598,7 +615,11 @@ const UI = (function () {
       const from = look.shadeFrom || 0;
       const t = Math.max(0, (Math.min(1, window.scrollY / depth) - from) / (1 - from));
       const eased = t * t * (3 - 2 * t); // gentle at both ends
-      const rgb = look.top.map((c, i) => Math.round(c + (look.deep[i] - c) * eased));
+      // Most biomes blend from top to deep; some pass through more colors (stops)
+      const stops = look.stops || [look.top, look.deep];
+      const at = eased * (stops.length - 1);
+      const seg = Math.min(stops.length - 2, Math.floor(at));
+      const rgb = stops[seg].map((c, i) => Math.round(c + (stops[seg + 1][i] - c) * (at - seg)));
       document.body.style.backgroundColor = "rgb(" + rgb.join(",") + ")";
       document.body.style.setProperty("--biome-depth", eased.toFixed(3));
       // How far down the page you are (0 at the top, 1 at the bottom), for
