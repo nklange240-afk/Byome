@@ -359,7 +359,8 @@ const UI = (function () {
   //     little slower than the page
   //   overlays: several layers of art instead, back to front, each with
   //     its own speed (0.5 = half the page's speed; slower feels farther
-  //     away) and strength (opacity)
+  //     away) and strength (opacity); far: drawn smaller; sparse: a few
+  //     small things (like insects) that phones show without a faint copy
   //   stops: more than two colors to pass through, top to bottom
   //   light: a light biome (dark text), which uses the dark green logo
   //   shadeFrom: when set, the colors follow how far down the page you are
@@ -372,8 +373,12 @@ const UI = (function () {
     // bright, fresh green at the top, deepening to rich meadow green by the
     // bottom of the page, however long the page is
     meadow: { name: "Meadow", symbol: "\u{1F33C}", top: [238, 248, 221], deep: [159, 203, 126], particles: [],
-              // hand-drawn wildflowers, bees and butterflies down both sides
-              overlays: [{ image: "biome-assets/overlay-meadow.webp", speed: 0.5, opacity: 0.9 }],
+              // hand-drawn wildflowers down both sides, with bees and butterflies
+              // drifting a little faster in front (no faint copy on phones)
+              overlays: [
+                { image: "biome-assets/overlay-meadow-flowers.webp", speed: 0.5, opacity: 0.75 },
+                { image: "biome-assets/overlay-meadow-bugs.webp", speed: 0.6, opacity: 0.95, sparse: true },
+              ],
               stops: [[238, 248, 221], [203, 230, 170], [159, 203, 126]],
               shadeFrom: 0, light: true,
               // its preview tile hints at spring green and petals
@@ -409,7 +414,7 @@ const UI = (function () {
   }
 
   function makeOverlay(o) {
-    const overlay = el("div", "biome-overlay" + (o.far ? " is-far" : ""));
+    const overlay = el("div", "biome-overlay" + (o.far ? " is-far" : "") + (o.sparse ? " is-sparse" : ""));
     overlay.setAttribute("aria-hidden", "true");
     overlay.style.setProperty("--ov-img", "url(" + art(o.image) + ")");
     if (o.opacity !== undefined) overlay.style.setProperty("--ov-opacity", String(o.opacity));
