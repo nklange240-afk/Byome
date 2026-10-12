@@ -3816,10 +3816,14 @@ body > .biome-overlay.is-far {
 /* Computers: the meadow's art fades a little more behind the posts, so
    its light background stays calm under the words */
 body.biome-meadow > .biome-overlay {
-  -webkit-mask-image: linear-gradient(to right, #000 calc(50% - 440px), rgba(0, 0, 0, 0.3) calc(50% - 290px),
-    rgba(0, 0, 0, 0.3) calc(50% + 290px), #000 calc(50% + 440px));
-  mask-image: linear-gradient(to right, #000 calc(50% - 440px), rgba(0, 0, 0, 0.3) calc(50% - 290px),
-    rgba(0, 0, 0, 0.3) calc(50% + 290px), #000 calc(50% + 440px));
+  -webkit-mask-image: linear-gradient(to right, #000 calc(50% - 480px), rgba(0, 0, 0, 0.55) calc(50% - 400px),
+    rgba(0, 0, 0, 0.28) calc(50% - 330px), rgba(0, 0, 0, 0.18) calc(50% - 280px),
+    rgba(0, 0, 0, 0.18) calc(50% + 280px), rgba(0, 0, 0, 0.28) calc(50% + 330px),
+    rgba(0, 0, 0, 0.55) calc(50% + 400px), #000 calc(50% + 480px));
+  mask-image: linear-gradient(to right, #000 calc(50% - 480px), rgba(0, 0, 0, 0.55) calc(50% - 400px),
+    rgba(0, 0, 0, 0.28) calc(50% - 330px), rgba(0, 0, 0, 0.18) calc(50% - 280px),
+    rgba(0, 0, 0, 0.18) calc(50% + 280px), rgba(0, 0, 0, 0.28) calc(50% + 330px),
+    rgba(0, 0, 0, 0.55) calc(50% + 400px), #000 calc(50% + 480px));
 }
 
 .biome-forest > .biome-overlay {
@@ -3875,10 +3879,11 @@ body.biome-meadow > .biome-overlay {
   body.biome-meadow > .biome-overlay {
     opacity: 1;
     background-image: none;
-    -webkit-mask-image: linear-gradient(to right, #000 16px, rgba(0, 0, 0, 0.35) 52px,
-      rgba(0, 0, 0, 0.35) calc(100% - 52px), #000 calc(100% - 16px));
-    mask-image: linear-gradient(to right, #000 16px, rgba(0, 0, 0, 0.35) 52px,
-      rgba(0, 0, 0, 0.35) calc(100% - 52px), #000 calc(100% - 16px));
+    /* a long, eased fade from the edges to about a fifth behind the text */
+    -webkit-mask-image: linear-gradient(to right, #000 8px, rgba(0, 0, 0, 0.6) 30px, rgba(0, 0, 0, 0.32) 52px, rgba(0, 0, 0, 0.2) 80px,
+      rgba(0, 0, 0, 0.2) calc(100% - 80px), rgba(0, 0, 0, 0.32) calc(100% - 52px), rgba(0, 0, 0, 0.6) calc(100% - 30px), #000 calc(100% - 8px));
+    mask-image: linear-gradient(to right, #000 8px, rgba(0, 0, 0, 0.6) 30px, rgba(0, 0, 0, 0.32) 52px, rgba(0, 0, 0, 0.2) 80px,
+      rgba(0, 0, 0, 0.2) calc(100% - 80px), rgba(0, 0, 0, 0.32) calc(100% - 52px), rgba(0, 0, 0, 0.6) calc(100% - 30px), #000 calc(100% - 8px));
   }
 
   body.biome-meadow > .biome-overlay::before {
@@ -3891,15 +3896,15 @@ body.biome-meadow > .biome-overlay {
   }
 
   /* The bugs drift at the same small size as the flowers: fully solid in
-     the side gutters, and half strength where they pass behind the text */
+     the side gutters, easing down to about a third behind the text */
   body.biome-page > .biome-overlay.is-sparse {
     background-image: var(--ov-img);
     background-size: 100% auto;
     background-position: center var(--ov-y, 0px);
-    -webkit-mask-image: linear-gradient(to right, #000 30px, rgba(0, 0, 0, 0.5) 42px,
-      rgba(0, 0, 0, 0.5) calc(100% - 42px), #000 calc(100% - 30px));
-    mask-image: linear-gradient(to right, #000 30px, rgba(0, 0, 0, 0.5) 42px,
-      rgba(0, 0, 0, 0.5) calc(100% - 42px), #000 calc(100% - 30px));
+    -webkit-mask-image: linear-gradient(to right, #000 24px, rgba(0, 0, 0, 0.6) 40px, rgba(0, 0, 0, 0.38) 58px, rgba(0, 0, 0, 0.3) 80px,
+      rgba(0, 0, 0, 0.3) calc(100% - 80px), rgba(0, 0, 0, 0.38) calc(100% - 58px), rgba(0, 0, 0, 0.6) calc(100% - 40px), #000 calc(100% - 24px));
+    mask-image: linear-gradient(to right, #000 24px, rgba(0, 0, 0, 0.6) 40px, rgba(0, 0, 0, 0.38) 58px, rgba(0, 0, 0, 0.3) 80px,
+      rgba(0, 0, 0, 0.3) calc(100% - 80px), rgba(0, 0, 0, 0.38) calc(100% - 58px), rgba(0, 0, 0, 0.6) calc(100% - 40px), #000 calc(100% - 24px));
   }
 }
 
