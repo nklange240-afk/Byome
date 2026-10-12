@@ -212,7 +212,7 @@ const BIOME = (function () {
     wrap.setAttribute("role", "group");
 
     const shelf = items[shelfKey] || items["default-shelf"];
-    wrap.setAttribute("aria-label", shelf ? "Biome shelf: " + shelf.name : "Biome shelf");
+    wrap.setAttribute("aria-label", shelf ? "Plant shelf: " + shelf.name : "Plant shelf");
     if (shelf) wrap.appendChild(img("biome-shelf-img", shelf.image, ""));
 
     layoutSlots().forEach((s) => {

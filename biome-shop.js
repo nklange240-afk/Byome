@@ -151,7 +151,7 @@ function buildCard(item, balance, ownedCount) {
       (data && data.serial ? " (#" + data.serial + " of " + item.max_supply + ")" : "") +
       (item.kind === "biome" ? "! Choose it on Edit profile." : "! Put it on your shelf from your profile."), true);
     UI.celebrate({
-      label: "New for your biome",
+      label: item.kind === "biome" ? "A new biome" : "New for your shelf",
       heading: item.name,
       text: (data && data.serial ? "Number " + data.serial + " of " + item.max_supply + ". " : "") +
         (item.kind === "biome" ? "Choose it on Edit profile to set your profile in it." : "Arrange it on your shelf from your profile."),
