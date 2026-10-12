@@ -42,6 +42,13 @@ const UI = (function () {
       a.href = href;
       links.appendChild(a);
     });
+    if (typeof A11Y !== "undefined") {
+      const settings = el("button", "footer-link-btn", "Accessibility");
+      settings.type = "button";
+      settings.setAttribute("aria-haspopup", "dialog");
+      settings.addEventListener("click", openAccessibility);
+      links.appendChild(settings);
+    }
     footer.appendChild(links);
 
     // Byome on social media
@@ -58,6 +65,65 @@ const UI = (function () {
       social.appendChild(a);
     });
     footer.appendChild(social);
+  }
+
+  // ---------- Accessibility settings ----------
+  // A small panel (from the footer's "Accessibility" link) for the settings
+  // in a11y.js. Changes apply straight away and are saved on this device.
+  const A11Y_GROUPS = [
+    { name: "motion", legend: "Motion", options: [["device", "Match my device"], ["reduce", "Reduce motion"]],
+      note: "Reduce motion keeps the biomes still and makes pop-ups appear without animation." },
+    { name: "text", legend: "Text size", options: [["default", "Standard"], ["large", "Large"], ["xlarge", "Extra large"]] },
+    { name: "contrast", legend: "Contrast", options: [["default", "Standard"], ["high", "Higher contrast"]],
+      note: "Higher contrast shows all text at full strength, outlines fields and buttons more clearly, underlines links and quiets the background art." },
+  ];
+
+  function openAccessibility() {
+    const current = A11Y.get();
+    const dialog = el("dialog", "celebrate a11y-dialog");
+    dialog.setAttribute("aria-labelledby", "a11y-heading");
+    const h = el("h2", null, "Accessibility");
+    h.id = "a11y-heading";
+    dialog.append(h, el("p", "a11y-intro", "Make Byome easier to see and use."));
+
+    A11Y_GROUPS.forEach((group) => {
+      const set = el("fieldset", "a11y-group");
+      set.appendChild(el("legend", null, group.legend));
+      const choices = el("div", "a11y-choices");
+      group.options.forEach(([value, label]) => {
+        const choice = el("label", "a11y-choice");
+        const input = el("input");
+        input.type = "radio";
+        input.name = "a11y-" + group.name;
+        input.value = value;
+        input.checked = current[group.name] === value;
+        input.addEventListener("change", () => { if (input.checked) A11Y.set(group.name, value); });
+        choice.append(input, el("span", null, label));
+        choices.appendChild(choice);
+      });
+      set.appendChild(choices);
+      if (group.note) set.appendChild(el("p", "a11y-note", group.note));
+      dialog.appendChild(set);
+    });
+
+    dialog.appendChild(el("p", "a11y-saved", "Saved on this device. Your phone or computer's own settings (like text size) work alongside these."));
+    const actions = el("div", "celebrate-actions");
+    const done = el("button", "btn btn-solid", "Done");
+    done.type = "button";
+    done.addEventListener("click", () => dialog.close());
+    actions.appendChild(done);
+    dialog.appendChild(actions);
+
+    dialog.addEventListener("close", () => dialog.remove());
+    // Clicking the dim background (outside the panel) closes it too
+    dialog.addEventListener("click", (e) => {
+      const r = dialog.getBoundingClientRect();
+      if (e.target === dialog && (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom)) dialog.close();
+    });
+    document.body.appendChild(dialog);
+    dialog.showModal();
+    const first = dialog.querySelector("input:checked");
+    if (first) first.focus();
   }
 
   // Simple line icons, drawn in the text color
@@ -516,7 +582,8 @@ const UI = (function () {
     document.body.classList.add("biome-page", "biome-" + key);
 
     // The slow shift in color as you go deeper
-    const stillMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    // (the device's setting, or Reduce motion in the Accessibility panel)
+    const stillMotion = () => (typeof A11Y !== "undefined" ? A11Y.reducedMotion() : window.matchMedia("(prefers-reduced-motion: reduce)").matches);
     let overlays = [];
     let ticking = false;
     function shade() {
@@ -542,11 +609,12 @@ const UI = (function () {
       document.body.style.setProperty("--shallow", clamp01((0.95 - bottom) * 2.86).toFixed(3));
       // The hand-drawn art drifts up slower than the page, so it feels further
       // back (the slower, the farther)
-      if (!stillMotion) overlays.forEach((o) => o.style.setProperty("--ov-y", Math.round(-window.scrollY * o._speed) + "px"));
+      overlays.forEach((o) => o.style.setProperty("--ov-y", stillMotion() ? "0px" : Math.round(-window.scrollY * o._speed) + "px"));
     }
     window.addEventListener("scroll", () => {
       if (!ticking) { ticking = true; requestAnimationFrame(shade); }
     }, { passive: true });
+    document.addEventListener("a11y-change", () => shade());
 
     // What drifts in the margins, kept beside the page content
     const layer = el("div", "biome-layer");
@@ -715,5 +783,5 @@ const UI = (function () {
     if (document.body.dataset.biome) setBiome(document.body.dataset.biome);
   });
 
-  return { REMOVAL_REASONS, removalReasonLabel, friendlyDate, timeTag, emptyState, celebrate, sparkles, itemArt, setBiome, biomeSymbol, memberBadge, biomeSwatch, biomeLook, biomePreview, openBiomePreview, previewOnHover, previewButton, startModSession };
+  return { openAccessibility, REMOVAL_REASONS, removalReasonLabel, friendlyDate, timeTag, emptyState, celebrate, sparkles, itemArt, setBiome, biomeSymbol, memberBadge, biomeSwatch, biomeLook, biomePreview, openBiomePreview, previewOnHover, previewButton, startModSession };
 })();

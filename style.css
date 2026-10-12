@@ -424,7 +424,8 @@ body {
 
 .post-meta {
   display: flex;
-  gap: 0.75rem;
+  flex-wrap: wrap; /* name, badges and date wrap onto two lines when there's no room */
+  gap: 0.25rem 0.75rem;
   align-items: baseline;
   margin-bottom: 0.4rem;
   font-size: 0.9rem;
@@ -2421,7 +2422,9 @@ div.biome-slot:focus-visible,
    it stays invisible until an ad has filled it, and disappears if none
    comes */
 .ad-sign-wrap.is-middle {
-  margin: 2rem 0 0.5rem;
+  /* (top and bottom only, so the small-phone centering below still applies) */
+  margin-top: 2rem;
+  margin-bottom: 0.5rem;
 }
 
 .is-middle .ad-sign {
@@ -5161,4 +5164,181 @@ button.poll-option:disabled {
 .profile-poll {
   margin: 0.4rem 0;
   font-size: 0.9rem;
+}
+
+/* =========================================================
+   ACCESSIBILITY SETTINGS
+   Chosen in the Accessibility panel (footer link); a11y.js puts these
+   classes on <html> before the page is drawn.
+   ========================================================= */
+
+/* ----- Larger text: everything is sized in rem, so the whole page
+   grows evenly, like zooming in ----- */
+html.a11y-text-large { font-size: 112.5%; }
+html.a11y-text-xlarge { font-size: 125%; }
+
+/* ----- Reduce motion: a11y.js switches style.css's motion blocks off
+   (as the device setting would); this catches everything else, so
+   pop-ups, fades and little bounces happen instantly ----- */
+html.a11y-reduce-motion *,
+html.a11y-reduce-motion *::before,
+html.a11y-reduce-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* ----- Higher contrast ----- */
+/* Text that's normally softened is shown at full strength */
+html.a11y-contrast :is(.hero-sub, .about-contact, .why-item p, .auth-sub, .auth-switch, .back-link,
+  .site-footer, .char-count, .post-meta time, .post-delete, .feed-empty, .action-btn, .field-label,
+  .extras-hint, .combo-empty, .edited-tag, .profile-counts, .points-label, .points-note,
+  .notification-time, .search-status, .biome-hint, .biome-tile-meta, .rarity-common, .entry-meta,
+  .report-intro, .report-details, .post-author.is-deleted, .field-hint, .composer-starter,
+  .footer-social a, .profile-meta, .empty-state p, .legal-updated, .biome-option-note, .sort-label,
+  .product-count, .rating-bar-count, .log-time, .returned-intro, .returned-what, .poll-meta,
+  .rating-leaf, .biome-tile-empty) {
+  opacity: 1;
+}
+
+html.a11y-contrast .search-input::placeholder,
+html.a11y-contrast input::placeholder,
+html.a11y-contrast textarea::placeholder {
+  color: var(--cream);
+  opacity: 0.85;
+}
+
+/* Clearer edges on cards, fields and dividers */
+html.a11y-contrast {
+  --moss: #A9C79E;
+}
+
+html.a11y-contrast input,
+html.a11y-contrast textarea,
+html.a11y-contrast select {
+  border-color: var(--cream) !important;
+}
+
+/* Links in text are underlined, so they don't rely on color alone */
+html.a11y-contrast main p a,
+html.a11y-contrast main li a,
+html.a11y-contrast .site-footer a {
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+}
+
+/* A bold, easy-to-follow outline on whatever has keyboard focus */
+html.a11y-contrast :focus-visible {
+  outline: 3px solid var(--gold) !important;
+  outline-offset: 3px;
+}
+
+/* Biome art and drifting specks step back behind the words */
+html.a11y-contrast .biome-overlay {
+  opacity: 0.22 !important;
+}
+
+html.a11y-contrast .biome-layer {
+  opacity: 0.45 !important;
+}
+
+html.a11y-contrast .biome-layer.is-through {
+  display: none;
+}
+
+/* ----- The Accessibility panel ----- */
+dialog.a11y-dialog {
+  max-width: 26rem;
+  text-align: left;
+}
+
+.a11y-dialog h2 {
+  font-family: var(--font-heading);
+  font-size: 1.4rem;
+  margin-bottom: 0.25rem;
+}
+
+.a11y-dialog .a11y-intro {
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.a11y-group {
+  border: 0;
+  margin: 0 0 1.1rem;
+}
+
+.a11y-group legend {
+  font-weight: 600;
+  margin-bottom: 0.45rem;
+}
+
+.a11y-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.a11y-choice {
+  position: relative;
+  display: inline-flex;
+}
+
+.a11y-choice input {
+  position: absolute;
+  opacity: 0;
+  inset: 0;
+  margin: 0;
+  cursor: pointer;
+}
+
+.a11y-choice span {
+  display: inline-block;
+  min-height: 2.75rem;
+  padding: 0.6rem 0.95rem;
+  border: 1.5px solid var(--moss);
+  border-radius: 999px;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.a11y-choice input:checked + span {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: var(--forest-dark);
+  font-weight: 600;
+}
+
+.a11y-choice input:focus-visible + span {
+  outline: 3px solid var(--gold);
+  outline-offset: 3px;
+}
+
+.a11y-group .a11y-note {
+  font-size: 0.85rem;
+  margin-top: 0.4rem;
+  opacity: 0.85;
+}
+
+.a11y-dialog .a11y-saved {
+  font-size: 0.85rem;
+  opacity: 0.85;
+  margin-bottom: 0.9rem;
+}
+
+/* "Accessibility" in the footer is a button that looks like the links */
+.footer-link-btn {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: var(--cream);
+  font: inherit;
+  cursor: pointer;
+}
+
+.footer-link-btn:hover,
+.footer-link-btn:focus-visible {
+  color: var(--gold);
+  text-decoration: underline;
 }

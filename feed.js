@@ -165,7 +165,8 @@ async function showLinkedPost() {
   if (commentId && UUID.test(commentId)) await article._openComments();
   const comment = commentId && article.querySelector('.comment[data-comment-id="' + commentId + '"]');
   const target = comment || article;
-  target.scrollIntoView({ block: "center", behavior: "smooth" });
+  const still = typeof A11Y !== "undefined" ? A11Y.reducedMotion() : window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  target.scrollIntoView({ block: "center", behavior: still ? "auto" : "smooth" });
   target.classList.add("is-linked");
   setTimeout(() => target.classList.remove("is-linked"), 4000);
 }
