@@ -3870,6 +3870,26 @@ body > .biome-overlay.is-far {
 .p-plankton[style*="--hue: 2"] { --glow: #8FF0E0; }
 .p-plankton[style*="--hue: 3"] { --glow: #D7A6FF; }
 
+/* Ocean: bioluminescence. Tiny blue specks, like the forest's fireflies
+   but smaller and cooler. They stay hidden near the surface and fade in
+   slowly once you reach the depths (from about halfway down the page,
+   fully lit near the bottom, on long and short pages alike). The fade
+   uses filter: opacity() so it combines with each speck's own pulsing. */
+.p-biolum {
+  --glow: #7FD8FF;
+  width: calc(var(--size) * 0.55);
+  height: calc(var(--size) * 0.55);
+  background-color: #E4F8FF;
+  box-shadow: 0 0 5px 2px var(--glow), 0 0 16px 6px rgba(80, 170, 255, 0.25);
+  opacity: 0.7;
+  filter: opacity(clamp(0, (var(--biome-bottom, 0) - 0.5) * 2.5, 1));
+  transition: filter 4s ease-in;
+}
+
+.p-biolum[style*="--hue: 1"] { --glow: #5FB8FF; }
+.p-biolum[style*="--hue: 2"] { --glow: #8FF0F0; }
+.p-biolum[style*="--hue: 3"] { --glow: #9AA8FF; }
+
 /* Ocean and reef: soft rays of light from the surface, fading with depth */
 .light-rays {
   position: absolute;
@@ -4070,6 +4090,21 @@ body > .biome-overlay.is-far {
     50% { transform: translate(calc(var(--dx) * -0.5), calc(var(--travel, 110vh) * 0.51)); }
     75% { transform: translate(calc(var(--dx) * 0.7), calc(var(--travel, 110vh) * 0.765)); }
     100% { transform: translate(0, var(--travel, 110vh)); }
+  }
+
+  /* Bioluminescence pulses softly and slowly, like the fireflies */
+  .p-biolum {
+    opacity: 0;
+    animation:
+      biolum-pulse calc(var(--blink, 5s) * 1.4) ease-in-out var(--delay, 0s) infinite,
+      wander calc(var(--dur, 20s) * 1.5) ease-in-out var(--delay, 0s) infinite alternate;
+  }
+
+  @keyframes biolum-pulse {
+    0%, 100% { opacity: 0; }
+    40% { opacity: 0.9; }
+    55% { opacity: 0.5; }
+    70% { opacity: 0.8; }
   }
 
   .p-mote,

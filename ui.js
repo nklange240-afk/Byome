@@ -303,7 +303,8 @@ const UI = (function () {
               preview: { top: [184, 132, 54], deep: [128, 90, 30] } },
     tundra: { name: "Snowy tundra", symbol: "❄️", top: [84, 104, 124], deep: [14, 24, 42], particles: [["snow", 34]],
               shadeFrom: 0.15 }, // pale dusty blue, deepening to dark blue by the bottom
-    ocean: { name: "Open ocean", symbol: "\u{1F30A}", top: [20, 52, 78], deep: [4, 12, 26], particles: [["bubble", 16]], rays: true,
+    ocean: { name: "Open ocean", symbol: "\u{1F30A}", top: [20, 52, 78], deep: [4, 12, 26], particles: [["bubble", 16], ["biolum", 26]], rays: true,
+             // the "biolum" specks only glow once you're deep down
              overlays: [
                { image: "biome-assets/overlay-ocean-fish.webp", speed: 0.25, opacity: 0.8, far: true }, // fish, far off
                { image: "biome-assets/overlay-ocean-kelp.webp", speed: 0.5, opacity: 0.85 },            // kelp, nearer
@@ -524,6 +525,9 @@ const UI = (function () {
       const rgb = look.top.map((c, i) => Math.round(c + (look.deep[i] - c) * eased));
       document.body.style.backgroundColor = "rgb(" + rgb.join(",") + ")";
       document.body.style.setProperty("--biome-depth", eased.toFixed(3));
+      // How far down the page you are (0 at the top, 1 at the bottom), for
+      // things that only appear in the depths, however long the page is
+      document.body.style.setProperty("--biome-bottom", Math.min(1, window.scrollY / Math.max(1, room)).toFixed(3));
       // The hand-drawn art drifts up slower than the page, so it feels further
       // back (the slower, the farther)
       if (!stillMotion) overlays.forEach((o) => o.style.setProperty("--ov-y", Math.round(-window.scrollY * o._speed) + "px"));
