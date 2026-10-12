@@ -3817,14 +3817,22 @@ body > .biome-overlay {
 /* Ocean and reef: soft rays of light from the surface, fading with depth */
 .light-rays {
   position: absolute;
-  inset: 0 0 auto 0;
-  height: 70vh;
-  background: repeating-linear-gradient(105deg,
-    rgba(200, 235, 255, 0.07) 0 40px, transparent 40px 110px,
-    rgba(200, 235, 255, 0.04) 110px 150px, transparent 150px 230px);
-  -webkit-mask-image: linear-gradient(to bottom, #000, transparent);
-  mask-image: linear-gradient(to bottom, #000, transparent);
+  inset: -10vh -10vw auto -10vw;
+  height: 85vh;
+  /* A soft glow where the light comes in, and a few broad, uneven shafts
+     of light, blurred so they have no hard edges */
+  background:
+    radial-gradient(ellipse 70% 35% at 55% 0%, rgba(190, 230, 255, 0.14), transparent 70%),
+    linear-gradient(101deg, transparent 10%, rgba(200, 235, 255, 0.11) 15%, transparent 23%),
+    linear-gradient(104deg, transparent 27%, rgba(200, 235, 255, 0.07) 33%, transparent 41%),
+    linear-gradient(99deg, transparent 47%, rgba(200, 235, 255, 0.12) 51%, transparent 57%),
+    linear-gradient(106deg, transparent 62%, rgba(200, 235, 255, 0.065) 70%, transparent 79%),
+    linear-gradient(102deg, transparent 82%, rgba(200, 235, 255, 0.09) 87%, transparent 94%);
+  filter: blur(14px);
+  -webkit-mask-image: linear-gradient(to bottom, #000 10%, rgba(0, 0, 0, 0.5) 50%, transparent);
+  mask-image: linear-gradient(to bottom, #000 10%, rgba(0, 0, 0, 0.5) 50%, transparent);
   opacity: calc(1 - var(--biome-depth, 0) * 1.2);
+  transform-origin: 50% 0;
 }
 
 /* "Founder" or "Mod" after a username */
@@ -3893,7 +3901,12 @@ body > .biome-overlay {
 .swatch-rays {
   position: absolute;
   inset: 0;
-  background: repeating-linear-gradient(105deg, rgba(200, 235, 255, 0.1) 0 12px, transparent 12px 34px);
+  background:
+    radial-gradient(ellipse 80% 40% at 55% 0%, rgba(190, 230, 255, 0.16), transparent 70%),
+    linear-gradient(101deg, transparent 15%, rgba(200, 235, 255, 0.09) 24%, transparent 34%),
+    linear-gradient(99deg, transparent 50%, rgba(200, 235, 255, 0.1) 57%, transparent 66%),
+    linear-gradient(104deg, transparent 72%, rgba(200, 235, 255, 0.07) 80%, transparent 88%);
+  filter: blur(3px);
   -webkit-mask-image: linear-gradient(to bottom, #000, transparent 80%);
   mask-image: linear-gradient(to bottom, #000, transparent 80%);
 }
@@ -4008,6 +4021,16 @@ body > .biome-overlay {
     animation:
       wander var(--dur, 20s) ease-in-out var(--delay, 0s) infinite alternate,
       shimmer var(--blink, 5s) ease-in-out var(--delay, 0s) infinite;
+  }
+
+  /* Light from the surface shifts slowly, like it does underwater */
+  .light-rays {
+    animation: rays-drift 16s ease-in-out infinite alternate;
+  }
+
+  @keyframes rays-drift {
+    0% { transform: skewX(-2deg) translateX(-1.5%); }
+    100% { transform: skewX(2deg) translateX(1.5%); }
   }
 
   @keyframes shimmer {
