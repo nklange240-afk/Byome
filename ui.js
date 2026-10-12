@@ -304,7 +304,9 @@ const UI = (function () {
     tundra: { name: "Snowy tundra", symbol: "❄️", top: [84, 104, 124], deep: [14, 24, 42], particles: [["snow", 34]],
               shadeFrom: 0.15 }, // pale dusty blue, deepening to dark blue by the bottom
     ocean: { name: "Open ocean", symbol: "\u{1F30A}", top: [20, 52, 78], deep: [4, 12, 26], particles: [["bubble", 16], ["biolum", 26]], rays: true,
-             // the "biolum" specks only glow once you're deep down
+             // the "biolum" specks only glow once you're deep down; a few
+             // more glow very faintly through the posts and cards
+             throughContent: [["biolum", 14]],
              overlays: [
                { image: "biome-assets/overlay-ocean-fish.webp", speed: 0.25, opacity: 0.8, far: true }, // fish, far off
                { image: "biome-assets/overlay-ocean-kelp.webp", speed: 0.5, opacity: 0.85 },            // kelp, nearer
@@ -556,16 +558,45 @@ const UI = (function () {
         bits.push(bit);
       }
     });
+    // A few that glow very faintly through the page content: their own
+    // see-through layer just above the posts and cards (but under the
+    // footer), so they show through the boxes without hiding anything
+    const middle = [];
+    const main = document.querySelector("body > main");
+    if (look.throughContent && main) {
+      const front = el("div", "biome-layer is-through");
+      front.setAttribute("aria-hidden", "true");
+      look.throughContent.forEach(([kind, count]) => {
+        for (let i = 0; i < count; i++) {
+          const bit = particle(kind);
+          // mostly toward the content's edges, where they can be seen
+          const r = Math.random() * 0.5;
+          bit._x = i % 2 ? 0.5 - r : 0.5 + r;
+          bit._y = Math.random();
+          front.appendChild(bit);
+          middle.push(bit);
+        }
+      });
+      main.after(front);
+    }
     function place() {
       const main = document.querySelector("main");
       const w = window.innerWidth;
-      const content = main ? main.getBoundingClientRect() : { left: w * 0.2 };
+      const content = main ? main.getBoundingClientRect() : { left: w * 0.2, width: w * 0.6 };
       // Room on each side of the content (at least a thin strip on phones)
       const margin = Math.max(18, content.left - 12);
       bits.forEach((bit) => {
         const x = bit._side === 0 ? bit._x * margin : w - margin + bit._x * margin;
         bit.style.left = Math.round(x) + "px";
         bit.style.top = Math.round(6 + bit._y * 86) + "%";
+      });
+      // These fade out toward the middle of the page: faint near the
+      // content's edges, gone at its center
+      middle.forEach((bit) => {
+        bit.style.left = Math.round(content.left + bit._x * content.width) + "px";
+        bit.style.top = Math.round(6 + bit._y * 86) + "%";
+        const fromCenter = Math.abs(bit._x - 0.5) * 2; // 0 in the middle, 1 at the edges
+        bit.style.setProperty("--through", (0.3 * fromCenter * fromCenter).toFixed(3));
       });
     }
     window.addEventListener("resize", place);
