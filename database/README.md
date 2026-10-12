@@ -37,4 +37,4 @@ byome's database lives in Supabase. These files are a backup and a history of ch
 - `2026-10-14-byome-points-right-away.sql`: Byome points can be spent straight away; only community points wait out an activity's delay. Releases Byome points already waiting.
 - `2026-10-15-badges-and-held-points.sql`: Mod and Founder badges by usernames (the founder badge is set in the SQL Editor), and reviews held by automod only earn points once a moderator approves them.
 - `2026-10-16-comment-edits.sql`: members can edit their own comments (text only); edits are checked by automod.
-- `2026-10-17-buttercup-pot.sql`: the Buttercup pot (common, 40 Byome points) in the Byome Shop.
+- `2026-10-17-pastel-pots.sql`: three common pots in the Byome Shop, 40 Byome points each: Buttercup (yellow), Lilac (purple) and Blush (pink).
