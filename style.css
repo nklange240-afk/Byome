@@ -3882,8 +3882,21 @@ body > .biome-overlay.is-far {
   background-color: #E4F8FF;
   box-shadow: 0 0 5px 2px var(--glow), 0 0 16px 6px rgba(80, 170, 255, 0.25);
   opacity: 0.7;
-  filter: opacity(clamp(0, (var(--biome-bottom, 0) - 0.5) * 2.5, 1));
+  filter: opacity(calc(clamp(0, (var(--biome-bottom, 0) - 0.5) * 2.5, 1) * var(--through, 1)));
   transition: filter 4s ease-in;
+}
+
+/* Ocean: the bubbles thin out in the depths, fading away as you near
+   the bottom of the page (where the bioluminescence takes over) */
+.biome-ocean .p-bubble {
+  filter: opacity(clamp(0, (0.95 - var(--biome-bottom, 0)) * 2.86, 1));
+  transition: filter 3s ease-out;
+}
+
+/* The few that glow through the posts and cards: barely there, and
+   fading out toward the middle (ui.js sets each one's --through) */
+.biome-layer.is-through {
+  z-index: 1;
 }
 
 .p-biolum[style*="--hue: 1"] { --glow: #5FB8FF; }
