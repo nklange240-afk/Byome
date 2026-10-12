@@ -129,8 +129,10 @@ const BIOME = (function () {
 
     function contentFor(target) {
       if (target === wrap) return shelf ? [describe(shelf)] : null;
-      const pot = target._pot, plant = target._plant;
-      return plant ? [describe(plant), describe(pot, "In a ")] : [describe(pot)];
+      const pot = target._pot, plant = target._plant, companion = target._companion;
+      const parts = plant ? [describe(plant), describe(pot, "In a ")] : [describe(pot)];
+      if (companion) parts.push(describe(companion));
+      return parts;
     }
 
     function show(target) {
@@ -203,7 +205,7 @@ const BIOME = (function () {
 
   // items:   { key: { name, image, rarity, description, earnedWith } } from biome_items
   // shelfKey: which shelf to draw
-  // placed:  { slotNumber: { pot: key, plant: key or null } }
+  // placed:  { slotNumber: { pot: key, plant: key or null, companion: key or null } }
   // options: { editable, selected, onSelect(slot) } for arranging your own shelf
   function build(items, shelfKey, placed, options) {
     const opts = options || {};
@@ -219,6 +221,7 @@ const BIOME = (function () {
       const here = (placed && placed[s.slot]) || {};
       const pot = here.pot && items[here.pot];
       const plant = here.plant && items[here.plant];
+      const companion = pot && here.companion && items[here.companion];
       if (!pot && !opts.editable) return; // empty spots are only drawn while arranging
 
       const spot = document.createElement(opts.editable ? "button" : "div");
@@ -228,7 +231,8 @@ const BIOME = (function () {
       spot.style.width = s.width.toFixed(3) + "%";
       spot.dataset.slot = String(s.slot);
 
-      const description = pot ? (plant ? plant.name + " in a " + pot.name.toLowerCase() : pot.name) : "empty";
+      let description = pot ? (plant ? plant.name + " in a " + pot.name.toLowerCase() : pot.name) : "empty";
+      if (companion) description += ", with a " + companion.name.toLowerCase();
       if (opts.editable) {
         spot.type = "button";
         spot.setAttribute("aria-label", s.label + ": " + description);
@@ -242,6 +246,7 @@ const BIOME = (function () {
         spot.setAttribute("aria-label", description);
         spot._pot = pot;
         spot._plant = plant;
+        spot._companion = companion;
       }
 
       if (pot) spot.appendChild(img("biome-pot", pot.image, ""));
@@ -257,10 +262,14 @@ const BIOME = (function () {
           spot.appendChild(img("biome-pot-front", frontOf(pot.image), ""));
         }
       }
-      // Rare things twinkle (not while arranging, to keep that view calm)
-      if (!opts.editable && typeof UI !== "undefined") {
-        const rarest = [plant, pot].find((it) => it && (it.rarity === "rare" || it.rarity === "heirloom"));
-        if (rarest) UI.sparkles(spot, rarest.rarity);
+      // A companion (like the swallowtail) visits the pot: its canvas is as
+      // wide as the pot's and taller, with the bottoms lined up, so it can
+      // sit up among the plant's leaves. It drifts gently (see style.css).
+      if (companion) spot.appendChild(img("biome-companion", companion.image, ""));
+      // Rare pots twinkle (not while arranging, to keep that view calm).
+      // Only pots for now: plants and companions don't.
+      if (!opts.editable && typeof UI !== "undefined" && pot && (pot.rarity === "rare" || pot.rarity === "heirloom")) {
+        UI.sparkles(spot, pot.rarity);
       }
       wrap.appendChild(spot);
     });

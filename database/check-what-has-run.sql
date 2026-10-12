@@ -45,5 +45,6 @@ from (values
   ('2026-10-19-referrals.sql',            exists (select 1 from tbl where name = 'referrals')),
   ('2026-10-20-past-referrals.sql',       exists (select 1 from tbl where name = 'referral_credits')),
   ('2026-10-21-automod-emojis-and-words.sql', exists (select 1 from public.moderation_words where word = 'dipshit')),
-  ('2026-10-22-read-on-click.sql',        exists (select 1 from fn where name = 'mark_notification_read'))
+  ('2026-10-22-read-on-click.sql',        exists (select 1 from fn where name = 'mark_notification_read')),
+  ('2026-10-23-referral-rewards.sql',     exists (select 1 from fn where name = 'set_biome_companion'))
 ) as checks(file, ok);

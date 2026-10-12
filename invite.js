@@ -6,6 +6,8 @@
 const BONUS_INVITER = "50 Byome points and 5 community points";
 const BONUS_FRIEND = "40 Byome points";
 const MILESTONES = [1, 5, 25];
+// What each milestone unlocks (set in database/2026-10-23-referral-rewards.sql)
+const MILESTONE_REWARDS = { 1: "The Paper chain pot", 5: "The Swallowtail, a butterfly for your shelf", 25: "A special plant, coming soon" };
 
 function el(tag, className, text) {
   const node = document.createElement(tag);
@@ -115,9 +117,10 @@ function render(data) {
     mark.setAttribute("aria-hidden", "true");
     const text = el("span", "invite-milestone-text");
     text.appendChild(el("strong", null, n === 1 ? "1 friend" : n + " friends"));
+    if (MILESTONE_REWARDS[n]) text.appendChild(el("span", "invite-milestone-reward", MILESTONE_REWARDS[n]));
     text.appendChild(el("span", null, reached ? "Reached!" : (n - data.total) + " to go"));
     li.append(mark, text);
-    li.setAttribute("aria-label", (n === 1 ? "1 friend" : n + " friends") + ": " + (reached ? "reached" : (n - data.total) + " to go"));
+    li.setAttribute("aria-label", (n === 1 ? "1 friend" : n + " friends") + ": " + (MILESTONE_REWARDS[n] ? MILESTONE_REWARDS[n] + ", " : "") + (reached ? "reached" : (n - data.total) + " to go"));
     list.appendChild(li);
   });
   miles.appendChild(list);
