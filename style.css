@@ -2837,6 +2837,11 @@ div.biome-slot:focus-visible,
   margin: 0.25rem 0 0.75rem;
 }
 
+/* A gentle heads-up under a field (not an error that blocks anything) */
+.field-hint.field-warning {
+  color: var(--red-text);
+}
+
 .profile-optional {
   margin-top: 1.25rem;
 }

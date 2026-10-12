@@ -157,10 +157,23 @@ async function showVariationHint() {
   if (data.biome_points) parts.push(data.biome_points + " Byome " + (data.biome_points === 1 ? "point" : "points"));
   if (data.community_points) parts.push(data.community_points + " community " + (data.community_points === 1 ? "point" : "points"));
   const hint = document.getElementById("variation-hint");
-  hint.textContent = "Shades, scents or sizes count. Once approved, each variation earns you " + parts.join(" and ") +
+  hint.textContent = "Shades and scents count; sizes (like travel or full size) don't. Once approved, each variation earns you " + parts.join(" and ") +
     " on top of the points for the product" + (data.threshold ? " (up to " + data.threshold + " variations)." : ".");
   hint.hidden = false;
 }
+
+// Sizes aren't variations: say so as soon as one is typed
+const variationsInput = document.getElementById("product-variations");
+const sizeWarning = document.getElementById("variation-size-warning");
+variationsInput.addEventListener("input", () => {
+  const sizes = variationsInput.value.split(",").map((v) => v.trim()).filter(PRODUCT_MATCH.looksLikeSize);
+  sizeWarning.hidden = sizes.length === 0;
+  sizeWarning.textContent = sizes.length
+    ? "\u201c" + sizes.join("\u201d, \u201c") + "\u201d " + (sizes.length === 1 ? "looks like a size" : "look like sizes") +
+      ". Sizes aren't variations (reviews cover every size of a product), so please leave " + (sizes.length === 1 ? "it" : "them") + " out."
+    : "";
+});
+form.addEventListener("reset", () => { sizeWarning.hidden = true; });
 
 init();
 showVariationHint();

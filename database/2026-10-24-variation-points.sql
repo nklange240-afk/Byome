@@ -1,12 +1,14 @@
 -- =========================================================
 -- Byome: points for product variations.
 -- When a product suggestion is approved, the member also earns points for
--- each of its variations (shades, scents, sizes...), on top of the usual
+-- each of its variations (shades, scents...), on top of the usual
 -- points for the product itself. Each variation is worth about a third of
 -- a product (at least 1 Byome point), for up to 10 variations a product.
 -- Only the variations still listed when a moderator approves count, so a
 -- moderator should delete any that aren't real before approving.
--- Repeats ("Rose, rose") count once.
+-- Repeats ("Rose, rose") count once. Sizes ("Travel size", "50ml", "Mini")
+-- aren't variations and never count: nobody should review the travel and
+-- full size of the same product separately.
 -- Run in the Supabase SQL Editor. Safe to run again. Paste the whole file
 -- with nothing highlighted.
 --
@@ -23,10 +25,18 @@ select 'product_variation',
        round(coalesce(p.community_points, 0) / 3.0)::int,
        greatest(1, round(coalesce(p.biome_points, 0) / 3.0)::int),
        0, 'Product variations', true, 10,
-       'For each variation (shade, scent, size...) of a product you suggested, up to 10 per product.'
+       'For each variation (shade, scent...) of a product you suggested, up to 10 per product. Sizes don''t count.'
 from (select 1) one
 left join public.point_rules p on p.action = 'product_approved'
 on conflict (action) do nothing;
+
+
+-- ---------- Sizes aren't variations ----------
+-- The same rule as looksLikeSize in product-match.js
+create or replace function public.looks_like_size(p_variation text) returns boolean
+language sql immutable set search_path to public as $$
+  select coalesce(p_variation, '') ~* '(\m\d+(\.\d+)?\s*(ml|l|oz|fl\.?\s*oz|g|gr|grams?|kg|lbs?|ounces?|millilit(er|re)s?)\M)|\m(travel|mini|minis|full[ -]?size|jumbo|deluxe|samples?|trial|value size|super ?size)\M'
+$$;
 
 
 -- ---------- Paying out when a suggestion is approved ----------
@@ -47,7 +57,7 @@ begin
   if pr.suggested_by is null or rule.action is null then return; end if;
 
   select count(distinct lower(trim(v))) into n
-  from unnest(coalesce(pr.variations, '{}')) v where trim(v) <> '';
+  from unnest(coalesce(pr.variations, '{}')) v where trim(v) <> '' and not looks_like_size(v);
   paid := least(n, coalesce(rule.threshold, n));
   if paid < 1 then return; end if;
 
