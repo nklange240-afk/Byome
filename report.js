@@ -82,6 +82,7 @@ const REPORTS = (function () {
     details.maxLength = 500;
 
     const message = el("p", "auth-message");
+    message.setAttribute("aria-live", "polite"); // read out by screen readers
     const buttons = el("div", "report-buttons");
     const cancel = el("button", "action-btn", "Cancel");
     cancel.type = "button";

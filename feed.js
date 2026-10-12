@@ -94,7 +94,8 @@ function buildLikeButton(table, idColumn, id, likes) {
     btn.innerHTML = "";
     btn.append(leafIcon(), el("span", null, String(count)));
     btn.setAttribute("aria-pressed", String(liked));
-    btn.setAttribute("aria-label", (liked ? "Unlike" : "Like") + " (" + count + " likes)");
+    // "Like, 3 likes" plus pressed/not pressed (aria-pressed) says it all
+    btn.setAttribute("aria-label", "Like, " + count + (count === 1 ? " like" : " likes"));
     btn.classList.toggle("is-liked", liked);
   }
   paint();
@@ -132,7 +133,43 @@ async function init() {
   currentUser = data.session.user;
 
   await REPORTS.loadMine(currentUser.id); // so flags you've used start red
-  loadPosts();
+  await loadPosts();
+  showLinkedPost();
+}
+
+// ---------- Opening a post from a notification ----------
+// feed.html?post=<id>&comment=<id> (from the Notifications page) scrolls to
+// that post with its comments open and picks out the comment. If the post
+// isn't among the ones already showing, it's added to the top.
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+async function showLinkedPost() {
+  const params = new URLSearchParams(window.location.search);
+  const postId = params.get("post");
+  const commentId = params.get("comment");
+  if (!postId || !UUID.test(postId)) return;
+  // Only jump once; a refresh starts at the top as usual
+  history.replaceState(null, "", window.location.pathname);
+
+  let article = feedEl.querySelector('.post[data-post-id="' + postId + '"]');
+  if (!article) {
+    const { data: post } = await supabaseClient.from("posts").select(POST_COLUMNS).eq("id", postId).maybeSingle();
+    if (!post) {
+      feedEl.prepend(el("p", "feed-empty linked-missing", "That post isn't here any more. It may have been deleted."));
+      return;
+    }
+    const pollResults = POLLS.pollOf(post) ? await POLLS.results([post.id]) : new Map();
+    article = buildPost(post, pollResults.get(post.id));
+    feedEl.prepend(article);
+  }
+
+  if (commentId && UUID.test(commentId)) await article._openComments();
+  const comment = commentId && article.querySelector('.comment[data-comment-id="' + commentId + '"]');
+  const target = comment || article;
+  const still = typeof A11Y !== "undefined" ? A11Y.reducedMotion() : window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  target.scrollIntoView({ block: "center", behavior: still ? "auto" : "smooth" });
+  target.classList.add("is-linked");
+  setTimeout(() => target.classList.remove("is-linked"), 4000);
 }
 
 // ---------- Posts ----------
@@ -141,13 +178,14 @@ async function init() {
 // an edit or a new post keeps however many were already showing.
 const PAGE_SIZE = 20;
 let postsShown = 0;
+const POST_COLUMNS = "id, title, body, category, created_at, edited_at, held_at, user_id, profiles!user_id(username, avatar_path, avatar_ring, profile_biome, show_biome_symbol, is_moderator, badge), likes(user_id), comments(count), polls(closes_at, poll_options(id, label, position))";
 
 async function loadPosts(more) {
   const from = more === true ? postsShown : 0;
   const to = (more === true ? postsShown + PAGE_SIZE : Math.max(PAGE_SIZE, postsShown)) - 1;
   let query = supabaseClient
     .from("posts")
-    .select("id, title, body, category, created_at, edited_at, held_at, user_id, profiles!user_id(username, avatar_path, avatar_ring, profile_biome, show_biome_symbol, is_moderator, badge), likes(user_id), comments(count), polls(closes_at, poll_options(id, label, position))")
+    .select(POST_COLUMNS)
     .order("created_at", { ascending: false })
     .order("id")
     .range(from, to);
@@ -178,7 +216,11 @@ async function loadPosts(more) {
 
   // Poll results for any polls, in one go
   const pollResults = await POLLS.results(posts.filter((p) => POLLS.pollOf(p)).map((p) => p.id));
-  posts.forEach((post) => feedEl.appendChild(buildPost(post, pollResults.get(post.id))));
+  posts.forEach((post) => {
+    // (a post opened from a notification may already be showing at the top)
+    if (more === true && feedEl.querySelector('.post[data-post-id="' + post.id + '"]')) return;
+    feedEl.appendChild(buildPost(post, pollResults.get(post.id)));
+  });
   postsShown = from + posts.length;
   if (posts.length === to - from + 1) feedEl.appendChild(loadMoreButton(() => loadPosts(true)));
 }
@@ -192,6 +234,7 @@ function loadMoreButton(onClick) {
 
 function buildPost(post, pollResult) {
   const article = el("article", "post");
+  article.dataset.postId = post.id;
   const poll = POLLS.pollOf(post);
   if (poll) article.classList.add("has-poll");
 
@@ -253,6 +296,13 @@ function buildPost(post, pollResult) {
     commentsBtn.setAttribute("aria-expanded", String(opening));
     if (opening && !commentsLoaded) refreshComments();
   });
+
+  // Opens the comments and waits for them (used when arriving from a notification)
+  article._openComments = async () => {
+    commentsSection.hidden = false;
+    commentsBtn.setAttribute("aria-expanded", "true");
+    if (!commentsLoaded) await refreshComments();
+  };
 
   const actions = el("div", "post-actions");
   actions.append(likeBtn, commentsBtn);
@@ -329,6 +379,7 @@ function renderCommentSection(container, postId, comments, refresh) {
 
 function buildComment(comment, depth, postId, refresh) {
   const wrap = el("div", "comment");
+  wrap.dataset.commentId = comment.id;
 
   wrap.appendChild(buildMeta(comment.profiles, comment.created_at, comment.edited_at));
   if (comment.held_at) wrap.appendChild(heldNotice());
@@ -407,6 +458,7 @@ function buildCommentEditForm(comment, refresh, onCancel) {
 
   const footer = el("div", "comment-form-footer");
   const message = el("span", "auth-message");
+  message.setAttribute("aria-live", "polite"); // read out by screen readers
   const buttons = el("div", "edit-buttons");
   const cancel = actionButton("Cancel");
   cancel.addEventListener("click", onCancel);
@@ -450,6 +502,7 @@ function buildCommentForm(postId, parentId, placeholder, submitLabel, refresh) {
 
   const footer = el("div", "comment-form-footer");
   const message = el("span", "auth-message");
+  message.setAttribute("aria-live", "polite"); // read out by screen readers
   const submit = el("button", "btn btn-solid", submitLabel);
   submit.type = "submit";
   footer.append(message, submit);

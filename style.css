@@ -142,7 +142,6 @@ body {
   grid-column: 1 / -1;
   margin: 0;
   text-align: center;
-  opacity: 0.9;
 }
 
 .why-item h2 {
@@ -244,11 +243,12 @@ body {
 .auth-switch {
   margin-top: 1.5rem;
   font-size: 0.9rem;
-  opacity: 0.85;
+  color: var(--cream);
+  color: color-mix(in srgb, var(--cream) 88%, transparent);
 }
 
 .auth-switch a {
-  color: var(--gold);
+  color: var(--gold-text);
 }
 
 /* =========================================================
@@ -410,7 +410,8 @@ body {
 
 .char-count {
   font-size: 0.85rem;
-  opacity: 0.7;
+  color: var(--cream);
+  color: color-mix(in srgb, var(--cream) 80%, transparent); /* dimmed text, but links inside stay full strength */
 }
 
 .feed {
@@ -424,7 +425,8 @@ body {
 
 .post-meta {
   display: flex;
-  gap: 0.75rem;
+  flex-wrap: wrap; /* name, badges and date wrap onto two lines when there's no room */
+  gap: 0.25rem 0.75rem;
   align-items: baseline;
   margin-bottom: 0.4rem;
   font-size: 0.9rem;
@@ -463,7 +465,8 @@ body {
 }
 
 .feed-empty {
-  opacity: 0.8;
+  color: var(--cream);
+  color: color-mix(in srgb, var(--cream) 85%, transparent); /* dimmed text, but links inside stay full strength */
   padding: 1rem 0;
 }
 
@@ -603,6 +606,25 @@ body {
   padding: 0.75rem 0;
 }
 
+/* The post or comment a notification led you to: a soft golden glow
+   that fades away after a few seconds */
+.post.is-linked,
+.comment.is-linked {
+  border-radius: 10px;
+  animation: linked-glow 4s ease-out;
+}
+
+@keyframes linked-glow {
+  0%, 55% {
+    background-color: rgba(232, 182, 80, 0.13);
+    box-shadow: 0 0 0 10px rgba(232, 182, 80, 0.13);
+  }
+  100% {
+    background-color: rgba(232, 182, 80, 0);
+    box-shadow: 0 0 0 10px rgba(232, 182, 80, 0);
+  }
+}
+
 .comment-body {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
@@ -638,6 +660,12 @@ body {
    ========================================================= */
 :root {
   --leaf: #8DBB6E; /* fresh green, readable on the dark forest background */
+  /* Slightly lighter shades for small text, so it stays easy to read on
+     the green and blue panels too (at least 4.5:1 contrast) */
+  --gold-text: #E8BE6E;
+  --leaf-text: #AFCF9A;
+  --blue-text: #9FCCEA;
+  --red-text: #E6957F;
 }
 
 .like-btn {
@@ -740,7 +768,7 @@ a.logo:focus-visible {
 }
 
 .inline-link {
-  color: var(--gold);
+  color: var(--gold-text);
 }
 
 #done-link {
@@ -832,7 +860,7 @@ a {
   min-height: 1.5em; /* reserve space so the form doesn't jump */
   margin-top: 0.3rem;
   font-size: 0.9rem;
-  color: var(--gold);
+  color: var(--gold-text);
 }
 
 /* Small, non-clickable leaves on posted reviews */
@@ -2173,7 +2201,8 @@ div.biome-slot:focus-visible,
 .biome-hint {
   text-align: center;
   font-size: 0.9rem;
-  opacity: 0.8;
+  color: var(--cream);
+  color: color-mix(in srgb, var(--cream) 85%, transparent); /* dimmed text, but links inside stay full strength */
   margin-top: 0.6rem;
 }
 
@@ -2266,8 +2295,8 @@ div.biome-slot:focus-visible,
   letter-spacing: 0.04em;
 }
 .rarity-common { color: var(--cream); opacity: 0.75; }
-.rarity-uncommon { color: var(--leaf); }
-.rarity-rare { color: #8EC3E6; }
+.rarity-uncommon { color: var(--leaf-text); }
+.rarity-rare { color: var(--blue-text); }
 .rarity-heirloom { color: var(--gold); }
 
 /* ----- Shop ----- */
@@ -2323,7 +2352,7 @@ div.biome-slot:focus-visible,
   align-items: center;
   gap: 0.3rem;
   font-weight: 600;
-  color: var(--leaf);
+  color: var(--leaf-text);
 }
 
 .shop-price .leaf-icon {
@@ -2402,7 +2431,9 @@ div.biome-slot:focus-visible,
    it stays invisible until an ad has filled it, and disappears if none
    comes */
 .ad-sign-wrap.is-middle {
-  margin: 2rem 0 0.5rem;
+  /* (top and bottom only, so the small-phone centering below still applies) */
+  margin-top: 2rem;
+  margin-bottom: 0.5rem;
 }
 
 .is-middle .ad-sign {
@@ -2480,16 +2511,16 @@ div.biome-slot:focus-visible,
 }
 
 .chip-community {
-  color: var(--gold);
+  color: var(--gold-text);
 }
 
 .chip-biome {
-  color: var(--leaf);
+  color: var(--leaf-text);
 }
 
-/* Spending shows as a minus in "Recent activity" */
+/* Spending shows as a minus in "Recent activity" (dashed, so it doesn't
+   rely on color alone) */
 .chip-spent {
-  opacity: 0.8;
   border-style: dashed;
 }
 
@@ -2525,7 +2556,7 @@ div.biome-slot:focus-visible,
 }
 
 .report-btn.is-reported {
-  color: var(--report-red);
+  color: var(--red-text);
   opacity: 1;
   cursor: default;
 }
@@ -2740,7 +2771,7 @@ div.biome-slot:focus-visible,
 
 .post-author.is-deleted {
   font-style: italic;
-  opacity: 0.75;
+  color: var(--gold-text);
 }
 
 /* =========================================================
@@ -2780,7 +2811,8 @@ div.biome-slot:focus-visible,
 
 .field-hint {
   font-size: 0.85rem;
-  opacity: 0.75;
+  color: var(--cream);
+  color: color-mix(in srgb, var(--cream) 82%, transparent); /* dimmed text, but links inside stay full strength */
   margin: 0.25rem 0 0.75rem;
 }
 
@@ -2906,8 +2938,10 @@ div.biome-slot:focus-visible,
 
 .profile-head-actions {
   display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   align-items: center;
-  gap: 1rem;
+  gap: 0.5rem;
   margin-left: auto;
 }
 
@@ -3166,7 +3200,7 @@ html.near-bottom {
   background: none;
   border: none;
   padding: 0.5rem 0 0;
-  color: var(--gold);
+  color: var(--gold-text);
   font-family: var(--font-body);
   font-size: 0.9rem;
   text-decoration: underline;
@@ -3247,6 +3281,7 @@ html.near-bottom {
 .icon-points { color: var(--gold); }
 .icon-like { color: var(--leaf); }
 .icon-comment { color: var(--cream); }
+.icon-friend { color: var(--leaf-text); }
 .icon-moderation { color: #E07A5F; }
 
 /* ----- Shop: picture box, rarity edge, "Owned" tag ----- */
@@ -3578,9 +3613,72 @@ dialog.celebrate h2 {
 /* The meadow keeps the usual dark byome green; its spring feel comes
    from the accents (spring green and buttercup) and, later, hand-drawn
    florals in the margins */
+/* Meadow: the light biome. Bright fresh green at the top, deepening to
+   rich meadow green (ui.js shades the page), with dark green text and
+   buttons, so it feels nothing like the Forest */
 .biome-meadow {
-  --leaf: #BEF7BC;
-  --gold: #F7D78C;
+  --cream: #22382A;            /* text: deep green */
+  --forest-dark: #FFFCF4;      /* text on buttons, field backgrounds */
+  --forest-mid: #F6FBEE;       /* cards, menus and pop-ups */
+  --moss: rgba(34, 56, 42, 0.28); /* borders */
+  --gold: #255428;             /* accents: dark meadow green (readable even on the deepest green) */
+  --leaf: #255428;
+  --gold-text: #255428;
+  --leaf-text: #255428;
+  --blue-text: #1B4F78;
+  --red-text: #7F2E1E;
+  color: var(--cream);
+}
+
+.biome-meadow .btn-solid,
+.biome-meadow .btn-solid:hover {
+  background: #2F5A3D;
+  border-color: #2F5A3D;
+  color: #FFFCF4;
+}
+
+.biome-meadow .btn-ghost {
+  color: #22382A;
+  border-color: rgba(34, 56, 42, 0.45);
+}
+
+.biome-meadow .member-badge {
+  background: #2F5A3D;
+  color: #FFFCF4;
+}
+
+.biome-meadow .hamburger-btn span {
+  background: #22382A;
+}
+
+/* Softened text a little stronger, so it reads well on the deeper greens
+   (and on the snowy tundra's pale blue sky) */
+.biome-tundra :is(.post-meta time, .profile-meta, .action-btn, .points-label, .edited-tag, .entry-meta,
+  .points-note, .profile-counts, .char-count, .celebrate-text) {
+  opacity: 1;
+}
+
+.biome-meadow :is(.post-meta time, .profile-meta, .action-btn, .points-label, .edited-tag, .entry-meta,
+  .points-note, .profile-counts, .char-count) {
+  opacity: 0.92;
+}
+
+/* The footer: deep meadow green */
+body.biome-meadow .site-footer {
+  --cream: #F6EEE4;
+  opacity: 1;
+  background-color: #2C4A33;
+  color: #F6EEE4;
+}
+
+/* The pretend review in a meadow preview: dark lines on the light card */
+.biome-meadow .preview-line {
+  background-color: rgba(34, 56, 42, 0.25);
+}
+
+/* Higher contrast on the meadow: firmer borders */
+html.a11y-contrast .biome-meadow {
+  --moss: rgba(34, 56, 42, 0.6);
 }
 
 /* Desert: golden sand; the cards are a little darker, like shade */
@@ -3595,6 +3693,13 @@ dialog.celebrate h2 {
   --forest-dark: #22303D;
   --forest-mid: #34485B;
   --moss: #6A8599;
+  /* frosty, paler accents, so names, links and tags stay easy to read
+     on the pale blue sky at the top */
+  --gold: #FAE6B8;
+  --leaf: #D6F0C4;
+  --gold-text: #FAE6B8;
+  --leaf-text: #D6F0C4;
+  --blue-text: #E1F1FC;
 }
 
 .biome-ocean {
@@ -3708,6 +3813,19 @@ body > .biome-overlay.is-far {
 }
 
 /* Deeper into the forest, the foliage fades into the dark */
+/* Computers: the meadow's art fades a little more behind the posts, so
+   its light background stays calm under the words */
+body.biome-meadow > .biome-overlay {
+  -webkit-mask-image: linear-gradient(to right, #000 calc(50% - 480px), rgba(0, 0, 0, 0.55) calc(50% - 400px),
+    rgba(0, 0, 0, 0.28) calc(50% - 330px), rgba(0, 0, 0, 0.18) calc(50% - 280px),
+    rgba(0, 0, 0, 0.18) calc(50% + 280px), rgba(0, 0, 0, 0.28) calc(50% + 330px),
+    rgba(0, 0, 0, 0.55) calc(50% + 400px), #000 calc(50% + 480px));
+  mask-image: linear-gradient(to right, #000 calc(50% - 480px), rgba(0, 0, 0, 0.55) calc(50% - 400px),
+    rgba(0, 0, 0, 0.28) calc(50% - 330px), rgba(0, 0, 0, 0.18) calc(50% - 280px),
+    rgba(0, 0, 0, 0.18) calc(50% + 280px), rgba(0, 0, 0, 0.28) calc(50% + 330px),
+    rgba(0, 0, 0, 0.55) calc(50% + 400px), #000 calc(50% + 480px));
+}
+
 .biome-forest > .biome-overlay {
   opacity: calc(0.6 - var(--biome-depth, 0) * 0.3);
 }
@@ -3751,6 +3869,43 @@ body > .biome-overlay.is-far {
     background-size: 100% auto;
     background-position: center calc(500px + var(--ov-y, 0px));
     opacity: 0.37;
+  }
+}
+
+/* Phones: the meadow uses only its smaller, full-width flowers (the
+   delicate look of both edges at once), softened behind the posts. Its
+   bugs stay small, solid at the edges and faded behind the text. */
+@media (max-width: 900px) {
+  body.biome-meadow > .biome-overlay {
+    opacity: 1;
+    background-image: none;
+    /* an eased fade from the edges to barely there (18%) by the time it's
+       behind the text, which starts 32px in */
+    -webkit-mask-image: linear-gradient(to right, #000 6px, rgba(0, 0, 0, 0.55) 18px, rgba(0, 0, 0, 0.3) 30px, rgba(0, 0, 0, 0.21) 40px, rgba(0, 0, 0, 0.18) 50px,
+      rgba(0, 0, 0, 0.18) calc(100% - 50px), rgba(0, 0, 0, 0.21) calc(100% - 40px), rgba(0, 0, 0, 0.3) calc(100% - 30px), rgba(0, 0, 0, 0.55) calc(100% - 18px), #000 calc(100% - 6px));
+    mask-image: linear-gradient(to right, #000 6px, rgba(0, 0, 0, 0.55) 18px, rgba(0, 0, 0, 0.3) 30px, rgba(0, 0, 0, 0.21) 40px, rgba(0, 0, 0, 0.18) 50px,
+      rgba(0, 0, 0, 0.18) calc(100% - 50px), rgba(0, 0, 0, 0.21) calc(100% - 40px), rgba(0, 0, 0, 0.3) calc(100% - 30px), rgba(0, 0, 0, 0.55) calc(100% - 18px), #000 calc(100% - 6px));
+  }
+
+  body.biome-meadow > .biome-overlay::before {
+    opacity: 0.9;
+    background-position: center var(--ov-y, 0px);
+  }
+
+  body > .biome-overlay.is-sparse::before {
+    content: none;
+  }
+
+  /* The bugs drift at the same small size as the flowers: fully solid in
+     the side gutters, easing down to barely there (18%) behind the text */
+  body.biome-page > .biome-overlay.is-sparse {
+    background-image: var(--ov-img);
+    background-size: 100% auto;
+    background-position: center var(--ov-y, 0px);
+    -webkit-mask-image: linear-gradient(to right, #000 16px, rgba(0, 0, 0, 0.55) 26px, rgba(0, 0, 0, 0.3) 36px, rgba(0, 0, 0, 0.18) 50px,
+      rgba(0, 0, 0, 0.18) calc(100% - 50px), rgba(0, 0, 0, 0.3) calc(100% - 36px), rgba(0, 0, 0, 0.55) calc(100% - 26px), #000 calc(100% - 16px));
+    mask-image: linear-gradient(to right, #000 16px, rgba(0, 0, 0, 0.55) 26px, rgba(0, 0, 0, 0.3) 36px, rgba(0, 0, 0, 0.18) 50px,
+      rgba(0, 0, 0, 0.18) calc(100% - 50px), rgba(0, 0, 0, 0.3) calc(100% - 36px), rgba(0, 0, 0, 0.55) calc(100% - 26px), #000 calc(100% - 16px));
   }
 }
 
@@ -4664,7 +4819,8 @@ input[type="radio"] {
 .stacked-form .field-hint {
   margin: 0 0 0.4rem;
   font-size: 0.8rem;
-  opacity: 0.75;
+  color: var(--cream);
+  color: color-mix(in srgb, var(--cream) 82%, transparent); /* dimmed text, but links inside stay full strength */
 }
 
 /* After signing up: "Almost there!" */
@@ -5142,4 +5298,456 @@ button.poll-option:disabled {
 .profile-poll {
   margin: 0.4rem 0;
   font-size: 0.9rem;
+}
+
+/* =========================================================
+   ACCESSIBILITY SETTINGS
+   Chosen in the Accessibility panel (footer link); a11y.js puts these
+   classes on <html> before the page is drawn.
+   ========================================================= */
+
+/* ----- Larger text: everything is sized in rem, so the whole page
+   grows evenly, like zooming in ----- */
+html.a11y-text-large { font-size: 112.5%; }
+html.a11y-text-xlarge { font-size: 125%; }
+
+/* ----- Reduce motion: a11y.js switches style.css's motion blocks off
+   (as the device setting would); this catches everything else, so
+   pop-ups, fades and little bounces happen instantly ----- */
+html.a11y-reduce-motion *,
+html.a11y-reduce-motion *::before,
+html.a11y-reduce-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* ----- Higher contrast ----- */
+/* Text that's normally softened is shown at full strength */
+html.a11y-contrast :is(.hero-sub, .about-contact, .why-item p, .auth-sub, .auth-switch, .back-link,
+  .site-footer, .char-count, .post-meta time, .post-delete, .feed-empty, .action-btn, .field-label,
+  .extras-hint, .combo-empty, .edited-tag, .profile-counts, .points-label, .points-note,
+  .notification-time, .search-status, .biome-hint, .biome-tile-meta, .rarity-common, .entry-meta,
+  .report-intro, .report-details, .post-author.is-deleted, .field-hint, .composer-starter,
+  .footer-social a, .profile-meta, .empty-state p, .legal-updated, .biome-option-note, .sort-label,
+  .product-count, .rating-bar-count, .log-time, .returned-intro, .returned-what, .poll-meta,
+  .rating-leaf, .biome-tile-empty) {
+  opacity: 1;
+}
+
+html.a11y-contrast .search-input::placeholder,
+html.a11y-contrast input::placeholder,
+html.a11y-contrast textarea::placeholder {
+  color: var(--cream);
+  opacity: 0.85;
+}
+
+/* Clearer edges on cards, fields and dividers */
+html.a11y-contrast {
+  --moss: #A9C79E;
+}
+
+html.a11y-contrast input,
+html.a11y-contrast textarea,
+html.a11y-contrast select {
+  border-color: var(--cream) !important;
+}
+
+/* Links in text are underlined, so they don't rely on color alone */
+html.a11y-contrast main p a,
+html.a11y-contrast main li a,
+html.a11y-contrast .site-footer a {
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+}
+
+/* A bold, easy-to-follow outline on whatever has keyboard focus */
+html.a11y-contrast :focus-visible {
+  outline: 3px solid var(--gold) !important;
+  outline-offset: 3px;
+}
+
+/* Biome art and drifting specks step back behind the words */
+html.a11y-contrast .biome-overlay {
+  opacity: 0.22 !important;
+}
+
+html.a11y-contrast .biome-layer {
+  opacity: 0.45 !important;
+}
+
+html.a11y-contrast .biome-layer.is-through {
+  display: none;
+}
+
+/* ----- Skip to content (added by a11y.js): hidden until a keyboard
+   user tabs to it ----- */
+.skip-link {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 1000;
+  padding: 0.6rem 1rem;
+  border-radius: 8px;
+  background: var(--gold);
+  color: var(--forest-dark);
+  font-weight: 600;
+  text-decoration: none;
+  transform: translateY(-200%);
+}
+
+.skip-link:focus {
+  transform: none;
+  outline: 3px solid var(--cream);
+  outline-offset: 2px;
+}
+
+main:focus {
+  outline: none; /* focus lands here from the skip link; no ring around the whole page */
+}
+
+/* ----- Calm backgrounds: the biome's colors stay, its art and drifting
+   specks go ----- */
+html.a11y-calm .biome-overlay,
+html.a11y-calm .biome-layer {
+  display: none !important;
+}
+
+/* ----- Easy-reading font ----- */
+html.a11y-readable-font {
+  --font-body: 'Atkinson Hyperlegible', 'Work Sans', sans-serif;
+  --font-heading: 'Atkinson Hyperlegible', 'Fraunces', serif;
+}
+
+html.a11y-readable-font body {
+  line-height: 1.6;
+  letter-spacing: 0.01em;
+}
+
+/* ----- The Accessibility panel ----- */
+dialog.a11y-dialog {
+  max-width: 26rem;
+  text-align: left;
+}
+
+.a11y-dialog h2 {
+  font-family: var(--font-heading);
+  font-size: 1.4rem;
+  margin-bottom: 0.25rem;
+}
+
+.a11y-dialog .a11y-intro {
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.a11y-group {
+  border: 0;
+  margin: 0 0 1.1rem;
+}
+
+.a11y-group legend {
+  font-weight: 600;
+  margin-bottom: 0.45rem;
+}
+
+.a11y-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.a11y-choice {
+  position: relative;
+  display: inline-flex;
+}
+
+.a11y-choice input {
+  position: absolute;
+  opacity: 0;
+  inset: 0;
+  margin: 0;
+  cursor: pointer;
+}
+
+.a11y-choice span {
+  display: inline-block;
+  min-height: 2.75rem;
+  padding: 0.6rem 0.95rem;
+  border: 1.5px solid var(--moss);
+  border-radius: 999px;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.a11y-choice input:checked + span {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: var(--forest-dark);
+  font-weight: 600;
+}
+
+.a11y-choice input:focus-visible + span {
+  outline: 3px solid var(--gold);
+  outline-offset: 3px;
+}
+
+.a11y-group .a11y-note {
+  font-size: 0.85rem;
+  margin-top: 0.4rem;
+  opacity: 0.85;
+}
+
+.a11y-dialog .a11y-saved {
+  font-size: 0.85rem;
+  opacity: 0.85;
+  margin-bottom: 0.9rem;
+}
+
+/* "Accessibility" in the footer is a button that looks like the links */
+.footer-link-btn {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: var(--cream);
+  font: inherit;
+  cursor: pointer;
+}
+
+.footer-link-btn:hover,
+.footer-link-btn:focus-visible {
+  color: var(--gold);
+  text-decoration: underline;
+}
+
+
+/* =========================================================
+   INVITE FRIENDS (invite.html) and the invite code on sign-up
+   ========================================================= */
+.invite-intro {
+  margin: 0.25rem 0 1.25rem;
+}
+
+.invite-card {
+  margin: 0 0 1.25rem;
+  padding: 1.1rem 1.25rem 1.25rem;
+  border-radius: 12px;
+  background-color: var(--forest-mid);
+}
+
+.invite-card .section-title {
+  margin-top: 0;
+}
+
+.invite-link {
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--moss);
+  border-radius: 8px;
+  background-color: var(--forest-dark);
+  color: var(--cream);
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+}
+
+.invite-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin: 0.75rem 0 1rem;
+}
+
+.invite-code-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+}
+
+.invite-code {
+  font-size: 1.25rem;
+  letter-spacing: 0.12em;
+  color: var(--gold-text);
+}
+
+.invite-status {
+  min-height: 1.4em;
+  margin: 0.4rem 0 0;
+  font-size: 0.9rem;
+  color: var(--leaf-text);
+}
+
+.invite-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.invite-stat {
+  display: flex;
+  flex-direction: column;
+  padding: 0.75rem;
+  border: 1px solid var(--moss);
+  border-radius: 10px;
+  text-align: center;
+}
+
+.invite-stat-number {
+  font-family: var(--font-heading);
+  font-size: 1.6rem;
+  color: var(--gold-text);
+}
+
+.invite-stat-label {
+  font-size: 0.85rem;
+}
+
+.invite-stat.is-full {
+  border-color: var(--gold-text);
+}
+
+.invite-limit {
+  margin: 0.9rem 0 0;
+  font-size: 0.95rem;
+}
+
+.invite-limit.is-reached {
+  padding: 0.8rem 1rem;
+  border: 1.5px solid var(--gold-text);
+  border-radius: 10px;
+}
+
+.invite-limit.is-reached p {
+  margin: 0.3rem 0 0;
+}
+
+.invite-milestones {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin: 0.75rem 0 0;
+  padding: 0;
+}
+
+.invite-milestone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.75rem 0.5rem;
+  border: 1px dashed var(--moss);
+  border-radius: 10px;
+  text-align: center;
+}
+
+.invite-milestone-mark {
+  display: grid;
+  place-items: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  border: 2px solid var(--moss);
+  border-radius: 50%;
+  font-weight: 600;
+}
+
+.invite-milestone-text {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.9rem;
+}
+
+.invite-milestone.is-reached {
+  border-style: solid;
+  border-color: var(--gold-text);
+}
+
+.invite-milestone.is-reached .invite-milestone-mark {
+  border-color: var(--gold-text);
+  background-color: var(--gold-text);
+  color: var(--forest-dark);
+}
+
+.invite-friends {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.invite-friend {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.65rem 0;
+  border-top: 1px solid var(--moss);
+}
+
+.invite-friend:first-child {
+  border-top: 0;
+}
+
+.invite-friend .post-author {
+  color: var(--gold-text);
+}
+
+.invite-friend-state {
+  font-size: 0.9rem;
+}
+
+.invite-friend-state.is-done {
+  color: var(--leaf-text);
+}
+
+.invite-steps,
+.invite-rules {
+  margin: 0.5rem 0 0 1.25rem;
+}
+
+.invite-steps li,
+.invite-rules li {
+  margin-bottom: 0.4rem;
+}
+
+.invite-rules {
+  font-size: 0.9rem;
+}
+
+/* Sign-up: the optional invite code */
+.optional-tag {
+  font-weight: 400;
+  font-size: 0.85em;
+}
+
+#invite-code {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+#invite-hint.is-good {
+  color: var(--leaf-text);
+}
+
+#invite-hint.is-bad {
+  color: var(--red-text);
+}
+
+@media (max-width: 480px) {
+  .invite-stats,
+  .invite-milestones {
+    grid-template-columns: 1fr;
+  }
+
+  .invite-stat {
+    flex-direction: row;
+    align-items: baseline;
+    gap: 0.6rem;
+    text-align: left;
+  }
+
+  .invite-milestone {
+    flex-direction: row;
+    text-align: left;
+  }
 }

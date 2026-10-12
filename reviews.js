@@ -225,11 +225,29 @@ function enhanceSelect(select) {
   search.type = "text";
   search.placeholder = "Search...";
   search.setAttribute("aria-label", "Search options");
+  search.setAttribute("role", "combobox");
+  search.setAttribute("aria-autocomplete", "list");
+  search.setAttribute("aria-expanded", "true");
   const list = el("ul", "dropdown-list");
   list.setAttribute("role", "listbox");
   list.tabIndex = -1;
   panel.append(search, list);
   wrap.append(btn, panel, select);
+
+  // Screen readers hear the field's name with its current choice
+  // ("Product, Paula's Choice BHA"), and which option is highlighted
+  const baseId = (select.id || "dropdown") + "-dd";
+  btn.id = baseId + "-btn";
+  list.id = baseId + "-list";
+  btn.setAttribute("aria-controls", list.id);
+  const fieldLabel = select.id && document.querySelector('label[for="' + select.id + '"]');
+  if (fieldLabel) {
+    if (!fieldLabel.id) fieldLabel.id = baseId + "-label";
+    btn.setAttribute("aria-labelledby", fieldLabel.id + " " + btn.id);
+    list.setAttribute("aria-labelledby", fieldLabel.id);
+    // the visible label now names the button, so clicking it opens the list
+    fieldLabel.addEventListener("click", (e) => { e.preventDefault(); btn.focus(); });
+  }
 
   let items = [];
   let shown = [];
@@ -245,7 +263,13 @@ function enhanceSelect(select) {
   function highlight() {
     Array.from(list.children).forEach((li, i) => li.classList.toggle("is-active", i === active));
     const li = list.children[active];
-    if (li) li.scrollIntoView({ block: "nearest" });
+    const focusEl = search.hidden ? list : search;
+    if (li && li.id) {
+      focusEl.setAttribute("aria-activedescendant", li.id);
+      li.scrollIntoView({ block: "nearest" });
+    } else {
+      focusEl.removeAttribute("aria-activedescendant");
+    }
   }
 
   function renderList() {
@@ -256,8 +280,9 @@ function enhanceSelect(select) {
       list.appendChild(el("li", "dropdown-empty", "No matches"));
       return;
     }
-    shown.forEach((item) => {
+    shown.forEach((item, i) => {
       const li = el("li", "dropdown-option");
+      li.id = baseId + "-opt-" + i;
       li.setAttribute("role", "option");
       li.setAttribute("aria-selected", String(item.value === select.value));
       if (item.name) {
@@ -279,7 +304,9 @@ function enhanceSelect(select) {
     renderList();
     panel.hidden = false;
     btn.setAttribute("aria-expanded", "true");
+    search.setAttribute("aria-controls", list.id);
     (search.hidden ? list : search).focus();
+    highlight();
   }
 
   function close(returnFocus) {
@@ -798,7 +825,7 @@ function buildLikeButton(table, idColumn, id, likes) {
     btn.innerHTML = "";
     btn.append(leafIcon(), el("span", null, "Helpful" + (count ? " \u00b7 " + count : "")));
     btn.setAttribute("aria-pressed", String(liked));
-    btn.setAttribute("aria-label", (liked ? "Marked helpful" : "Mark helpful") + " (" + count + (count === 1 ? " person" : " people") + " found this helpful)");
+    btn.setAttribute("aria-label", "Helpful, " + count + (count === 1 ? " person" : " people") + " found this helpful");
     btn.classList.toggle("is-liked", liked);
   }
   paint();
@@ -923,6 +950,7 @@ function buildUpdateForm(r, onSaved, onCancel) {
 
   const footer = el("div", "comment-form-footer");
   const message = el("span", "auth-message");
+  message.setAttribute("aria-live", "polite"); // read out by screen readers
   const buttons = el("div", "edit-buttons");
   const cancel = actionButton("Cancel");
   cancel.addEventListener("click", onCancel);

@@ -42,6 +42,13 @@ const UI = (function () {
       a.href = href;
       links.appendChild(a);
     });
+    if (typeof A11Y !== "undefined") {
+      const settings = el("button", "footer-link-btn", "Accessibility");
+      settings.type = "button";
+      settings.setAttribute("aria-haspopup", "dialog");
+      settings.addEventListener("click", openAccessibility);
+      links.appendChild(settings);
+    }
     footer.appendChild(links);
 
     // Byome on social media
@@ -58,6 +65,69 @@ const UI = (function () {
       social.appendChild(a);
     });
     footer.appendChild(social);
+  }
+
+  // ---------- Accessibility settings ----------
+  // A small panel (from the footer's "Accessibility" link) for the settings
+  // in a11y.js. Changes apply straight away and are saved on this device.
+  const A11Y_GROUPS = [
+    { name: "motion", legend: "Motion", options: [["device", "Match my device"], ["reduce", "Reduce motion"]],
+      note: "Reduce motion keeps the biomes still and makes pop-ups appear without animation." },
+    { name: "text", legend: "Text size", options: [["default", "Standard"], ["large", "Large"], ["xlarge", "Extra large"]] },
+    { name: "contrast", legend: "Contrast", options: [["default", "Standard"], ["high", "Higher contrast"]],
+      note: "Higher contrast shows all text at full strength, outlines fields and buttons more clearly, underlines links and quiets the background art." },
+    { name: "background", legend: "Backgrounds", options: [["full", "Full biomes"], ["calm", "Calm"]],
+      note: "Calm hides the biome art and the drifting specks, keeping just the colors. Easier on busy minds, tired eyes and older phones." },
+    { name: "font", legend: "Font", options: [["default", "Standard"], ["readable", "Easy-reading"]],
+      note: "Easy-reading uses Atkinson Hyperlegible, a font designed so similar letters are easy to tell apart." },
+  ];
+
+  function openAccessibility() {
+    const current = A11Y.get();
+    const dialog = el("dialog", "celebrate a11y-dialog");
+    dialog.setAttribute("aria-labelledby", "a11y-heading");
+    const h = el("h2", null, "Accessibility");
+    h.id = "a11y-heading";
+    dialog.append(h, el("p", "a11y-intro", "Make Byome easier to see and use."));
+
+    A11Y_GROUPS.forEach((group) => {
+      const set = el("fieldset", "a11y-group");
+      set.appendChild(el("legend", null, group.legend));
+      const choices = el("div", "a11y-choices");
+      group.options.forEach(([value, label]) => {
+        const choice = el("label", "a11y-choice");
+        const input = el("input");
+        input.type = "radio";
+        input.name = "a11y-" + group.name;
+        input.value = value;
+        input.checked = current[group.name] === value;
+        input.addEventListener("change", () => { if (input.checked) A11Y.set(group.name, value); });
+        choice.append(input, el("span", null, label));
+        choices.appendChild(choice);
+      });
+      set.appendChild(choices);
+      if (group.note) set.appendChild(el("p", "a11y-note", group.note));
+      dialog.appendChild(set);
+    });
+
+    dialog.appendChild(el("p", "a11y-saved", "Saved on this device. Your phone or computer's own settings (like text size) work alongside these."));
+    const actions = el("div", "celebrate-actions");
+    const done = el("button", "btn btn-solid", "Done");
+    done.type = "button";
+    done.addEventListener("click", () => dialog.close());
+    actions.appendChild(done);
+    dialog.appendChild(actions);
+
+    dialog.addEventListener("close", () => dialog.remove());
+    // Clicking the dim background (outside the panel) closes it too
+    dialog.addEventListener("click", (e) => {
+      const r = dialog.getBoundingClientRect();
+      if (e.target === dialog && (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom)) dialog.close();
+    });
+    document.body.appendChild(dialog);
+    dialog.showModal();
+    const first = dialog.querySelector("input:checked");
+    if (first) first.focus();
   }
 
   // Simple line icons, drawn in the text color
@@ -289,14 +359,30 @@ const UI = (function () {
   //     little slower than the page
   //   overlays: several layers of art instead, back to front, each with
   //     its own speed (0.5 = half the page's speed; slower feels farther
-  //     away) and strength (opacity)
+  //     away) and strength (opacity); far: drawn smaller; sparse: a few
+  //     small things (like insects) that phones show without a faint copy
+  //   stops: more than two colors to pass through, top to bottom
+  //   light: a light biome (dark text), which uses the dark green logo
+  //   shadeFrom: when set, the colors follow how far down the page you are
+  //     (from this fraction on), instead of a fixed scrolling distance
   // The colors of cards and borders for each biome are in style.css.
   const BIOME_LOOKS = {
     forest: { name: "Forest", symbol: "\u{1F332}", top: [36, 64, 47], deep: [15, 31, 22], particles: [["firefly", 16]],
               overlay: "biome-assets/overlay-forest.webp" },
-    meadow: { name: "Meadow", symbol: "\u{1F33C}", top: [36, 64, 47], deep: [36, 64, 47], particles: [], // hand-drawn florals to come
+    // Meadow is the light biome (dark text; its colors are in style.css):
+    // bright, fresh green at the top, deepening to rich meadow green by the
+    // bottom of the page, however long the page is
+    meadow: { name: "Meadow", symbol: "\u{1F33C}", top: [238, 248, 221], deep: [159, 203, 126], particles: [],
+              // hand-drawn wildflowers down both sides, with bees and butterflies
+              // drifting a little faster in front (no faint copy on phones)
+              overlays: [
+                { image: "biome-assets/overlay-meadow-flowers.webp", speed: 0.5, opacity: 0.75 },
+                { image: "biome-assets/overlay-meadow-bugs.webp", speed: 0.6, opacity: 0.95, sparse: true },
+              ],
+              stops: [[238, 248, 221], [203, 230, 170], [159, 203, 126]],
+              shadeFrom: 0, light: true,
               // its preview tile hints at spring green and petals
-              preview: { top: [78, 128, 72], deep: [36, 64, 47], dots: "petal" } },
+              preview: { top: [238, 248, 221], deep: [159, 203, 126], dots: "petal" } },
     desert: { name: "Desert", symbol: "☀️", top: [128, 90, 30], deep: [58, 36, 38], particles: [["glint", 34]],
               shadeFrom: 0.65, // golden most of the way; dusk only near the bottom
               // its preview tile is brighter, like sand in the sun
@@ -328,7 +414,7 @@ const UI = (function () {
   }
 
   function makeOverlay(o) {
-    const overlay = el("div", "biome-overlay" + (o.far ? " is-far" : ""));
+    const overlay = el("div", "biome-overlay" + (o.far ? " is-far" : "") + (o.sparse ? " is-sparse" : ""));
     overlay.setAttribute("aria-hidden", "true");
     overlay.style.setProperty("--ov-img", "url(" + art(o.image) + ")");
     if (o.opacity !== undefined) overlay.style.setProperty("--ov-opacity", String(o.opacity));
@@ -514,9 +600,18 @@ const UI = (function () {
     biomeStarted = true;
     document.body.dataset.biome = key;
     document.body.classList.add("biome-page", "biome-" + key);
+    // A light biome gets the dark green logo, and the phone's browser bar
+    // matches the top of the page
+    if (look.light) {
+      const logo = document.querySelector(".site-header .logo img");
+      if (logo) logo.src = "logo-wordmark-green.png";
+      const bar = document.querySelector('meta[name="theme-color"]');
+      if (bar) bar.content = "rgb(" + look.top.join(",") + ")";
+    }
 
     // The slow shift in color as you go deeper
-    const stillMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    // (the device's setting, or Reduce motion in the Accessibility panel)
+    const stillMotion = () => (typeof A11Y !== "undefined" ? A11Y.reducedMotion() : window.matchMedia("(prefers-reduced-motion: reduce)").matches);
     let overlays = [];
     let ticking = false;
     function shade() {
@@ -527,7 +622,11 @@ const UI = (function () {
       const from = look.shadeFrom || 0;
       const t = Math.max(0, (Math.min(1, window.scrollY / depth) - from) / (1 - from));
       const eased = t * t * (3 - 2 * t); // gentle at both ends
-      const rgb = look.top.map((c, i) => Math.round(c + (look.deep[i] - c) * eased));
+      // Most biomes blend from top to deep; some pass through more colors (stops)
+      const stops = look.stops || [look.top, look.deep];
+      const at = eased * (stops.length - 1);
+      const seg = Math.min(stops.length - 2, Math.floor(at));
+      const rgb = stops[seg].map((c, i) => Math.round(c + (stops[seg + 1][i] - c) * (at - seg)));
       document.body.style.backgroundColor = "rgb(" + rgb.join(",") + ")";
       document.body.style.setProperty("--biome-depth", eased.toFixed(3));
       // How far down the page you are (0 at the top, 1 at the bottom), for
@@ -542,11 +641,12 @@ const UI = (function () {
       document.body.style.setProperty("--shallow", clamp01((0.95 - bottom) * 2.86).toFixed(3));
       // The hand-drawn art drifts up slower than the page, so it feels further
       // back (the slower, the farther)
-      if (!stillMotion) overlays.forEach((o) => o.style.setProperty("--ov-y", Math.round(-window.scrollY * o._speed) + "px"));
+      overlays.forEach((o) => o.style.setProperty("--ov-y", stillMotion() ? "0px" : Math.round(-window.scrollY * o._speed) + "px"));
     }
     window.addEventListener("scroll", () => {
       if (!ticking) { ticking = true; requestAnimationFrame(shade); }
     }, { passive: true });
+    document.addEventListener("a11y-change", () => shade());
 
     // What drifts in the margins, kept beside the page content
     const layer = el("div", "biome-layer");
@@ -715,5 +815,5 @@ const UI = (function () {
     if (document.body.dataset.biome) setBiome(document.body.dataset.biome);
   });
 
-  return { REMOVAL_REASONS, removalReasonLabel, friendlyDate, timeTag, emptyState, celebrate, sparkles, itemArt, setBiome, biomeSymbol, memberBadge, biomeSwatch, biomeLook, biomePreview, openBiomePreview, previewOnHover, previewButton, startModSession };
+  return { openAccessibility, REMOVAL_REASONS, removalReasonLabel, friendlyDate, timeTag, emptyState, celebrate, sparkles, itemArt, setBiome, biomeSymbol, memberBadge, biomeSwatch, biomeLook, biomePreview, openBiomePreview, previewOnHover, previewButton, startModSession };
 })();

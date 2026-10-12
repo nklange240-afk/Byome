@@ -66,6 +66,7 @@ const EDIT_FORMS = (function () {
 
     const footer = el("div", "comment-form-footer");
     const message = el("span", "auth-message");
+    message.setAttribute("aria-live", "polite"); // read out by screen readers
     const buttons = el("div", "edit-buttons");
     const cancel = actionButton("Cancel");
     cancel.addEventListener("click", onCancel);
@@ -171,6 +172,7 @@ const EDIT_FORMS = (function () {
 
     const footer = el("div", "comment-form-footer");
     const message = el("span", "auth-message");
+    message.setAttribute("aria-live", "polite"); // read out by screen readers
     const buttons = el("div", "edit-buttons");
     const cancel = actionButton("Cancel");
     cancel.addEventListener("click", onCancel);

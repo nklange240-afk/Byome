@@ -258,6 +258,7 @@ const POLLS = (function () {
 
     const footer = el("div", "comment-form-footer");
     const message = el("span", "auth-message");
+    message.setAttribute("aria-live", "polite"); // read out by screen readers
     const buttons = el("div", "edit-buttons");
     const cancel = el("button", "action-btn", "Cancel");
     cancel.type = "button";
