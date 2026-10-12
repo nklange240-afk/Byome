@@ -3642,9 +3642,17 @@ dialog.celebrate h2 {
   border-color: rgba(34, 56, 42, 0.45);
 }
 
-.biome-meadow .member-badge {
+/* Badges on the light meadow: Founder solid dark green with light text;
+   Mod outlined in dark green on the light background */
+.biome-meadow .member-badge.is-founder {
   background: #2F5A3D;
   color: #FFFCF4;
+}
+
+.biome-meadow .member-badge.is-mod {
+  background: transparent;
+  border-color: #255428;
+  color: #255428;
 }
 
 .biome-meadow .hamburger-btn span {
