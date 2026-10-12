@@ -528,8 +528,15 @@ const UI = (function () {
       document.body.style.backgroundColor = "rgb(" + rgb.join(",") + ")";
       document.body.style.setProperty("--biome-depth", eased.toFixed(3));
       // How far down the page you are (0 at the top, 1 at the bottom), for
-      // things that only appear in the depths, however long the page is
-      document.body.style.setProperty("--biome-bottom", Math.min(1, window.scrollY / Math.max(1, room)).toFixed(3));
+      // things that only appear in the depths, however long the page is.
+      // (iPhones can report a little above 0 while bouncing at the top.)
+      const bottom = Math.min(1, Math.max(0, window.scrollY / Math.max(1, room)));
+      document.body.style.setProperty("--biome-bottom", bottom.toFixed(3));
+      // The ocean's glow lights up from halfway down (fully lit at 90%);
+      // its bubbles stay until 60% and are gone by 95%
+      const clamp01 = (n) => Math.min(1, Math.max(0, n));
+      document.body.style.setProperty("--deep-glow", clamp01((bottom - 0.5) * 2.5).toFixed(3));
+      document.body.style.setProperty("--shallow", clamp01((0.95 - bottom) * 2.86).toFixed(3));
       // The hand-drawn art drifts up slower than the page, so it feels further
       // back (the slower, the farther)
       if (!stillMotion) overlays.forEach((o) => o.style.setProperty("--ov-y", Math.round(-window.scrollY * o._speed) + "px"));
@@ -547,6 +554,10 @@ const UI = (function () {
     overlays = overlayLayers(look).map(makeOverlay);
     overlays.forEach((o) => document.body.insertBefore(o, layer));
     shade();
+    // The slow fades (the ocean's glow and bubbles) only switch on once the
+    // page has drawn, so things meant to be hidden start hidden instead of
+    // fading out after the page loads
+    requestAnimationFrame(() => requestAnimationFrame(() => document.body.classList.add("biome-settled")));
     const bits = [];
     look.particles.forEach(([kind, count]) => {
       for (let i = 0; i < count; i++) {
