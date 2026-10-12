@@ -39,5 +39,6 @@ from (values
   ('2026-10-13-polls.sql',                exists (select 1 from fn where name = 'vote_poll')),
   ('2026-10-14-byome-points-right-away.sql', exists (select 1 from col where t = 'point_ledger' and c = 'biome_available_at')),
   ('2026-10-15-badges-and-held-points.sql', exists (select 1 from col where t = 'profiles' and c = 'badge')),
-  ('2026-10-16-comment-edits.sql',        exists (select 1 from col where t = 'comments' and c = 'edited_at'))
+  ('2026-10-16-comment-edits.sql',        exists (select 1 from col where t = 'comments' and c = 'edited_at')),
+  ('2026-10-17-pastel-pots.sql',          (select count(*) = 3 from public.biome_items where key in ('buttercup', 'lilac', 'blush')))
 ) as checks(file, ok);
