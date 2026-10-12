@@ -392,8 +392,6 @@ const UI = (function () {
     bit.style.setProperty("--dy", ((Math.random() - 0.5) * 80).toFixed(0) + "px");
     bit.style.setProperty("--size", (3 + Math.random() * 4).toFixed(1) + "px");
     bit.style.setProperty("--hue", String(Math.floor(Math.random() * 4)));
-    // A snowflake falls as one piece and sways as the piece inside it
-    if (kind === "snow") bit.appendChild(document.createElement("i"));
     return bit;
   }
 

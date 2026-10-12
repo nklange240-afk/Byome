@@ -3828,42 +3828,26 @@ body > .biome-overlay.is-far {
 
 /* Tundra: snow. Flakes come in three depths (--hue): far-off ones are
    small, soft and dim; near ones are bigger and brighter */
-/* Each flake is two pieces: the outer one falls, the flake inside it
-   (an <i>, added by ui.js) sways. Both move with transform, which the
-   browser can animate cheaply without re-laying out the page. */
+/* One piece per flake, with no blur filter (blur on lots of moving
+   things is costly on iPhones). Far-off flakes look soft because their
+   edge fades out instead. */
 .p-snow {
+  background: radial-gradient(circle, #FFFFFF 45%, rgba(255, 255, 255, 0.6) 62%, rgba(255, 255, 255, 0) 72%);
   opacity: 0.85;
-}
-
-.p-snow > i {
-  display: block;
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  background-color: #FFFFFF;
-  box-shadow: 0 0 4px 1px rgba(255, 255, 255, 0.5);
 }
 
 .p-snow[style*="--hue: 0"],
 .p-snow[style*="--hue: 1"] {
-  width: calc(var(--size) * 0.55);
-  height: calc(var(--size) * 0.55);
-  opacity: 0.5;
-}
-
-.p-snow[style*="--hue: 0"] > i,
-.p-snow[style*="--hue: 1"] > i {
-  filter: blur(0.6px);
+  width: calc(var(--size) * 0.75);
+  height: calc(var(--size) * 0.75);
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.9) 20%, rgba(255, 255, 255, 0) 70%);
+  opacity: 0.6;
 }
 
 .p-snow[style*="--hue: 3"] {
-  width: calc(var(--size) * 1.3);
-  height: calc(var(--size) * 1.3);
+  width: calc(var(--size) * 1.4);
+  height: calc(var(--size) * 1.4);
   opacity: 0.95;
-}
-
-.p-snow[style*="--hue: 3"] > i {
-  filter: blur(0.4px);
 }
 
 /* Ocean and reef: bubbles */
@@ -3935,7 +3919,7 @@ body > .biome-overlay.is-far {
 
 .is-through .p-snow { opacity: calc(0.85 * var(--through, 1)); }
 .is-through .p-snow[style*="--hue: 0"],
-.is-through .p-snow[style*="--hue: 1"] { opacity: calc(0.5 * var(--through, 1)); }
+.is-through .p-snow[style*="--hue: 1"] { opacity: calc(0.6 * var(--through, 1)); }
 .is-through .p-snow[style*="--hue: 3"] { opacity: calc(0.95 * var(--through, 1)); }
 
 .p-biolum[style*="--hue: 1"] { --glow: #5FB8FF; }
@@ -4088,19 +4072,13 @@ body > .biome-overlay.is-far {
     animation: rise var(--dur, 20s) linear var(--delay, 0s) infinite;
   }
 
-  /* Snow drifts down slowly and steadily, swaying gently side to side
-     on its own rhythm; far-off flakes fall slower. The outer piece falls
-     and the flake inside it sways, each with its own transform, so the
-     two rhythms never fight over one property (iPhones could leave the
-     snow standing still) and nothing makes the page re-lay itself out
-     (which slowed snowy profiles down). */
+  /* Snow drifts down slowly, swaying gently side to side as it falls;
+     far-off flakes fall slower. The fall and the sway are one motion
+     (like the bubbles rising), so each flake is a single cheap moving
+     piece: iPhones draw it reliably and it doesn't slow the page. */
   .p-snow {
     top: -3% !important;
-    animation: snow-fall calc(var(--dur, 20s) * 1.5) linear var(--delay, 0s) infinite;
-  }
-
-  .p-snow > i {
-    animation: snow-sway calc(var(--blink, 5s) * 1.6) ease-in-out var(--delay, 0s) infinite alternate;
+    animation: snow-fall calc(var(--dur, 20s) * 1.5) ease-in-out var(--delay, 0s) infinite;
   }
 
   .p-snow[style*="--hue: 0"],
@@ -4108,19 +4086,14 @@ body > .biome-overlay.is-far {
     animation-duration: calc(var(--dur, 20s) * 2.1);
   }
 
-  .p-snow[style*="--hue: 0"] > i,
-  .p-snow[style*="--hue: 1"] > i {
-    animation-duration: calc(var(--blink, 5s) * 2);
-  }
-
   @keyframes snow-fall {
-    from { transform: translateY(0); }
-    to { transform: translateY(var(--travel, 110vh)); }
-  }
-
-  @keyframes snow-sway {
-    from { transform: translateX(calc(var(--dx) * -0.5)); }
-    to { transform: translateX(calc(var(--dx) * 0.5)); }
+    0% { transform: translate(0, 0); }
+    17% { transform: translate(calc(var(--dx) * 0.5), calc(var(--travel, 110vh) * 0.17)); }
+    33% { transform: translate(calc(var(--dx) * -0.4), calc(var(--travel, 110vh) * 0.33)); }
+    50% { transform: translate(calc(var(--dx) * 0.45), calc(var(--travel, 110vh) * 0.5)); }
+    67% { transform: translate(calc(var(--dx) * -0.5), calc(var(--travel, 110vh) * 0.67)); }
+    83% { transform: translate(calc(var(--dx) * 0.4), calc(var(--travel, 110vh) * 0.83)); }
+    100% { transform: translate(0, var(--travel, 110vh)); }
   }
 
   /* Petals tumble slowly as they drift down */
