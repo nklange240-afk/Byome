@@ -46,8 +46,7 @@ function showMessage(text, good) {
 }
 
 // Shop order: by rarity (common first), then cheapest first within each.
-// Heirloom is there for when heirloom items arrive.
-const RARITY_ORDER = ["common", "uncommon", "rare", "legendary", "heirloom"];
+const RARITY_ORDER = ["common", "uncommon", "rare", "heirloom"];
 function rarityRank(item) {
   const i = RARITY_ORDER.indexOf(item.rarity);
   return i === -1 ? RARITY_ORDER.length : i;
@@ -113,7 +112,7 @@ function buildCard(item, balance, ownedCount) {
   }
   if (ownedCount) card.appendChild(el("span", "owned-tag", ownedCount > 1 ? "Owned ×" + ownedCount : "Owned"));
 
-  const sparkly = item.rarity === "rare" || item.rarity === "legendary";
+  const sparkly = item.rarity === "rare" || item.rarity === "heirloom";
   card.appendChild(el("span", "rarity rarity-" + item.rarity, (sparkly ? "\u2726 " : "") + item.rarity));
   card.appendChild(el("h3", null, item.name));
   if (item.description) card.appendChild(el("p", "shop-meta", item.description));

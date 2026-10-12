@@ -99,7 +99,7 @@ const BIOME = (function () {
     return node;
   }
 
-  const RARITY = { common: "Common", uncommon: "Uncommon", rare: "Rare", legendary: "Legendary" };
+  const RARITY = { common: "Common", uncommon: "Uncommon", rare: "Rare", heirloom: "Heirloom" };
 
   // One item's part of the info box: name, rarity, its story, how it was earned
   function describe(item, prefix) {
@@ -107,7 +107,7 @@ const BIOME = (function () {
     const head = el("div", "biome-tip-head");
     head.appendChild(el("strong", null, (prefix || "") + item.name));
     if (item.rarity) {
-      const sparkly = item.rarity === "rare" || item.rarity === "legendary";
+      const sparkly = item.rarity === "rare" || item.rarity === "heirloom";
       head.appendChild(el("span", "rarity rarity-" + item.rarity, (sparkly ? "\u2726 " : "") + (RARITY[item.rarity] || item.rarity)));
     }
     part.appendChild(head);
@@ -259,7 +259,7 @@ const BIOME = (function () {
       }
       // Rare things twinkle (not while arranging, to keep that view calm)
       if (!opts.editable && typeof UI !== "undefined") {
-        const rarest = [plant, pot].find((it) => it && (it.rarity === "rare" || it.rarity === "legendary"));
+        const rarest = [plant, pot].find((it) => it && (it.rarity === "rare" || it.rarity === "heirloom"));
         if (rarest) UI.sparkles(spot, rarest.rarity);
       }
       wrap.appendChild(spot);
