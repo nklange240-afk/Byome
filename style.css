@@ -3870,7 +3870,7 @@ body.biome-meadow > .biome-overlay {
 
 /* Phones: the meadow uses only its smaller, full-width flowers (the
    delicate look of both edges at once), softened behind the posts. Its
-   bugs are larger and kept to the side margins, fading behind the text. */
+   bugs stay small, solid at the edges and faded behind the text. */
 @media (max-width: 900px) {
   body.biome-meadow > .biome-overlay {
     opacity: 1;
@@ -3890,16 +3890,16 @@ body.biome-meadow > .biome-overlay {
     content: none;
   }
 
-  /* The bugs are shown at a friendly size, each side's bugs placed in
-     the side margins (they sit 140-172px and 820-862px across the 1000px) */
+  /* The bugs drift at the same small size as the flowers: fully solid in
+     the side gutters, and half strength where they pass behind the text */
   body.biome-page > .biome-overlay.is-sparse {
-    background-image: var(--ov-img), var(--ov-img);
-    background-size: 1000px auto;
-    background-position: -135px var(--ov-y, 0px), right -134px top var(--ov-y, 0px);
-    -webkit-mask-image: linear-gradient(to right, #000 36px, rgba(0, 0, 0, 0.3) 60px,
-      rgba(0, 0, 0, 0.3) calc(100% - 60px), #000 calc(100% - 36px));
-    mask-image: linear-gradient(to right, #000 36px, rgba(0, 0, 0, 0.3) 60px,
-      rgba(0, 0, 0, 0.3) calc(100% - 60px), #000 calc(100% - 36px));
+    background-image: var(--ov-img);
+    background-size: 100% auto;
+    background-position: center var(--ov-y, 0px);
+    -webkit-mask-image: linear-gradient(to right, #000 30px, rgba(0, 0, 0, 0.5) 42px,
+      rgba(0, 0, 0, 0.5) calc(100% - 42px), #000 calc(100% - 30px));
+    mask-image: linear-gradient(to right, #000 30px, rgba(0, 0, 0, 0.5) 42px,
+      rgba(0, 0, 0, 0.5) calc(100% - 42px), #000 calc(100% - 30px));
   }
 }
 
