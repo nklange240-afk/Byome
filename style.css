@@ -3859,15 +3859,14 @@ body > .biome-overlay.is-far {
   }
 }
 
-/* Phones: the meadow's flowers at full strength and less faded behind
-   the posts (its light background needs the extra color); sparse layers
-   like the meadow's bugs get no faint copy, so nothing appears twice */
+/* Phones: the meadow uses only its smaller, full-width flowers (the
+   delicate look of both edges at once), at a good strength and softened
+   behind the posts. Its bugs drift at the same small size, with no faint
+   copy, fading out behind the text so they never sit on top of words. */
 @media (max-width: 900px) {
   body.biome-meadow > .biome-overlay {
     opacity: 1;
-    /* the meadow's flowers are narrower (their inner edges are at 175px and
-       821px of the 1000px), so the crop is set for them: 110px each side */
-    background-position: -65px var(--ov-y, 0px), calc(100% - 931px) var(--ov-y, 0px);
+    background-image: none;
     -webkit-mask-image: linear-gradient(to right, #000 16px, rgba(0, 0, 0, 0.55) 56px,
       rgba(0, 0, 0, 0.55) calc(100% - 56px), #000 calc(100% - 16px));
     mask-image: linear-gradient(to right, #000 16px, rgba(0, 0, 0, 0.55) 56px,
@@ -3875,16 +3874,18 @@ body > .biome-overlay.is-far {
   }
 
   body.biome-meadow > .biome-overlay::before {
-    opacity: 0.42;
+    opacity: 0.9;
+    background-position: center var(--ov-y, 0px);
   }
 
-  /* Sparse layers (the meadow's bugs): no faint copy, and they fade out
-     behind the posts so they never sit on top of words */
   body > .biome-overlay.is-sparse::before {
     content: none;
   }
 
   body.biome-page > .biome-overlay.is-sparse {
+    background-image: var(--ov-img);
+    background-size: 100% auto;
+    background-position: center var(--ov-y, 0px);
     -webkit-mask-image: linear-gradient(to right, #000 20px, rgba(0, 0, 0, 0.18) 48px,
       rgba(0, 0, 0, 0.18) calc(100% - 48px), #000 calc(100% - 20px));
     mask-image: linear-gradient(to right, #000 20px, rgba(0, 0, 0, 0.18) 48px,
