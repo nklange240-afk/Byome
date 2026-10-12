@@ -302,6 +302,7 @@ const UI = (function () {
               // its preview tile is brighter, like sand in the sun
               preview: { top: [184, 132, 54], deep: [128, 90, 30] } },
     tundra: { name: "Snowy tundra", symbol: "❄️", top: [84, 104, 124], deep: [14, 24, 42], particles: [["snow", 34]],
+              throughContent: [["snow", 16]], // a little snow falls faintly over the posts too
               shadeFrom: 0.15 }, // pale dusty blue, deepening to dark blue by the bottom
     ocean: { name: "Open ocean", symbol: "\u{1F30A}", top: [20, 52, 78], deep: [4, 12, 26], particles: [["bubble", 16], ["biolum", 26]], rays: true,
              // the "biolum" specks only glow once you're deep down; a few
@@ -311,7 +312,9 @@ const UI = (function () {
                { image: "biome-assets/overlay-ocean-fish.webp", speed: 0.25, opacity: 0.8, far: true }, // fish, far off
                { image: "biome-assets/overlay-ocean-kelp.webp", speed: 0.5, opacity: 0.85 },            // kelp, nearer
              ] },
-    reef: { name: "Coral reef", symbol: "\u{1F420}", top: [16, 60, 64], deep: [8, 30, 42], particles: [["plankton", 18], ["bubble", 8]], rays: true },
+    reef: { name: "Coral reef", symbol: "\u{1F420}", top: [16, 60, 64], deep: [8, 30, 42], particles: [["plankton", 18], ["bubble", 8], ["biolum", 26]], rays: true,
+            // like the ocean: a glow in the depths, faintly over the posts too
+            throughContent: [["biolum", 14]] },
   };
   // Pixels of scrolling to reach the deepest point: the bottom of the page,
   // but at least MIN_DEPTH (so short pages only darken a little) and at
@@ -569,7 +572,7 @@ const UI = (function () {
         bits.push(bit);
       }
     });
-    // A few that glow very faintly through the page content: their own
+    // A few that glow (or fall) very faintly through the page content: their own
     // see-through layer just above the posts and cards (but under the
     // footer), so they show through the boxes without hiding anything
     const middle = [];

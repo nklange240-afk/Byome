@@ -3870,7 +3870,7 @@ body > .biome-overlay.is-far {
 .p-plankton[style*="--hue: 2"] { --glow: #8FF0E0; }
 .p-plankton[style*="--hue: 3"] { --glow: #D7A6FF; }
 
-/* Ocean: bioluminescence. Tiny blue specks, like the forest's fireflies
+/* Ocean and reef: bioluminescence. Tiny blue specks, like the forest's fireflies
    but smaller and cooler. They stay hidden near the surface and fade in
    slowly once you reach the depths (from about halfway down the page,
    fully lit near the bottom, on long and short pages alike; ui.js sets
@@ -3890,21 +3890,29 @@ body > .biome-overlay.is-far {
   transition: filter 4s ease-in;
 }
 
-/* Ocean: the bubbles thin out in the depths, fading away as you near
+/* Ocean and reef: the bubbles thin out in the depths, fading away as you near
    the bottom of the page (where the bioluminescence takes over) */
-.biome-ocean .p-bubble {
+.biome-ocean .p-bubble,
+.biome-reef .p-bubble {
   filter: opacity(var(--shallow, 1));
 }
 
-.biome-settled.biome-ocean .p-bubble {
+.biome-settled.biome-ocean .p-bubble,
+.biome-settled.biome-reef .p-bubble {
   transition: filter 3s ease-out;
 }
 
-/* The few that glow through the posts and cards: barely there, and
-   fading out toward the middle (ui.js sets each one's --through) */
+/* The few that glow (or fall) through the posts and cards: barely
+   there, and fading out toward the middle (ui.js sets each one's
+   --through) */
 .biome-layer.is-through {
   z-index: 1;
 }
+
+.is-through .p-snow { opacity: calc(0.85 * var(--through, 1)); }
+.is-through .p-snow[style*="--hue: 0"],
+.is-through .p-snow[style*="--hue: 1"] { opacity: calc(0.5 * var(--through, 1)); }
+.is-through .p-snow[style*="--hue: 3"] { opacity: calc(0.95 * var(--through, 1)); }
 
 .p-biolum[style*="--hue: 1"] { --glow: #5FB8FF; }
 .p-biolum[style*="--hue: 2"] { --glow: #8FF0F0; }
@@ -4057,7 +4065,10 @@ body > .biome-overlay.is-far {
   }
 
   /* Snow drifts down slowly and steadily, swaying gently side to side
-     on its own rhythm; far-off flakes fall slower */
+     on its own rhythm; far-off flakes fall slower. The fall moves the
+     flake (transform, like the bubbles); the sway nudges its margin, so
+     the two rhythms never fight over the same property (iPhones could
+     leave the snow standing still until you scrolled). */
   .p-snow {
     top: -3% !important;
     animation:
@@ -4071,13 +4082,13 @@ body > .biome-overlay.is-far {
   }
 
   @keyframes snow-fall {
-    from { translate: 0 0; }
-    to { translate: 0 var(--travel, 110vh); }
+    from { transform: translateY(0); }
+    to { transform: translateY(var(--travel, 110vh)); }
   }
 
   @keyframes snow-sway {
-    from { transform: translateX(calc(var(--dx) * -0.5)); }
-    to { transform: translateX(calc(var(--dx) * 0.5)); }
+    from { margin-left: calc(var(--dx) * -0.5); }
+    to { margin-left: calc(var(--dx) * 0.5); }
   }
 
   /* Petals tumble slowly as they drift down */
