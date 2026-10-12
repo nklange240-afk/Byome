@@ -3879,12 +3879,12 @@ body.biome-meadow > .biome-overlay {
   body.biome-meadow > .biome-overlay {
     opacity: 1;
     background-image: none;
-    /* an eased fade from the edges to barely there (11%) by the time it's
+    /* an eased fade from the edges to barely there (18%) by the time it's
        behind the text, which starts 32px in */
-    -webkit-mask-image: linear-gradient(to right, #000 6px, rgba(0, 0, 0, 0.55) 18px, rgba(0, 0, 0, 0.25) 30px, rgba(0, 0, 0, 0.14) 40px, rgba(0, 0, 0, 0.11) 50px,
-      rgba(0, 0, 0, 0.11) calc(100% - 50px), rgba(0, 0, 0, 0.14) calc(100% - 40px), rgba(0, 0, 0, 0.25) calc(100% - 30px), rgba(0, 0, 0, 0.55) calc(100% - 18px), #000 calc(100% - 6px));
-    mask-image: linear-gradient(to right, #000 6px, rgba(0, 0, 0, 0.55) 18px, rgba(0, 0, 0, 0.25) 30px, rgba(0, 0, 0, 0.14) 40px, rgba(0, 0, 0, 0.11) 50px,
-      rgba(0, 0, 0, 0.11) calc(100% - 50px), rgba(0, 0, 0, 0.14) calc(100% - 40px), rgba(0, 0, 0, 0.25) calc(100% - 30px), rgba(0, 0, 0, 0.55) calc(100% - 18px), #000 calc(100% - 6px));
+    -webkit-mask-image: linear-gradient(to right, #000 6px, rgba(0, 0, 0, 0.55) 18px, rgba(0, 0, 0, 0.3) 30px, rgba(0, 0, 0, 0.21) 40px, rgba(0, 0, 0, 0.18) 50px,
+      rgba(0, 0, 0, 0.18) calc(100% - 50px), rgba(0, 0, 0, 0.21) calc(100% - 40px), rgba(0, 0, 0, 0.3) calc(100% - 30px), rgba(0, 0, 0, 0.55) calc(100% - 18px), #000 calc(100% - 6px));
+    mask-image: linear-gradient(to right, #000 6px, rgba(0, 0, 0, 0.55) 18px, rgba(0, 0, 0, 0.3) 30px, rgba(0, 0, 0, 0.21) 40px, rgba(0, 0, 0, 0.18) 50px,
+      rgba(0, 0, 0, 0.18) calc(100% - 50px), rgba(0, 0, 0, 0.21) calc(100% - 40px), rgba(0, 0, 0, 0.3) calc(100% - 30px), rgba(0, 0, 0, 0.55) calc(100% - 18px), #000 calc(100% - 6px));
   }
 
   body.biome-meadow > .biome-overlay::before {
