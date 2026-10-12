@@ -147,7 +147,7 @@ async function loadPosts(more) {
   const to = (more === true ? postsShown + PAGE_SIZE : Math.max(PAGE_SIZE, postsShown)) - 1;
   let query = supabaseClient
     .from("posts")
-    .select("id, title, body, category, created_at, edited_at, held_at, user_id, profiles!user_id(username, avatar_path, avatar_ring, profile_biome, show_biome_symbol), likes(user_id), comments(count), polls(closes_at, poll_options(id, label, position))")
+    .select("id, title, body, category, created_at, edited_at, held_at, user_id, profiles!user_id(username, avatar_path, avatar_ring, profile_biome, show_biome_symbol, is_moderator, badge), likes(user_id), comments(count), polls(closes_at, poll_options(id, label, position))")
     .order("created_at", { ascending: false })
     .order("id")
     .range(from, to);
@@ -295,7 +295,7 @@ function buildPost(post, pollResult) {
 async function fetchComments(postId) {
   const { data, error } = await supabaseClient
     .from("comments")
-    .select("id, parent_id, body, created_at, held_at, user_id, profiles!user_id(username, avatar_path, avatar_ring, profile_biome, show_biome_symbol), comment_likes(user_id)")
+    .select("id, parent_id, body, created_at, edited_at, held_at, user_id, profiles!user_id(username, avatar_path, avatar_ring, profile_biome, show_biome_symbol, is_moderator, badge), comment_likes(user_id)")
     .eq("post_id", postId)
     .order("created_at", { ascending: true });
 
@@ -330,9 +330,10 @@ function renderCommentSection(container, postId, comments, refresh) {
 function buildComment(comment, depth, postId, refresh) {
   const wrap = el("div", "comment");
 
-  wrap.appendChild(buildMeta(comment.profiles, comment.created_at));
+  wrap.appendChild(buildMeta(comment.profiles, comment.created_at, comment.edited_at));
   if (comment.held_at) wrap.appendChild(heldNotice());
-  wrap.appendChild(el("p", "comment-body", comment.body));
+  const bodyEl = el("p", "comment-body", comment.body);
+  wrap.appendChild(bodyEl);
 
   const replyHolder = el("div", "reply-holder");
   const actions = el("div", "post-actions");
@@ -355,6 +356,20 @@ function buildComment(comment, depth, postId, refresh) {
   );
 
   if (comment.user_id === currentUser.id) {
+    // Fix a typo: the text can be edited (automod checks edits too)
+    const edit = actionButton("Edit");
+    edit.addEventListener("click", () => {
+      if (wrap.querySelector(":scope > .edit-form")) return;
+      bodyEl.hidden = true;
+      actions.hidden = true;
+      const form = buildCommentEditForm(comment, refresh, () => {
+        form.remove(); bodyEl.hidden = false; actions.hidden = false; edit.focus();
+      });
+      wrap.insertBefore(form, actions);
+      form.querySelector("textarea").focus();
+    });
+    actions.appendChild(edit);
+
     const del = actionButton("Delete");
     del.addEventListener("click", async () => {
       const msg = comment.replies.length
@@ -378,6 +393,49 @@ function buildComment(comment, depth, postId, refresh) {
   }
 
   return wrap;
+}
+
+// Editing your own comment
+function buildCommentEditForm(comment, refresh, onCancel) {
+  const form = el("form", "comment-form edit-form");
+  const textarea = el("textarea");
+  textarea.rows = 2;
+  textarea.maxLength = 500;
+  textarea.required = true;
+  textarea.value = comment.body;
+  textarea.setAttribute("aria-label", "Edit your comment");
+
+  const footer = el("div", "comment-form-footer");
+  const message = el("span", "auth-message");
+  const buttons = el("div", "edit-buttons");
+  const cancel = actionButton("Cancel");
+  cancel.addEventListener("click", onCancel);
+  const save = el("button", "btn btn-solid", "Save");
+  save.type = "submit";
+  buttons.append(cancel, save);
+  footer.append(message, buttons);
+  form.append(textarea, footer);
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const body = textarea.value.trim();
+    if (!body) return;
+    if (body === comment.body) { onCancel(); return; }
+    save.disabled = true;
+    const { data, error } = await supabaseClient
+      .from("comments")
+      .update({ body: body, edited_at: new Date().toISOString() })
+      .eq("id", comment.id)
+      .select("held_at");
+    if (error || !data || data.length === 0) {
+      message.textContent = error ? error.message : "Couldn't save your changes.";
+      message.style.color = "#E07A5F";
+      save.disabled = false;
+      return;
+    }
+    refresh();
+  });
+  return form;
 }
 
 function buildCommentForm(postId, parentId, placeholder, submitLabel, refresh) {

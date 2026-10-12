@@ -90,6 +90,9 @@ const PROFILES = (function () {
       // Their biome's symbol, if they've turned it on
       const symbol = typeof UI !== "undefined" ? UI.biomeSymbol(profile) : null;
       if (symbol) wrap.appendChild(symbol);
+      // "Founder" or "Mod"
+      const badge = typeof UI !== "undefined" && UI.memberBadge ? UI.memberBadge(profile) : null;
+      if (badge) wrap.appendChild(badge);
     }
     return wrap;
   }

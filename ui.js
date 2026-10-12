@@ -6,7 +6,7 @@
 const UI = (function () {
   // Shown in the footer as "Contact" once there's an inbox to send to,
   // e.g. "hello@byome.xyz". Left empty, the Contact link doesn't show.
-  const CONTACT_EMAIL = "";
+  const CONTACT_EMAIL = "hello@byome.xyz";
 
   // Rarities that get sparkles
   const SPARKLY = ["rare", "legendary"];
@@ -43,7 +43,30 @@ const UI = (function () {
       links.appendChild(a);
     });
     footer.appendChild(links);
+
+    // Byome on social media
+    const social = el("nav", "footer-social");
+    social.setAttribute("aria-label", "Byome on social media");
+    SOCIAL_LINKS.forEach(([href, label, icon]) => {
+      const a = el("a");
+      a.href = href;
+      a.target = "_blank";
+      a.rel = "me noopener";
+      a.setAttribute("aria-label", "Byome on " + label);
+      a.innerHTML = icon; // our own icon markup, not user content
+      a.appendChild(el("span", null, label));
+      social.appendChild(a);
+    });
+    footer.appendChild(social);
   }
+
+  // Simple line icons, drawn in the text color
+  const SOCIAL_LINKS = [
+    ["https://www.instagram.com/joinbyome/", "Instagram",
+      '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle class="dot" cx="17.3" cy="6.7" r="1.1"/></svg>'],
+    ["https://www.tiktok.com/@joinbyome", "TikTok",
+      '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5 3v11.6a3.6 3.6 0 1 1-3.6-3.6"/><path d="M13.5 3c.4 2.6 2.2 4.3 5 4.6"/></svg>'],
+  ];
 
   // ---------- Why something was removed ----------
   // Must match removal_reason_label() in database/2026-10-11-returned-content.sql
@@ -299,6 +322,17 @@ const UI = (function () {
     span.setAttribute("aria-label", look.name + " biome");
     span.title = look.name;
     return span;
+  }
+
+  // The badge after a username: "Founder" for the founder, "Mod" for
+  // moderators, or null. Needs the profile's is_moderator and badge.
+  function memberBadge(profile) {
+    if (!profile || profile.deleted_at) return null;
+    const kind = profile.badge === "founder" ? "founder" : profile.is_moderator ? "mod" : null;
+    if (!kind) return null;
+    const badge = el("span", "member-badge is-" + kind, kind === "founder" ? "Founder" : "Mod");
+    badge.title = kind === "founder" ? "Byome's founder" : "Byome moderator";
+    return badge;
   }
 
   // A small preview of a biome (shop cards, Edit profile, pop-ups)
@@ -561,6 +595,32 @@ const UI = (function () {
     });
   }
 
+  // ---------- The bottom of the page on phones ----------
+  // Phones "bounce" past the bottom of a page, showing the browser's
+  // background (and the leaves and fireflies, which stay put) below the
+  // footer. Near the bottom, the browser is asked not to bounce there;
+  // pull-to-refresh at the top still works. In case it bounces anyway,
+  // the space behind the page takes the footer's color.
+  function calmBottomBounce() {
+    const root = document.documentElement;
+    let ticking = false;
+    function check() {
+      ticking = false;
+      const footer = document.querySelector(".site-footer");
+      const room = root.scrollHeight - window.innerHeight;
+      const nearBottom = room <= 0 || window.scrollY > room / 2;
+      root.classList.toggle("near-bottom", nearBottom);
+      root.style.backgroundColor = nearBottom && footer ? getComputedStyle(footer).backgroundColor : "";
+    }
+    window.addEventListener("scroll", () => {
+      if (!ticking) { ticking = true; requestAnimationFrame(check); }
+    }, { passive: true });
+    window.addEventListener("resize", check);
+    // Pages grow as posts and reviews load in, so check again when they do
+    if (window.ResizeObserver) new ResizeObserver(() => check()).observe(document.body);
+    check();
+  }
+
   // ---------- Password fields: Show / Hide ----------
   function addPasswordToggles() {
     document.querySelectorAll('input[type="password"]').forEach((input) => {
@@ -585,10 +645,11 @@ const UI = (function () {
   document.addEventListener("DOMContentLoaded", () => {
     addPasswordToggles();
     buildFooter();
+    calmBottomBounce();
     checkAchievements();
     thankModerator();
     if (document.body.dataset.biome) setBiome(document.body.dataset.biome);
   });
 
-  return { REMOVAL_REASONS, removalReasonLabel, friendlyDate, timeTag, emptyState, celebrate, sparkles, itemArt, setBiome, biomeSymbol, biomeSwatch, biomeLook, biomePreview, openBiomePreview, previewOnHover, previewButton, startModSession };
+  return { REMOVAL_REASONS, removalReasonLabel, friendlyDate, timeTag, emptyState, celebrate, sparkles, itemArt, setBiome, biomeSymbol, memberBadge, biomeSwatch, biomeLook, biomePreview, openBiomePreview, previewOnHover, previewButton, startModSession };
 })();

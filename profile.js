@@ -267,7 +267,8 @@ async function showPoints(userId, isModerator) {
   const shopLink = el("a", "inline-link", "Byome Shop");
   shopLink.href = "byome-shop.html";
   note.append(shopLink, document.createTextNode(". Community points can't be spent on anything just yet, " +
-    "but we have big plans for them, so keep collecting! Pending points become available after a short waiting period."));
+    "but we have big plans for them, so keep collecting! Byome points are ready to spend straight away; " +
+    "community points from some activities become available after a short waiting period."));
 
   // Moderator rewards are only listed for moderators
   const earnable = rules.filter((r) => (r.community_points || r.biome_points) &&
@@ -300,7 +301,10 @@ async function showPoints(userId, isModerator) {
       main.appendChild(el("div", "entry-title", labels[row.action] || row.action));
       let meta = formatDate(row.created_at);
       if (row.revoked_at) meta += " · removed";
-      else if (new Date(row.available_at) > new Date()) meta += " · available " + formatDate(row.available_at);
+      // Only community points wait; Byome points are ready right away
+      else if (row.community_points && new Date(row.available_at) > new Date()) {
+        meta += " · community points available " + formatDate(row.available_at);
+      }
       main.appendChild(el("div", "entry-meta", meta));
       li.append(main, chips(row.community_points, row.biome_points));
       list.appendChild(li);
@@ -548,7 +552,7 @@ async function showAchievements(profileId) {
   const postsEl = document.getElementById("profile-posts");
 
   let query = supabaseClient.from("profiles")
-    .select("id, username, created_at, avatar_path, avatar_ring, skin_type, skin_concerns, hair_type, hair_texture, is_moderator, profile_biome, show_biome_symbol");
+    .select("id, username, created_at, avatar_path, avatar_ring, skin_type, skin_concerns, hair_type, hair_texture, is_moderator, badge, profile_biome, show_biome_symbol");
   query = wanted ? query.eq("username", wanted) : query.eq("id", me);
   const { data: profile } = await query.maybeSingle();
 
@@ -569,6 +573,8 @@ async function showAchievements(profileId) {
   UI.setBiome(deleted ? "forest" : profile.profile_biome || "forest");
   const symbol = deleted ? null : UI.biomeSymbol(profile);
   if (symbol) nameEl.appendChild(symbol);
+  const badge = deleted ? null : UI.memberBadge(profile);
+  if (badge) nameEl.appendChild(badge);
   document.getElementById("profile-avatar").replaceChildren(PROFILES.avatar(profile, "large"));
   showTraits(profile);
 
