@@ -45,13 +45,23 @@ function showMessage(text, good) {
   messageEl.style.color = good ? "var(--gold)" : "#E07A5F";
 }
 
+// Shop order: by rarity (common first), then cheapest first within each.
+const RARITY_ORDER = ["common", "uncommon", "rare", "heirloom"];
+function rarityRank(item) {
+  const i = RARITY_ORDER.indexOf(item.rarity);
+  return i === -1 ? RARITY_ORDER.length : i;
+}
+function shopOrder(a, b) {
+  return rarityRank(a) - rarityRank(b) || a.price - b.price || a.name.localeCompare(b.name);
+}
+
 async function loadShop() {
   const [pointsRes, itemsRes, ownedRes] = await Promise.all([
     supabaseClient.from("user_points").select("biome, pending_biome").eq("user_id", currentUser.id).maybeSingle(),
     supabaseClient.from("biome_items")
       .select("key, kind, size, name, description, rarity, price, max_supply, max_per_member, sold, image, over_pot")
       .eq("available", true).eq("starter", false).not("price", "is", null)
-      .order("sort_order").order("price"),
+      .order("price").order("name"),
     supabaseClient.from("biome_inventory").select("item_key").eq("user_id", currentUser.id),
   ]);
 
@@ -72,7 +82,7 @@ async function loadShop() {
   (ownedRes.data || []).forEach((row) => { owned[row.item_key] = (owned[row.item_key] || 0) + 1; });
 
   SECTIONS.forEach((section) => {
-    const items = itemsRes.data.filter((it) => it.kind === section.kind);
+    const items = itemsRes.data.filter((it) => it.kind === section.kind).sort(shopOrder);
     if (!items.length && !section.empty) return;
     const into = section.lower ? shopMoreEl : shopEl;
     into.appendChild(el("h2", "section-title", section.title));
@@ -102,7 +112,7 @@ function buildCard(item, balance, ownedCount) {
   }
   if (ownedCount) card.appendChild(el("span", "owned-tag", ownedCount > 1 ? "Owned ×" + ownedCount : "Owned"));
 
-  const sparkly = item.rarity === "rare" || item.rarity === "legendary";
+  const sparkly = item.rarity === "rare" || item.rarity === "heirloom";
   card.appendChild(el("span", "rarity rarity-" + item.rarity, (sparkly ? "\u2726 " : "") + item.rarity));
   card.appendChild(el("h3", null, item.name));
   if (item.description) card.appendChild(el("p", "shop-meta", item.description));

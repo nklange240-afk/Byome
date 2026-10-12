@@ -38,3 +38,4 @@ byome's database lives in Supabase. These files are a backup and a history of ch
 - `2026-10-15-badges-and-held-points.sql`: Mod and Founder badges by usernames (the founder badge is set in the SQL Editor), and reviews held by automod only earn points once a moderator approves them.
 - `2026-10-16-comment-edits.sql`: members can edit their own comments (text only); edits are checked by automod.
 - `2026-10-17-pastel-pots.sql`: three common pots in the Byome Shop, 40 Byome points each: Buttercup (yellow), Lilac (purple) and Blush (pink).
+- `2026-10-18-heirloom-rarity.sql`: the top rarity is renamed from "legendary" to "heirloom" (any legendary items become heirloom). **Run before publishing** the site update that came with it.

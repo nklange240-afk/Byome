@@ -2268,7 +2268,7 @@ div.biome-slot:focus-visible,
 .rarity-common { color: var(--cream); opacity: 0.75; }
 .rarity-uncommon { color: var(--leaf); }
 .rarity-rare { color: #8EC3E6; }
-.rarity-legendary { color: var(--gold); }
+.rarity-heirloom { color: var(--gold); }
 
 /* ----- Shop ----- */
 .shop-balance {
@@ -3305,7 +3305,7 @@ html.near-bottom {
 
 .shop-card.rarity-edge-uncommon { border-top-color: var(--leaf); }
 .shop-card.rarity-edge-rare { border-top-color: #8EC3E6; }
-.shop-card.rarity-edge-legendary { border-top-color: var(--gold); }
+.shop-card.rarity-edge-heirloom { border-top-color: var(--gold); }
 
 .owned-tag {
   position: absolute;
@@ -3754,10 +3754,12 @@ body > .biome-overlay.is-far {
   }
 }
 
-/* In a biome preview it's scaled down to fit the little page */
+/* In a biome preview it's scaled down to fit the little page: the art's
+   full width fits the preview, so the plants at its edges stay in view */
 .biome-preview .biome-overlay {
   position: absolute;
-  background-size: auto 100%;
+  background-repeat: repeat-y;
+  background-size: 100% auto;
 }
 
 .particle {

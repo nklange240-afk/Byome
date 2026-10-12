@@ -9,7 +9,7 @@ const UI = (function () {
   const CONTACT_EMAIL = "hello@byome.xyz";
 
   // Rarities that get sparkles
-  const SPARKLY = ["rare", "legendary"];
+  const SPARKLY = ["rare", "heirloom"];
 
   function el(tag, className, text) {
     const node = document.createElement(tag);
