@@ -77,6 +77,45 @@ async function exactLinks(items) {
   return links;
 }
 
+// Opening a notification marks it as read. The page waits (briefly) for
+// that to save before following the link, so the unread count is right on
+// the next page. A new-tab click just marks it in the background.
+async function markRead(e, n, link, article) {
+  if (n.read_at) return;
+  n.read_at = new Date().toISOString();
+  article.classList.remove("is-unread");
+  updateBadges(-1);
+  // (Promise.resolve sends the request now, even if nothing waits for it)
+  const saving = Promise.resolve(supabaseClient.rpc("mark_notification_read", { p_id: n.id }));
+  const newTab = e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0;
+  if (newTab) return;
+  e.preventDefault();
+  await Promise.race([saving, new Promise((done) => setTimeout(done, 1500))]);
+  window.location.href = link.href;
+}
+
+// The unread count in the menu, one lower (and gone at zero)
+function updateBadges(change) {
+  document.querySelectorAll(".nav-badge").forEach((b) => {
+    const link = b.parentElement;
+    if (!/^Notifications/.test(link.getAttribute("aria-label") || "")) return;
+    if (b.textContent === "9+") return; // still lots
+    const left = (parseInt(b.textContent, 10) || 0) + change;
+    if (left > 0) {
+      b.textContent = String(left);
+      link.setAttribute("aria-label", "Notifications (" + left + ")");
+    } else {
+      b.remove();
+      link.removeAttribute("aria-label");
+    }
+  });
+  if (!document.querySelector("#nav-menu .nav-badge")) {
+    document.querySelectorAll(".has-unread").forEach((b) => b.classList.remove("has-unread"));
+  }
+  const markBtn = document.getElementById("mark-read-btn");
+  if (markBtn && !document.querySelector(".notification.is-unread")) markBtn.hidden = true;
+}
+
 (async function () {
   const { data } = await supabaseClient.auth.getSession();
   if (!data.session) { window.location.href = "login.html"; return; }
@@ -116,6 +155,7 @@ async function exactLinks(items) {
     if (safe) {
       const a = el("a", "notification-text", n.message);
       a.href = exact.get(n.id) || n.link;
+      if (!n.read_at) a.addEventListener("click", (e) => markRead(e, n, a, article));
       textBox.appendChild(a);
     } else {
       textBox.appendChild(el("p", "notification-text", n.message));

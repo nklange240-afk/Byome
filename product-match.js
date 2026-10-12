@@ -1,5 +1,6 @@
 // Spots products that are probably already listed (or already suggested),
-// shared by the suggest page and the Moderate page.
+// and variations that are really sizes. Shared by the suggest page and the
+// Moderate page.
 //
 // Two products "look the same" when their brands match (ignoring capitals,
 // accents and punctuation, so "e.l.f." matches "elf" and "L'Oréal" matches
@@ -62,5 +63,14 @@ const PRODUCT_MATCH = (function () {
       .sort((a, b) => b.score - a.score);
   }
 
-  return { similar };
+  // Sizes aren't variations: nobody should review the travel size and the
+  // full size of the same product separately. Matches "50ml", "1.7 oz",
+  // "Travel size", "Mini", "Jumbo"... (database/2026-10-24-variation-points.sql
+  // uses the same rule, so sizes never earn variation points)
+  const SIZE = /(\b\d+(\.\d+)?\s*(ml|l|oz|fl\.?\s*oz|g|gr|grams?|kg|lbs?|ounces?|millilit(er|re)s?)\b)|\b(travel|mini|minis|full[ -]?size|jumbo|deluxe|samples?|trial|value size|super ?size)\b/i;
+  function looksLikeSize(variation) {
+    return SIZE.test(variation || "");
+  }
+
+  return { similar, looksLikeSize };
 })();

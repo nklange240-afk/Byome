@@ -10,4 +10,9 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 // "supabase" here comes from the script tag we load in each HTML
 // file before this one — it's the Supabase library itself.
 const { createClient } = supabase;
-const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// Always ask for fresh data. Without this, pressing Back can show a saved
+// copy of a page's data (for example, notifications you've just read
+// still looking unread).
+const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  global: { fetch: (url, options) => fetch(url, Object.assign({}, options, { cache: "no-store" })) },
+});

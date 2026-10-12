@@ -328,6 +328,21 @@ async function showPoints(userId, isModerator) {
 // Everyone's profile shows their shelf. On your own profile, "Arrange"
 // lets you pick a pot (and plant) for each spot, and which shelf to use.
 // All the rules (owning enough, right size) are checked by the database.
+// The pots on a shelf, with their plants and visiting companions. The
+// companion column comes from database/2026-10-23-referral-rewards.sql;
+// until that's run, load without it.
+async function loadSlots(profileId) {
+  const res = await supabaseClient.from("biome_slots").select("slot, pot_key, plant_key, companion_key").eq("user_id", profileId);
+  if (!res.error || !/companion/.test(res.error.message)) return res;
+  return supabaseClient.from("biome_slots").select("slot, pot_key, plant_key").eq("user_id", profileId);
+}
+
+function slotsByNumber(rows) {
+  const placed = {};
+  (rows || []).forEach((row) => { placed[row.slot] = { pot: row.pot_key, plant: row.plant_key, companion: row.companion_key || null }; });
+  return placed;
+}
+
 async function showBiome(profileId, isMe) {
   const section = document.getElementById("biome-section");
   const shelfEl = document.getElementById("biome-shelf");
@@ -337,7 +352,7 @@ async function showBiome(profileId, isMe) {
 
   const [itemsRes, slotsRes, shelfRes, ownedRes, rewardsRes] = await Promise.all([
     supabaseClient.from("biome_items").select("key, kind, size, name, description, rarity, image, starter, sort_order, over_pot").order("sort_order"),
-    supabaseClient.from("biome_slots").select("slot, pot_key, plant_key").eq("user_id", profileId),
+    loadSlots(profileId),
     supabaseClient.from("profiles").select("biome_shelf").eq("id", profileId).single(),
     isMe ? supabaseClient.from("biome_inventory").select("item_key").eq("user_id", profileId) : Promise.resolve({ data: [] }),
     supabaseClient.from("achievements").select("name, reward_item").not("reward_item", "is", null),
@@ -348,8 +363,7 @@ async function showBiome(profileId, isMe) {
   itemsRes.data.forEach((it) => { items[it.key] = it; });
   // Items that come from an achievement say so in their info box
   (rewardsRes.data || []).forEach((a) => { if (items[a.reward_item]) items[a.reward_item].earnedWith = a.name; });
-  const placed = {};
-  slotsRes.data.forEach((row) => { placed[row.slot] = { pot: row.pot_key, plant: row.plant_key }; });
+  const placed = slotsByNumber(slotsRes.data);
   let shelfKey = shelfRes.data.biome_shelf;
   const owned = {};
   (ownedRes.data || []).forEach((row) => { owned[row.item_key] = (owned[row.item_key] || 0) + 1; });
@@ -395,15 +409,21 @@ async function showBiome(profileId, isMe) {
   }
 
   async function reloadSlots() {
-    const { data } = await supabaseClient.from("biome_slots").select("slot, pot_key, plant_key").eq("user_id", profileId);
+    const { data } = await loadSlots(profileId);
     Object.keys(placed).forEach((n) => delete placed[n]);
-    (data || []).forEach((row) => { placed[row.slot] = { pot: row.pot_key, plant: row.plant_key }; });
+    Object.assign(placed, slotsByNumber(data));
   }
 
   // A plant chosen for an empty spot goes in the default terra cotta pot
   // (the database picks it); the pot can be swapped afterwards.
   async function setSlot(slot, pot, plant) {
     if (await save("set_biome_slot", { p_slot: slot, p_pot: pot, p_plant: plant })) await reloadSlots();
+    render();
+  }
+
+  async function setCompanion(slot, key) {
+    if ((placed[slot] || {}).companion === key) return;
+    if (await save("set_biome_companion", { p_slot: slot, p_key: key })) await reloadSlots();
     render();
   }
 
@@ -459,6 +479,25 @@ async function showBiome(profileId, isMe) {
       editorEl.appendChild(pots);
       if (pots.children.length === 1 && size === "medium") {
         editorEl.appendChild(el("p", "feed-empty", "Medium pots for the bottom shelf are coming soon."));
+      }
+
+      // Companions visit a pot. Only shown once you have one.
+      const companions = Object.values(items).filter((it) => it.kind === "companion" && owned[it.key]);
+      if (companions.length) {
+        editorEl.appendChild(el("h3", null, "Companion"));
+        if (!here.pot) {
+          editorEl.appendChild(el("p", "feed-empty", "Put a pot here first, then a companion can visit it."));
+        } else {
+          const visitors = el("div", "biome-tiles");
+          visitors.appendChild(tile("None", null, null, !here.companion, () => setCompanion(selected, null)));
+          companions.forEach((it) => {
+            const elsewhere = Object.keys(placed).find((n) => Number(n) !== selected && placed[n].companion === it.key);
+            const meta = it.key === here.companion ? "In this spot" : (elsewhere !== undefined ? "Moves here" : "");
+            visitors.appendChild(tile(it.name, meta, it.image.replace(/\.png$/, "-icon.png"), it.key === here.companion,
+              () => setCompanion(selected, it.key)));
+          });
+          editorEl.appendChild(visitors);
+        }
       }
     }
 

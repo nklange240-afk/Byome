@@ -2116,6 +2116,19 @@ button.biome-slot {
   z-index: 3;
 }
 
+/* A companion (like the swallowtail) visiting a pot: its canvas is as wide
+   as the pot's and taller, bottoms lined up, so it sits up among the
+   plant's leaves, in front of everything */
+.biome-companion {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: auto;
+  z-index: 3;
+  pointer-events: none;
+}
+
 /* Viewing (not arranging): items show an info box on hover, tap or focus */
 div.biome-slot {
   cursor: help;
@@ -2128,7 +2141,15 @@ div.biome-slot:focus-visible,
   border-radius: 8px;
 }
 
+/* The info box is always dark, so it keeps the dark-theme colours even in
+   a light biome like the Meadow (which swaps them for dark ones) */
 .biome-tip {
+  --cream: #F3EDE0;
+  --gold: #E0A83E;
+  --moss: #5E7F56;
+  --gold-text: #E8BE6E;
+  --leaf-text: #AFCF9A;
+  --blue-text: #9FCCEA;
   position: absolute;
   z-index: 5;
   width: max-content;
@@ -2814,6 +2835,11 @@ div.biome-slot:focus-visible,
   color: var(--cream);
   color: color-mix(in srgb, var(--cream) 82%, transparent); /* dimmed text, but links inside stay full strength */
   margin: 0.25rem 0 0.75rem;
+}
+
+/* A gentle heads-up under a field (not an error that blocks anything) */
+.field-hint.field-warning {
+  color: var(--red-text);
 }
 
 .profile-optional {
@@ -3516,6 +3542,18 @@ dialog.celebrate h2 {
     25% { transform: rotate(-3deg); }
     60% { transform: rotate(2deg); }
     85% { transform: rotate(-0.8deg); }
+  }
+
+  /* Companions drift gently, as if hovering by the plant */
+  .biome-companion {
+    animation: companion-drift 6s ease-in-out infinite;
+  }
+
+  @keyframes companion-drift {
+    0%, 100% { transform: translate(0, 0) rotate(0); }
+    30% { transform: translate(-1%, -1.6%) rotate(-2deg); }
+    55% { transform: translate(0.6%, -0.6%) rotate(1deg); }
+    80% { transform: translate(-0.4%, -1.2%) rotate(-1deg); }
   }
 
   /* Leaves pop when you like something or pick a rating */
@@ -5665,6 +5703,11 @@ dialog.a11y-dialog {
   display: flex;
   flex-direction: column;
   font-size: 0.9rem;
+}
+
+.invite-milestone-reward {
+  color: var(--gold-text);
+  font-style: italic;
 }
 
 .invite-milestone.is-reached {

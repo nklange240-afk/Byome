@@ -176,6 +176,14 @@ function buildQueueItem(product, matches) {
 
   if (product.variations && product.variations.length > 0) {
     view.appendChild(el("p", "post-body", "Variations: " + product.variations.join(", ")));
+    // Each approved variation earns the member points (up to 10 per product).
+    // Sizes aren't variations (and never earn points): point them out.
+    const sizes = product.variations.filter(PRODUCT_MATCH.looksLikeSize);
+    if (sizes.length) {
+      view.appendChild(el("p", "field-hint field-warning", (sizes.length === 1 ? "This looks like a size: " : "These look like sizes: ") +
+        sizes.join(", ") + ". Sizes aren't variations, so please edit " + (sizes.length === 1 ? "it" : "them") + " out before approving."));
+    }
+    view.appendChild(el("p", "field-hint", "Each variation earns the member points when you approve. Edit out any that aren't real first."));
   }
 
   const suggestedBy = product.profiles ? product.profiles.username : "Unknown";

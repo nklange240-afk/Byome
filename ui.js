@@ -239,6 +239,15 @@ const UI = (function () {
       frontImg.src = art(front);
       frontImg.alt = "";
       box.append(potImg, plant, frontImg);
+    } else if (item.kind === "companion") {
+      // A companion's canvas is mostly empty space above the pot, so show
+      // its close-up (saved next to it with "-icon" added to the name).
+      // Companions don't twinkle; only pots do.
+      const img = el("img", (className ? "" : "celebrate-grow") + " is-companion");
+      img.src = art(item.image.replace(/\.png$/, "-icon.png"));
+      img.alt = "";
+      box.appendChild(img);
+      return box;
     } else {
       const img = el("img", (className ? "" : "celebrate-grow") + (item.kind === "shelf" ? " is-shelf" : ""));
       img.src = art(item.image);
