@@ -3873,8 +3873,9 @@ body > .biome-overlay.is-far {
 /* Ocean: bioluminescence. Tiny blue specks, like the forest's fireflies
    but smaller and cooler. They stay hidden near the surface and fade in
    slowly once you reach the depths (from about halfway down the page,
-   fully lit near the bottom, on long and short pages alike). The fade
-   uses filter: opacity() so it combines with each speck's own pulsing. */
+   fully lit near the bottom, on long and short pages alike; ui.js sets
+   --deep-glow). The fade uses filter: opacity() so it combines with each
+   speck's own pulsing. */
 .p-biolum {
   --glow: #7FD8FF;
   width: calc(var(--size) * 0.55);
@@ -3882,14 +3883,20 @@ body > .biome-overlay.is-far {
   background-color: #E4F8FF;
   box-shadow: 0 0 5px 2px var(--glow), 0 0 16px 6px rgba(80, 170, 255, 0.25);
   opacity: 0.7;
-  filter: opacity(calc(clamp(0, (var(--biome-bottom, 0) - 0.5) * 2.5, 1) * var(--through, 1)));
+  filter: opacity(calc(var(--deep-glow, 0) * var(--through, 1)));
+}
+
+.biome-settled .p-biolum {
   transition: filter 4s ease-in;
 }
 
 /* Ocean: the bubbles thin out in the depths, fading away as you near
    the bottom of the page (where the bioluminescence takes over) */
 .biome-ocean .p-bubble {
-  filter: opacity(clamp(0, (0.95 - var(--biome-bottom, 0)) * 2.86, 1));
+  filter: opacity(var(--shallow, 1));
+}
+
+.biome-settled.biome-ocean .p-bubble {
   transition: filter 3s ease-out;
 }
 
