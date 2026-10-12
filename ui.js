@@ -43,7 +43,30 @@ const UI = (function () {
       links.appendChild(a);
     });
     footer.appendChild(links);
+
+    // Byome on social media
+    const social = el("nav", "footer-social");
+    social.setAttribute("aria-label", "Byome on social media");
+    SOCIAL_LINKS.forEach(([href, label, icon]) => {
+      const a = el("a");
+      a.href = href;
+      a.target = "_blank";
+      a.rel = "me noopener";
+      a.setAttribute("aria-label", "Byome on " + label);
+      a.innerHTML = icon; // our own icon markup, not user content
+      a.appendChild(el("span", null, label));
+      social.appendChild(a);
+    });
+    footer.appendChild(social);
   }
+
+  // Simple line icons, drawn in the text color
+  const SOCIAL_LINKS = [
+    ["https://www.instagram.com/joinbyome/", "Instagram",
+      '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle class="dot" cx="17.3" cy="6.7" r="1.1"/></svg>'],
+    ["https://www.tiktok.com/@joinbyome", "TikTok",
+      '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5 3v11.6a3.6 3.6 0 1 1-3.6-3.6"/><path d="M13.5 3c.4 2.6 2.2 4.3 5 4.6"/></svg>'],
+  ];
 
   // ---------- Why something was removed ----------
   // Must match removal_reason_label() in database/2026-10-11-returned-content.sql

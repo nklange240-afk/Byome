@@ -3120,6 +3120,45 @@ html.near-bottom {
   text-decoration: underline;
 }
 
+/* Instagram and TikTok, under the footer links */
+.footer-social {
+  display: flex;
+  justify-content: center;
+  gap: 1.25rem;
+  margin-top: 0.9rem;
+}
+
+.footer-social a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--cream);
+  font-size: 0.85rem;
+  text-decoration: none;
+  opacity: 0.85;
+}
+
+.footer-social a:hover,
+.footer-social a:focus-visible {
+  color: var(--gold);
+  opacity: 1;
+}
+
+.footer-social svg {
+  width: 1.15rem;
+  height: 1.15rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.footer-social svg .dot {
+  fill: currentColor;
+  stroke: none;
+}
+
 /* A small text-only button ("Show more activity") */
 .link-btn {
   -webkit-appearance: none;
