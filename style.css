@@ -3883,7 +3883,14 @@ body > .biome-overlay.is-far {
   background-color: #E4F8FF;
   box-shadow: 0 0 5px 2px var(--glow), 0 0 16px 6px rgba(80, 170, 255, 0.25);
   opacity: 0.7;
-  filter: opacity(calc(var(--deep-glow, 0) * var(--through, 1)));
+  filter: opacity(calc(var(--deep-glow, 0) * var(--through, 1) * var(--soft, 1)));
+}
+
+/* The reef's glow is gentler than the open ocean's: dimmer, with a
+   smaller halo, so its colorful plankton stay the stars */
+.biome-reef .p-biolum {
+  --soft: 0.6;
+  box-shadow: 0 0 4px 1px var(--glow), 0 0 12px 4px rgba(80, 170, 255, 0.14);
 }
 
 .biome-settled .p-biolum {
