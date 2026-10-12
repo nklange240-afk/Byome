@@ -147,4 +147,20 @@ form.addEventListener("submit", async (event) => {
   doneLink.focus();
 });
 
+// Tell members what each variation earns (set in
+// database/2026-10-24-variation-points.sql; no hint until that's run)
+async function showVariationHint() {
+  const { data } = await supabaseClient.from("point_rules")
+    .select("community_points, biome_points, threshold").eq("action", "product_variation").maybeSingle();
+  if (!data || !(data.biome_points || data.community_points)) return;
+  const parts = [];
+  if (data.biome_points) parts.push(data.biome_points + " Byome " + (data.biome_points === 1 ? "point" : "points"));
+  if (data.community_points) parts.push(data.community_points + " community " + (data.community_points === 1 ? "point" : "points"));
+  const hint = document.getElementById("variation-hint");
+  hint.textContent = "Shades, scents or sizes count. Once approved, each variation earns you " + parts.join(" and ") +
+    " on top of the points for the product" + (data.threshold ? " (up to " + data.threshold + " variations)." : ".");
+  hint.hidden = false;
+}
+
 init();
+showVariationHint();

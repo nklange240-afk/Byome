@@ -176,6 +176,8 @@ function buildQueueItem(product, matches) {
 
   if (product.variations && product.variations.length > 0) {
     view.appendChild(el("p", "post-body", "Variations: " + product.variations.join(", ")));
+    // Each approved variation earns the member points (up to 10 per product)
+    view.appendChild(el("p", "field-hint", "Each variation earns the member points when you approve. Edit out any that aren't real first."));
   }
 
   const suggestedBy = product.profiles ? product.profiles.username : "Unknown";
