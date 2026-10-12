@@ -3652,7 +3652,7 @@ dialog.celebrate h2 {
   background-repeat: repeat-y;
   background-position: center var(--ov-y, 0px);
   background-size: max(1400px, 100vw) auto;
-  opacity: 0.6;
+  opacity: var(--ov-opacity, 0.6);
 }
 
 /* Behind the posts the foliage is softened to about half strength, so
@@ -3685,6 +3685,11 @@ body > .biome-overlay {
       rgba(0, 0, 0, 0.45) calc(100% - 56px), #000 calc(100% - 16px));
     mask-image: linear-gradient(to right, #000 16px, rgba(0, 0, 0, 0.45) 56px,
       rgba(0, 0, 0, 0.45) calc(100% - 56px), #000 calc(100% - 16px));
+  }
+
+  /* Far-off layers (the ocean's fish) don't get the extra copy */
+  body > .biome-overlay.is-far::before {
+    content: none;
   }
 
   /* The smaller leaves of the faint copy read as further away */
