@@ -374,10 +374,10 @@ const UI = (function () {
     // bottom of the page, however long the page is
     meadow: { name: "Meadow", symbol: "\u{1F33C}", top: [238, 248, 221], deep: [159, 203, 126], particles: [],
               // hand-drawn wildflowers down both sides, with bees and butterflies
-              // drifting a little faster in front (no faint copy on phones)
+              // among them (moving together; no faint copy of the bugs on phones)
               overlays: [
                 { image: "biome-assets/overlay-meadow-flowers.webp", speed: 0.5, opacity: 0.75 },
-                { image: "biome-assets/overlay-meadow-bugs.webp", speed: 0.6, opacity: 0.95, sparse: true },
+                { image: "biome-assets/overlay-meadow-bugs.webp", speed: 0.5, opacity: 0.95, sparse: true },
               ],
               stops: [[238, 248, 221], [203, 230, 170], [159, 203, 126]],
               shadeFrom: 0, light: true,
