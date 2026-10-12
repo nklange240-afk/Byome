@@ -3664,6 +3664,49 @@ body > .biome-overlay {
     rgba(0, 0, 0, 0.45) calc(50% + 290px), #000 calc(50% + 440px));
 }
 
+/* Far-off layers (the ocean's fish) are drawn smaller, so they feel
+   farther away. Each side of the art is pinned to its own edge of the
+   screen (left half and right half), so neither side drifts out of view
+   or behind the posts. */
+.biome-overlay.is-far {
+  --far-size: calc(max(1400px, 100vw) * 0.65);
+}
+
+body > .biome-overlay.is-far {
+  background-image: none;
+}
+
+.biome-overlay.is-far::before,
+.biome-overlay.is-far::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 50%;
+  background-image: var(--ov-img);
+  background-repeat: repeat-y;
+  background-size: var(--far-size) auto;
+  opacity: 1;
+}
+
+.biome-overlay.is-far::before {
+  left: 0;
+  right: auto;
+  background-position: left var(--ov-y, 0px);
+}
+
+.biome-overlay.is-far::after {
+  right: 0;
+  left: auto;
+  background-position: right var(--ov-y, 0px);
+}
+
+/* In a biome preview, sized to the little page */
+.biome-preview .biome-overlay.is-far::before,
+.biome-preview .biome-overlay.is-far::after {
+  background-size: auto 60%;
+}
+
 /* Deeper into the forest, the foliage fades into the dark */
 .biome-forest > .biome-overlay {
   opacity: calc(0.6 - var(--biome-depth, 0) * 0.3);
@@ -3687,9 +3730,15 @@ body > .biome-overlay {
       rgba(0, 0, 0, 0.45) calc(100% - 56px), #000 calc(100% - 16px));
   }
 
-  /* Far-off layers (the ocean's fish) don't get the extra copy */
+  body > .biome-overlay.is-far {
+    --far-size: 640px;
+  }
+
   body > .biome-overlay.is-far::before {
-    content: none;
+    inset: 0 50% 0 0;
+    background-size: var(--far-size) auto;
+    background-position: left var(--ov-y, 0px);
+    opacity: 1;
   }
 
   /* The smaller leaves of the faint copy read as further away */
