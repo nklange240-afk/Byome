@@ -3754,10 +3754,12 @@ body > .biome-overlay.is-far {
   }
 }
 
-/* In a biome preview it's scaled down to fit the little page */
+/* In a biome preview it's scaled down to fit the little page: the art's
+   full width fits the preview, so the plants at its edges stay in view */
 .biome-preview .biome-overlay {
   position: absolute;
-  background-size: auto 100%;
+  background-repeat: repeat-y;
+  background-size: 100% auto;
 }
 
 .particle {
