@@ -371,7 +371,9 @@ const UI = (function () {
     // Meadow is the light biome (dark text; its colors are in style.css):
     // bright, fresh green at the top, deepening to rich meadow green by the
     // bottom of the page, however long the page is
-    meadow: { name: "Meadow", symbol: "\u{1F33C}", top: [238, 248, 221], deep: [159, 203, 126], particles: [], // hand-drawn florals to come
+    meadow: { name: "Meadow", symbol: "\u{1F33C}", top: [238, 248, 221], deep: [159, 203, 126], particles: [],
+              // hand-drawn wildflowers, bees and butterflies down both sides
+              overlays: [{ image: "biome-assets/overlay-meadow.webp", speed: 0.5, opacity: 0.9 }],
               stops: [[238, 248, 221], [203, 230, 170], [159, 203, 126]],
               shadeFrom: 0, light: true,
               // its preview tile hints at spring green and petals
