@@ -1,9 +1,13 @@
 -- =========================================================
--- Byome: automod for crude emojis.
+-- Byome: automod for crude emojis, plus more words.
 -- The word list only matches letters, so emojis got through. This adds a
 -- second list, of emojis. A post, comment, review, review update or poll
 -- with one of them is HELD for a moderator, exactly like a listed word.
 -- Every skin tone of an emoji is caught too (🖕🏻 🖕🏿 and so on).
+-- It also adds more words to the word list: misspellings people use to
+-- dodge the filter, more profanity, sexual terms, less common slurs and
+-- threats. Words that are also everyday or beauty words were left off
+-- (see the note at the end of that section).
 -- Run in the Supabase SQL Editor. Safe to run again. Paste the whole file
 -- with nothing highlighted.
 --
@@ -34,6 +38,54 @@ insert into public.moderation_emojis (emoji, note) values
   ('🖕', 'middle finger'),
   ('🍆', 'eggplant')
 on conflict (emoji) do nothing;
+
+
+-- ---------- More words ----------
+-- Caught even inside longer words
+insert into public.moderation_words (word, match_inside_words) values
+  ('cocksucker', true), ('motherfucker', true), ('fck', true),
+  ('phuck', true), ('biatch', true), ('beyotch', true), ('arsehole', true),
+  ('dickwad', true), ('assclown', true), ('asswipe', true)
+on conflict (word) do nothing;
+
+-- Whole words only
+insert into public.moderation_words (word) values
+  -- dodging the filter
+  ('fuk'), ('fuks'), ('fukk'), ('fuking'), ('fukker'), ('fukked'), ('fuq'), ('fk'), ('fking'), ('fkin'), ('fkn'), ('fukin'), ('fucc'), ('phuk'),
+  ('sht'), ('btch'), ('biotch'), ('gtfo'), ('mofo'),
+  -- profanity
+  ('dipshit'), ('horseshit'), ('shithole'), ('shitholes'), ('shitshow'), ('batshit'),
+  ('apeshit'), ('chickenshit'), ('shitbag'), ('shitface'), ('dickface'), ('dickheads'),
+  ('asshat'), ('asshats'), ('douchebag'), ('douchebags'), ('wank'), ('wanking'), ('wanked'),
+  ('tosser'), ('tossers'), ('bellend'), ('knobhead'), ('pisshead'), ('skank'), ('skanks'),
+  ('skanky'), ('slag'), ('slags'), ('thot'), ('thots'), ('cuck'), ('minge'),
+  ('jackoff'), ('jerkoff'), ('jack off'), ('jerk off'),
+  -- sexual
+  ('blowjob'), ('blowjobs'), ('blow job'), ('handjob'), ('hand job'), ('rimjob'),
+  ('dildo'), ('dildos'), ('clit'), ('boner'), ('milf'), ('hentai'), ('cumshot'),
+  ('onlyfans'),
+  -- slurs
+  ('nigguh'), ('niggah'), ('nigglet'), ('jigaboo'), ('jiggaboo'), ('porch monkey'),
+  ('jungle bunny'), ('sambo'), ('darkie'), ('darky'), ('zipperhead'), ('slanteye'),
+  ('slant eye'), ('slant eyes'), ('ching chong'), ('chinky'), ('jap'), ('japs'),
+  ('spick'), ('spicks'), ('camel jockey'), ('towel head'), ('rag head'), ('muzzie'),
+  ('muzzies'), ('yid'), ('yids'), ('heeb'), ('hebe'), ('kyke'), ('faggy'), ('poofter'),
+  ('lesbo'), ('homo'), ('homos'), ('trannie'), ('ladyboy'), ('he she'), ('tard'),
+  ('tards'), ('spaz'), ('spastic'), ('mongoloid'), ('gyppo'), ('gippo'), ('wop'),
+  ('wops'), ('dago'), ('dagos'), ('polack'), ('squaw'), ('honky'), ('honkey'),
+  -- hate
+  ('heil hitler'), ('sieg heil'), ('white power'),
+  -- threats and harassment
+  ('raping'), ('rapes'), ('rapists'), ('pedo'), ('pedos'), ('pedophile'), ('paedo'),
+  ('paedophile'), ('nonce'), ('molest'), ('molester'), ('kill yourselves'),
+  ('neck yourself'), ('hang yourself'), ('unalive yourself'), ('go die')
+on conflict (word) do nothing;
+-- Left off on purpose, because they're also everyday or beauty words (add
+-- any of them with the line at the top of 2026-10-02-automod.sql if they
+-- become a problem): hoe/hoes (garden tool), douche (a hygiene product),
+-- slant (slanted brushes and tweezers), redskin (potatoes), cracker, poof,
+-- negro, gypsy/gyp, lmfao, fcuk (a fragrance brand), cumming (a surname),
+-- nudes (nude palettes), boobs, nipple, anal, horny, orgasm (a blush shade).
 
 
 -- ---------- The check (the same as before, plus the emoji list) ----------
@@ -73,4 +125,5 @@ begin
 end $$;
 revoke execute on function public.text_is_flagged(text) from public, anon, authenticated;
 
-select emoji, note from public.moderation_emojis order by added_at;
+select (select count(*) from public.moderation_emojis) as emojis,
+       (select count(*) from public.moderation_words) as words;
