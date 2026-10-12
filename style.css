@@ -603,6 +603,25 @@ body {
   padding: 0.75rem 0;
 }
 
+/* The post or comment a notification led you to: a soft golden glow
+   that fades away after a few seconds */
+.post.is-linked,
+.comment.is-linked {
+  border-radius: 10px;
+  animation: linked-glow 4s ease-out;
+}
+
+@keyframes linked-glow {
+  0%, 55% {
+    background-color: rgba(232, 182, 80, 0.13);
+    box-shadow: 0 0 0 10px rgba(232, 182, 80, 0.13);
+  }
+  100% {
+    background-color: rgba(232, 182, 80, 0);
+    box-shadow: 0 0 0 10px rgba(232, 182, 80, 0);
+  }
+}
+
 .comment-body {
   white-space: pre-wrap;
   overflow-wrap: anywhere;

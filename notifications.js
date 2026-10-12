@@ -49,6 +49,31 @@ function typeIcon(type, tone) {
   return wrap;
 }
 
+// Likes, comments and replies on the Community page link straight to
+// their post, with the comments open and the comment picked out:
+// feed.html?post=<id>&comment=<id>. Post likes point at the post; comment
+// likes, comments and replies point at the comment, so look up its post.
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const ABOUT_A_COMMENT = ["comment", "reply", "comment_like"];
+
+async function exactLinks(items) {
+  const links = new Map();
+  const onFeed = items.filter((n) => n.link === "feed.html" && n.ref_id && UUID.test(n.ref_id));
+  const commentIds = [...new Set(onFeed.filter((n) => ABOUT_A_COMMENT.includes(n.type)).map((n) => n.ref_id))];
+  const postOf = new Map();
+  if (commentIds.length) {
+    const { data } = await supabaseClient.from("comments").select("id, post_id").in("id", commentIds);
+    (data || []).forEach((c) => postOf.set(c.id, c.post_id));
+  }
+  onFeed.forEach((n) => {
+    if (n.type === "post_like") links.set(n.id, "feed.html?post=" + n.ref_id);
+    else if (ABOUT_A_COMMENT.includes(n.type) && postOf.get(n.ref_id)) {
+      links.set(n.id, "feed.html?post=" + postOf.get(n.ref_id) + "&comment=" + n.ref_id);
+    }
+  });
+  return links;
+}
+
 (async function () {
   const { data } = await supabaseClient.auth.getSession();
   if (!data.session) { window.location.href = "login.html"; return; }
@@ -60,9 +85,9 @@ function typeIcon(type, tone) {
   // If that hasn't been run yet, load without it rather than failing.
   const load = (columns) => supabaseClient.from("notifications").select(columns)
     .order("created_at", { ascending: false }).limit(50);
-  let { data: items, error } = await load("id, type, tone, message, link, created_at, read_at");
+  let { data: items, error } = await load("id, type, tone, message, link, ref_id, created_at, read_at");
   if (error && /tone/.test(error.message)) {
-    ({ data: items, error } = await load("id, type, message, link, created_at, read_at"));
+    ({ data: items, error } = await load("id, type, message, link, ref_id, created_at, read_at"));
   }
 
   listEl.innerHTML = "";
@@ -76,6 +101,8 @@ function typeIcon(type, tone) {
     return;
   }
 
+  const exact = await exactLinks(items);
+
   items.forEach((n) => {
     const article = el("article", "notification" + (n.read_at ? "" : " is-unread"));
     article.appendChild(typeIcon(n.type, n.tone));
@@ -85,7 +112,7 @@ function typeIcon(type, tone) {
     const safe = n.link && /^[a-z-]+\.html$/.test(n.link);
     if (safe) {
       const a = el("a", "notification-text", n.message);
-      a.href = n.link;
+      a.href = exact.get(n.id) || n.link;
       textBox.appendChild(a);
     } else {
       textBox.appendChild(el("p", "notification-text", n.message));
