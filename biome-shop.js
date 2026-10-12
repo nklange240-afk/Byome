@@ -205,10 +205,12 @@ async function showAdSigns() {
   const preview = new URLSearchParams(window.location.search).has("adpreview");
   if (!AD_CLIENT && !preview) return;
 
-  for (const spot of AD_SIGNS) {
+  for (const [i, spot] of AD_SIGNS.entries()) {
     const box = document.getElementById(spot.box);
     const sign = el("aside", "ad-sign");
-    sign.setAttribute("aria-label", "Advertisement"); // the word on the sign is painted
+    // the word on the sign is painted; each sign gets its own name so
+    // screen readers can tell them apart
+    sign.setAttribute("aria-label", AD_SIGNS.length > 1 ? "Advertisement " + (i + 1) + " of " + AD_SIGNS.length : "Advertisement");
     const frame = el("img", "ad-sign-frame");
     frame.src = "biome-assets/ad-sign.png";
     frame.alt = "";

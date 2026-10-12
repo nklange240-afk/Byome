@@ -148,6 +148,14 @@ async function buildBiomePicker() {
     // The Preview button sits outside the label, so it doesn't pick the biome
     const option = el("div", "biome-option-wrap");
     option.append(label, UI.previewButton(it));
+    // A locked biome can't be chosen; a real link (reachable by keyboard
+    // and screen readers) leads to the shop
+    if (!have) {
+      const shop = el("a", "btn btn-ghost btn-preview", "Get it");
+      shop.href = "byome-shop.html";
+      shop.setAttribute("aria-label", "Get " + it.name + " in the Byome Shop");
+      option.appendChild(shop);
+    }
     grid.appendChild(option);
   });
   box.appendChild(grid);

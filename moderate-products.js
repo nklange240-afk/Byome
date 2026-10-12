@@ -281,6 +281,7 @@ function buildRejectForm(product, onSaved, onCancel, presetReason) {
   });
 
   const message = el("p", "auth-message");
+  message.setAttribute("aria-live", "polite"); // read out by screen readers
   const buttons = el("div", "edit-buttons");
   const confirmBtn = el("button", "btn btn-solid", "Reject suggestion");
   confirmBtn.type = "submit";
@@ -341,6 +342,7 @@ function buildEditForm(product, onSaved, onCancel) {
   );
 
   const message = el("p", "auth-message");
+  message.setAttribute("aria-live", "polite"); // read out by screen readers
   const buttons = el("div", "edit-buttons");
   const cancel = el("button", "action-btn", "Cancel");
   cancel.type = "button";
@@ -452,6 +454,7 @@ function reasonPicker(what, onConfirm, onCancel) {
   note.maxLength = 200;
   note.placeholder = "e.g. Please keep it to your experience with the product.";
   const message = el("p", "auth-message");
+  message.setAttribute("aria-live", "polite"); // read out by screen readers
   const buttons = el("div", "post-actions");
   const go = el("button", "action-btn mod-btn is-bad", "Remove");
   go.type = "submit";
@@ -506,6 +509,7 @@ function buildHeldItem(item) {
 
   const actions = el("div", "post-actions");
   const message = el("span", "auth-message");
+  message.setAttribute("aria-live", "polite"); // read out by screen readers
 
   function decide(action, button, reason, note) {
     return async () => {
@@ -622,6 +626,7 @@ function buildReportedItem(group) {
 
   const actions = el("div", "post-actions");
   const message = el("span", "auth-message");
+  message.setAttribute("aria-live", "polite"); // read out by screen readers
   async function decide(action) {
     if (action === "remove") {
       // Ask why first

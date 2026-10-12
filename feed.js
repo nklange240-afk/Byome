@@ -94,7 +94,8 @@ function buildLikeButton(table, idColumn, id, likes) {
     btn.innerHTML = "";
     btn.append(leafIcon(), el("span", null, String(count)));
     btn.setAttribute("aria-pressed", String(liked));
-    btn.setAttribute("aria-label", (liked ? "Unlike" : "Like") + " (" + count + " likes)");
+    // "Like, 3 likes" plus pressed/not pressed (aria-pressed) says it all
+    btn.setAttribute("aria-label", "Like, " + count + (count === 1 ? " like" : " likes"));
     btn.classList.toggle("is-liked", liked);
   }
   paint();
@@ -457,6 +458,7 @@ function buildCommentEditForm(comment, refresh, onCancel) {
 
   const footer = el("div", "comment-form-footer");
   const message = el("span", "auth-message");
+  message.setAttribute("aria-live", "polite"); // read out by screen readers
   const buttons = el("div", "edit-buttons");
   const cancel = actionButton("Cancel");
   cancel.addEventListener("click", onCancel);
@@ -500,6 +502,7 @@ function buildCommentForm(postId, parentId, placeholder, submitLabel, refresh) {
 
   const footer = el("div", "comment-form-footer");
   const message = el("span", "auth-message");
+  message.setAttribute("aria-live", "polite"); // read out by screen readers
   const submit = el("button", "btn btn-solid", submitLabel);
   submit.type = "submit";
   footer.append(message, submit);

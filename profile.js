@@ -68,6 +68,7 @@ function heldNotice() {
 function ownerActions(article, parts, table, id, label, makeForm, reload) {
   const actions = el("div", "post-actions");
   const message = el("span", "auth-message");
+  message.setAttribute("aria-live", "polite"); // read out by screen readers
   const show = (visible) => parts.forEach((node) => { node.hidden = !visible; });
 
   // No makeForm: this can't be edited here (polls are edited on Community)
@@ -463,6 +464,7 @@ async function showBiome(profileId, isMe) {
 
     if (message) {
       const m = el("p", "auth-message", message);
+      m.setAttribute("aria-live", "polite"); // read out by screen readers
       m.style.color = "#E07A5F";
       editorEl.appendChild(m);
     }

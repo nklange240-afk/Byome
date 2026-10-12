@@ -76,6 +76,10 @@ const UI = (function () {
     { name: "text", legend: "Text size", options: [["default", "Standard"], ["large", "Large"], ["xlarge", "Extra large"]] },
     { name: "contrast", legend: "Contrast", options: [["default", "Standard"], ["high", "Higher contrast"]],
       note: "Higher contrast shows all text at full strength, outlines fields and buttons more clearly, underlines links and quiets the background art." },
+    { name: "background", legend: "Backgrounds", options: [["full", "Full biomes"], ["calm", "Calm"]],
+      note: "Calm hides the biome art and the drifting specks, keeping just the colors. Easier on busy minds, tired eyes and older phones." },
+    { name: "font", legend: "Font", options: [["default", "Standard"], ["readable", "Easy-reading"]],
+      note: "Easy-reading uses Atkinson Hyperlegible, a font designed so similar letters are easy to tell apart." },
   ];
 
   function openAccessibility() {
