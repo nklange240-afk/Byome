@@ -126,9 +126,10 @@ function render(data) {
   // ----- Who you've invited -----
   const people = el("section", "invite-card");
   people.appendChild(el("h2", "section-title", "Who you've invited"));
-  if (!data.friends.length) {
+  const earlier = data.earlier || 0; // friends counted from before invites were tracked (no names)
+  if (!data.friends.length && !earlier) {
     people.appendChild(el("p", "feed-empty", "Nobody yet. Share your link and they'll show up here once they sign up."));
-  } else {
+  } else if (data.friends.length) {
     const ul = el("ul", "invite-friends");
     data.friends.forEach((f) => {
       const li = el("li", "invite-friend");
@@ -141,6 +142,11 @@ function render(data) {
       ul.appendChild(li);
     });
     people.appendChild(ul);
+  }
+  if (earlier) {
+    people.appendChild(el("p", "invite-earlier",
+      (data.friends.length ? "Plus " : "") + earlier + (earlier === 1 ? " friend" : " friends") +
+      " you invited before invites were tracked. Thank you!"));
   }
   box.appendChild(people);
 

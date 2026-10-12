@@ -42,5 +42,6 @@ from (values
   ('2026-10-16-comment-edits.sql',        exists (select 1 from col where t = 'comments' and c = 'edited_at')),
   ('2026-10-17-pastel-pots.sql',          (select count(*) = 3 from public.biome_items where key in ('buttercup', 'lilac', 'blush'))),
   ('2026-10-18-heirloom-rarity.sql',      exists (select 1 from pg_constraint where conname = 'biome_items_rarity_check' and pg_get_constraintdef(oid) like '%heirloom%')),
-  ('2026-10-19-referrals.sql',            exists (select 1 from tbl where name = 'referrals'))
+  ('2026-10-19-referrals.sql',            exists (select 1 from tbl where name = 'referrals')),
+  ('2026-10-20-past-referrals.sql',       exists (select 1 from tbl where name = 'referral_credits'))
 ) as checks(file, ok);

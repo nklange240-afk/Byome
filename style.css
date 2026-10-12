@@ -5688,6 +5688,11 @@ dialog.a11y-dialog {
   border-top: 0;
 }
 
+.invite-earlier {
+  margin: 0.75rem 0 0;
+  color: var(--leaf-text);
+}
+
 .invite-friend .post-author {
   color: var(--gold-text);
 }
