@@ -585,7 +585,9 @@ async function showAchievements(profileId) {
   if (isMe) {
     const editLink = el("a", "btn btn-ghost", "Edit profile");
     editLink.href = "edit-profile.html";
-    actionsEl.appendChild(editLink);
+    const inviteLink = el("a", "btn btn-ghost", "Invite friends");
+    inviteLink.href = "invite.html";
+    actionsEl.append(editLink, inviteLink);
   } else if (!PROFILES.isDeleted(profile)) {
     await REPORTS.loadMine(me);
     actionsEl.appendChild(REPORTS.button("profile", profile.id));

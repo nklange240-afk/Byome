@@ -2,6 +2,36 @@
 const signupForm = document.getElementById("signup-form");
 const messageEl = document.getElementById("signup-message");
 
+// ----- Invite codes -----
+// A friend's invite link (signup.html?ref=CODE) fills the code in; it's
+// remembered for this visit in case they look around first. The hint shows
+// who invited them, or that the code wasn't found.
+const inviteInput = document.getElementById("invite-code");
+const inviteHint = document.getElementById("invite-hint");
+const INVITE_HINT = inviteHint.textContent;
+let inviteOk = true;   // an empty code is fine
+let inviteTimer = null;
+
+async function checkInvite() {
+  const code = inviteInput.value.trim().toUpperCase();
+  try { sessionStorage.setItem("byome-invite", code); } catch (e) { /* not needed */ }
+  if (!code) { inviteOk = true; inviteHint.textContent = INVITE_HINT; inviteHint.classList.remove("is-good", "is-bad"); return; }
+  const { data: inviter } = await supabaseClient.rpc("referral_inviter", { p_code: code });
+  if (inputCode() !== code) return; // they kept typing
+  inviteOk = Boolean(inviter);
+  inviteHint.textContent = inviter ? "Invited by " + inviter + ". Welcome!" : "We couldn't find that code. Check it, or leave this empty.";
+  inviteHint.classList.toggle("is-good", inviteOk);
+  inviteHint.classList.toggle("is-bad", !inviteOk);
+}
+function inputCode() { return inviteInput.value.trim().toUpperCase(); }
+
+inviteInput.addEventListener("input", () => { clearTimeout(inviteTimer); inviteTimer = setTimeout(checkInvite, 400); });
+(function () {
+  let code = new URLSearchParams(window.location.search).get("ref");
+  if (!code) { try { code = sessionStorage.getItem("byome-invite"); } catch (e) { code = null; } }
+  if (code) { inviteInput.value = code.trim().toUpperCase().slice(0, 12); checkInvite(); }
+})();
+
 // Runs whenever the form is submitted (the button is clicked)
 signupForm.addEventListener("submit", async (event) => {
   event.preventDefault(); // stops the page from reloading, which is the browser's default
@@ -13,6 +43,13 @@ signupForm.addEventListener("submit", async (event) => {
   if (!document.getElementById("age-confirm").checked) {
     messageEl.textContent = "Please confirm you're 18 or older to join Byome.";
     messageEl.style.color = "#E07A5F";
+    return;
+  }
+
+  if (inputCode() && !inviteOk) {
+    messageEl.textContent = "That invite code wasn't found. Check it, or leave it empty to sign up without one.";
+    messageEl.style.color = "#E07A5F";
+    inviteInput.focus();
     return;
   }
 
@@ -43,7 +80,8 @@ signupForm.addEventListener("submit", async (event) => {
     email: email,
     password: password,
     options: {
-      data: { username: username, confirmed_18_plus_at: new Date().toISOString() },
+      // referral_code: the friend who invited them (database/2026-10-19-referrals.sql)
+      data: { username: username, confirmed_18_plus_at: new Date().toISOString(), referral_code: inputCode() || undefined },
     },
   });
 

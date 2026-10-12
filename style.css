@@ -2938,8 +2938,10 @@ div.biome-slot:focus-visible,
 
 .profile-head-actions {
   display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   align-items: center;
-  gap: 1rem;
+  gap: 0.5rem;
   margin-left: auto;
 }
 
@@ -3279,6 +3281,7 @@ html.near-bottom {
 .icon-points { color: var(--gold); }
 .icon-like { color: var(--leaf); }
 .icon-comment { color: var(--cream); }
+.icon-friend { color: var(--leaf-text); }
 .icon-moderation { color: #E07A5F; }
 
 /* ----- Shop: picture box, rarity edge, "Owned" tag ----- */
@@ -5466,4 +5469,235 @@ dialog.a11y-dialog {
 .footer-link-btn:focus-visible {
   color: var(--gold);
   text-decoration: underline;
+}
+
+
+/* =========================================================
+   INVITE FRIENDS (invite.html) and the invite code on sign-up
+   ========================================================= */
+.invite-intro {
+  margin: 0.25rem 0 1.25rem;
+}
+
+.invite-card {
+  margin: 0 0 1.25rem;
+  padding: 1.1rem 1.25rem 1.25rem;
+  border-radius: 12px;
+  background-color: var(--forest-mid);
+}
+
+.invite-card .section-title {
+  margin-top: 0;
+}
+
+.invite-link {
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--moss);
+  border-radius: 8px;
+  background-color: var(--forest-dark);
+  color: var(--cream);
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+}
+
+.invite-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin: 0.75rem 0 1rem;
+}
+
+.invite-code-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+}
+
+.invite-code {
+  font-size: 1.25rem;
+  letter-spacing: 0.12em;
+  color: var(--gold-text);
+}
+
+.invite-status {
+  min-height: 1.4em;
+  margin: 0.4rem 0 0;
+  font-size: 0.9rem;
+  color: var(--leaf-text);
+}
+
+.invite-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.invite-stat {
+  display: flex;
+  flex-direction: column;
+  padding: 0.75rem;
+  border: 1px solid var(--moss);
+  border-radius: 10px;
+  text-align: center;
+}
+
+.invite-stat-number {
+  font-family: var(--font-heading);
+  font-size: 1.6rem;
+  color: var(--gold-text);
+}
+
+.invite-stat-label {
+  font-size: 0.85rem;
+}
+
+.invite-stat.is-full {
+  border-color: var(--gold-text);
+}
+
+.invite-limit {
+  margin: 0.9rem 0 0;
+  font-size: 0.95rem;
+}
+
+.invite-limit.is-reached {
+  padding: 0.8rem 1rem;
+  border: 1.5px solid var(--gold-text);
+  border-radius: 10px;
+}
+
+.invite-limit.is-reached p {
+  margin: 0.3rem 0 0;
+}
+
+.invite-milestones {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin: 0.75rem 0 0;
+  padding: 0;
+}
+
+.invite-milestone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.75rem 0.5rem;
+  border: 1px dashed var(--moss);
+  border-radius: 10px;
+  text-align: center;
+}
+
+.invite-milestone-mark {
+  display: grid;
+  place-items: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  border: 2px solid var(--moss);
+  border-radius: 50%;
+  font-weight: 600;
+}
+
+.invite-milestone-text {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.9rem;
+}
+
+.invite-milestone.is-reached {
+  border-style: solid;
+  border-color: var(--gold-text);
+}
+
+.invite-milestone.is-reached .invite-milestone-mark {
+  border-color: var(--gold-text);
+  background-color: var(--gold-text);
+  color: var(--forest-dark);
+}
+
+.invite-friends {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.invite-friend {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.65rem 0;
+  border-top: 1px solid var(--moss);
+}
+
+.invite-friend:first-child {
+  border-top: 0;
+}
+
+.invite-friend .post-author {
+  color: var(--gold-text);
+}
+
+.invite-friend-state {
+  font-size: 0.9rem;
+}
+
+.invite-friend-state.is-done {
+  color: var(--leaf-text);
+}
+
+.invite-steps,
+.invite-rules {
+  margin: 0.5rem 0 0 1.25rem;
+}
+
+.invite-steps li,
+.invite-rules li {
+  margin-bottom: 0.4rem;
+}
+
+.invite-rules {
+  font-size: 0.9rem;
+}
+
+/* Sign-up: the optional invite code */
+.optional-tag {
+  font-weight: 400;
+  font-size: 0.85em;
+}
+
+#invite-code {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+#invite-hint.is-good {
+  color: var(--leaf-text);
+}
+
+#invite-hint.is-bad {
+  color: var(--red-text);
+}
+
+@media (max-width: 480px) {
+  .invite-stats,
+  .invite-milestones {
+    grid-template-columns: 1fr;
+  }
+
+  .invite-stat {
+    flex-direction: row;
+    align-items: baseline;
+    gap: 0.6rem;
+    text-align: left;
+  }
+
+  .invite-milestone {
+    flex-direction: row;
+    text-align: left;
+  }
 }

@@ -19,8 +19,8 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=86" />
-  <script src="a11y.js?v=86"></script>
+  <link rel="stylesheet" href="style.css?v=87" />
+  <script src="a11y.js?v=87"></script>
 </head>
 <body>
 
@@ -53,6 +53,10 @@
         <input type="password" id="password" required minlength="8" autocomplete="new-password" aria-describedby="password-hint" />
         <p class="field-hint" id="password-hint">At least 8 characters.</p>
 
+        <label for="invite-code">Invite code <span class="optional-tag">(optional)</span></label>
+        <input type="text" id="invite-code" maxlength="12" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-describedby="invite-hint" />
+        <p class="field-hint" id="invite-hint" aria-live="polite">Got a code from a friend? Pop it in and you'll both get a bonus once you've written your first review and posted or commented.</p>
+
         <label class="age-check" for="age-confirm">
           <input type="checkbox" id="age-confirm" required />
           <span>I'm 18 or older, and I agree to the <a class="inline-link" href="terms.html" target="_blank">terms of use</a> and <a class="inline-link" href="privacy.html" target="_blank">privacy policy</a>.</span>
@@ -72,11 +76,11 @@
   <!-- Supabase's own code library, loaded from their servers -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <!-- Our shared connection setup -->
-  <script src="supabase-client.js?v=86"></script>
+  <script src="supabase-client.js?v=87"></script>
   <!-- Hamburger menu behavior -->
-  <script src="nav-menu.js?v=86"></script>
-  <script src="ui.js?v=86"></script>
+  <script src="nav-menu.js?v=87"></script>
+  <script src="ui.js?v=87"></script>
   <!-- The logic specific to this page -->
-  <script src="signup.js?v=86"></script>
+  <script src="signup.js?v=87"></script>
 </body>
 </html>
