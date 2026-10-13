@@ -296,7 +296,7 @@ const UI = (function () {
       const choose = el("a", "btn btn-ghost", "Choose my biome");
       choose.href = "edit-profile.html";
       actions.appendChild(choose);
-    } else if (options.item) {
+    } else if (options.item && !options.placed) {
       // Opens your profile with the shelf editor ready
       const place = el("a", "btn btn-ghost", "Put it on my shelf");
       place.href = "profile.html?shelf=edit";
@@ -371,6 +371,7 @@ const UI = (function () {
           (item ? "Your reward: " + item.name + (item.kind === "plant" ? ", already on your shelf." : ".") : "") +
           (event && a.event_points ? " Plus " + a.event_points + " Byome points!" : ""),
         item: item,
+        placed: Boolean(item && item.kind === "plant"), // reward plants are planted for you
       });
     });
   }
