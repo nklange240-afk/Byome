@@ -9,7 +9,7 @@
 
 insert into public.biome_items (key, kind, size, name, description, rarity, price, image, sort_order)
 values ('jack-o-lantern', 'pot', 'medium', 'Jack-o''-lantern pot',
-        'Grinning from ear to ear, just like you. For completing five Haunted Harvest achievements. A souvenir from Haunted Harvest 2026.',
+        'Grinning from ear to ear, just like you. (Wait, do pumpkins have ears?) For completing five Haunted Harvest achievements. A souvenir from Haunted Harvest 2026.',
         'heirloom', null, 'biome-assets/pot-jack-o-lantern.png', 26)
 on conflict (key) do update set
   kind = excluded.kind, size = excluded.size, name = excluded.name, description = excluded.description,
