@@ -19,8 +19,8 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=106" />
-  <script src="a11y.js?v=106"></script>
+  <link rel="stylesheet" href="style.css?v=111" />
+  <script src="a11y.js?v=111"></script>
 </head>
 <body data-biome="forest">
 
@@ -62,6 +62,10 @@
         placeholder="What's working for you lately? Ask a question or share a product."></textarea>
       <!-- "Add a poll": options and how long it runs (polls.js) -->
       <div id="poll-editor" class="poll-editor" hidden></div>
+      <!-- Shown while an event is on (feed.js) -->
+      <label id="post-event-row" class="check-row post-event-row" hidden>
+        <input type="checkbox" id="post-event" /> <span id="post-event-label">Part of the event</span>
+      </label>
       <div class="composer-footer">
         <span class="composer-extras">
           <button type="button" id="poll-toggle" class="action-btn poll-toggle" aria-pressed="false" aria-controls="poll-editor">Add a poll</button>
@@ -84,13 +88,13 @@
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase-client.js?v=106"></script>
-  <script src="profile-fields.js?v=106"></script>
-  <script src="nav-menu.js?v=106"></script>
-  <script src="ui.js?v=106"></script>
-  <script src="edit-forms.js?v=106"></script>
-  <script src="report.js?v=106"></script>
-  <script src="polls.js?v=106"></script>
-  <script src="feed.js?v=106"></script>
+  <script src="supabase-client.js?v=111"></script>
+  <script src="profile-fields.js?v=111"></script>
+  <script src="nav-menu.js?v=111"></script>
+  <script src="ui.js?v=111"></script>
+  <script src="edit-forms.js?v=111"></script>
+  <script src="report.js?v=111"></script>
+  <script src="polls.js?v=111"></script>
+  <script src="feed.js?v=111"></script>
 </body>
 </html>

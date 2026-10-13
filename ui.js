@@ -239,6 +239,16 @@ const UI = (function () {
       frontImg.src = art(front);
       frontImg.alt = "";
       box.append(potImg, plant, frontImg);
+    } else if (item.kind === "shelf_overlay") {
+      // A shelf decoration, shown on the wooden shelf
+      box.classList.add("is-decorated-shelf");
+      const shelf = el("img", (className ? "" : "celebrate-grow") + " is-shelf");
+      shelf.src = art("biome-assets/shelf-default.png");
+      shelf.alt = "";
+      const deco = el("img", "celebrate-decoration");
+      deco.src = art(item.image);
+      deco.alt = "";
+      box.append(shelf, deco);
     } else if (item.kind === "companion") {
       // A companion's canvas is mostly empty space above the pot, so show
       // its close-up (saved next to it with "-icon" added to the name).
@@ -328,10 +338,12 @@ const UI = (function () {
     const userId = data.session.user.id;
     const since = new Date(Date.now() - RECENT_DAYS * 86400000).toISOString();
 
-    const { data: rows, error } = await supabaseClient
-      .from("user_achievements")
-      .select("achievement_key, earned_at, achievements!achievement_key(name, description, biome_items!reward_item(key, kind, name, image, rarity, over_pot))")
+    const load = (columns) => supabaseClient.from("user_achievements").select(columns)
       .eq("user_id", userId).gte("earned_at", since).order("earned_at");
+    const base = "achievement_key, earned_at, achievements!achievement_key(name, description, biome_items!reward_item(key, kind, name, image, rarity, over_pot)";
+    // (event achievements come from database/2026-10-29-events-halloween.sql)
+    let { data: rows, error } = await load(base + ", event_points, events!event_key(name))");
+    if (error) ({ data: rows, error } = await load(base + ")"));
     if (error || !rows) return;
 
     const seen = readSeen(userId);
@@ -342,14 +354,88 @@ const UI = (function () {
     fresh.forEach((r) => {
       const a = r.achievements || {};
       const item = a.biome_items;
+      const event = a.events;
       celebrate({
-        label: "Achievement unlocked",
+        label: event ? event.name + " achievement" : "Achievement unlocked",
         heading: a.name || "New achievement",
         text: (a.description ? a.description + " " : "") +
-          (item ? "Your reward: " + item.name + (item.kind === "plant" ? ", already on your shelf." : ".") : ""),
+          (item ? "Your reward: " + item.name + (item.kind === "plant" ? ", already on your shelf." : ".") : "") +
+          (event && a.event_points ? " Plus " + a.event_points + " Byome points!" : ""),
         item: item,
       });
     });
+  }
+
+  // ---------- Events ----------
+  // The event that's on right now, if any (from the events table; the
+  // database decides what counts, this just decides what to show)
+  let liveEventPromise = null;
+  function liveEvent() {
+    if (!liveEventPromise) {
+      const now = new Date().toISOString();
+      liveEventPromise = typeof supabaseClient === "undefined" ? Promise.resolve(null)
+        : supabaseClient.from("events").select("key, name, tagline, starts_at, ends_at, grace_until, badge_image, story_post_id")
+          .lte("starts_at", now).gte("ends_at", now).order("starts_at").limit(1)
+          .then(({ data, error }) => (error || !data || !data.length ? null : data[0]), () => null);
+    }
+    return liveEventPromise;
+  }
+
+  // "Sunday, November 1 at 11:59 PM Central Time"
+  function centralTime(iso, withTime) {
+    const opts = { timeZone: "America/Chicago", weekday: "long", month: "long", day: "numeric" };
+    let text = new Date(iso).toLocaleDateString("en-US", opts);
+    if (withTime !== false) {
+      text += " at " + new Date(iso).toLocaleTimeString("en-US", { timeZone: "America/Chicago", hour: "numeric", minute: "2-digit" });
+    }
+    return text + " Central Time";
+  }
+
+  // A small picture with words to fall back on: the picture once its art
+  // exists, the words (in a pill) until then
+  function iconOrLabel(src, label, className, shortLabel) {
+    const img = document.createElement("img");
+    img.className = className;
+    img.src = src;
+    img.alt = label;
+    img.title = label;
+    img.addEventListener("error", () => {
+      const pill = el("span", className + " is-text", shortLabel || label);
+      pill.title = label;
+      img.replaceWith(pill);
+    });
+    return img;
+  }
+
+  // While an event is on, a banner at the top of a page pointing to it
+  // (after: put it just after this element, like the page's heading)
+  async function eventBanner(container, after) {
+    const event = await liveEvent();
+    if (!event || !container) return;
+    const banner = el("a", "event-banner");
+    banner.href = "events.html";
+    if (event.badge_image) {
+      const badge = document.createElement("img");
+      badge.src = event.badge_image;
+      badge.alt = "";
+      badge.addEventListener("error", () => badge.remove());
+      banner.appendChild(badge);
+    }
+    const end = new Date(event.ends_at).toLocaleDateString("en-US", { timeZone: "America/Chicago", month: "long", day: "numeric" });
+    const text = el("span");
+    text.append(el("strong", null, event.name + " is on!"), " Earn achievements, Byome points and limited-edition treats until " + end + ". ",
+      el("span", "inline-link", "See the event"));
+    banner.appendChild(text);
+    if (after) after.after(banner); else container.prepend(banner);
+  }
+
+  // The little icons by a review's heading: a cobweb for "no longer using
+  // this", a leaf for a fall favorite (words until the icons' art is in)
+  function reviewIcons(r) {
+    const icons = [];
+    if (r.no_longer_using) icons.push(iconOrLabel("biome-assets/icon-no-longer-using.png", "No longer using this product", "review-icon", "No longer using"));
+    if (r.seasonal) icons.push(iconOrLabel("biome-assets/icon-fall-favorite.png", "Fall favorite", "review-icon"));
+    return icons;
   }
 
   // ---------- Biomes ----------
@@ -399,6 +485,13 @@ const UI = (function () {
     tundra: { name: "Snowy tundra", symbol: "❄️", top: [84, 104, 124], deep: [14, 24, 42], particles: [["snow", 34]],
               throughContent: [["snow", 16]], // a little snow falls faintly over the posts too
               shadeFrom: 0.15 }, // pale dusty blue, deepening to dark blue by the bottom
+    // Autumn woodland: golden light at the top, deepening through rust to
+    // maple red by the bottom of the page, with leaves drifting down. For
+    // now its side art is the forest art recoloured mostly gold, with a
+    // few red patches (same shapes and shading).
+    autumn: { name: "Autumn woodland", symbol: "\u{1F342}", top: [164, 100, 32], deep: [62, 22, 24],
+              stops: [[164, 100, 32], [150, 68, 34], [62, 22, 24]], shadeFrom: 0,
+              particles: [["leaf", 22]], overlay: "biome-assets/overlay-autumn.webp" },
     ocean: { name: "Open ocean", symbol: "\u{1F30A}", top: [20, 52, 78], deep: [4, 12, 26], particles: [["bubble", 16], ["biolum", 26]], rays: true,
              // the "biolum" specks only glow once you're deep down; a few
              // more glow very faintly through the posts and cards
@@ -824,5 +917,5 @@ const UI = (function () {
     if (document.body.dataset.biome) setBiome(document.body.dataset.biome);
   });
 
-  return { openAccessibility, REMOVAL_REASONS, removalReasonLabel, friendlyDate, timeTag, emptyState, celebrate, sparkles, itemArt, setBiome, biomeSymbol, memberBadge, biomeSwatch, biomeLook, biomePreview, openBiomePreview, previewOnHover, previewButton, startModSession };
+  return { liveEvent, eventBanner, centralTime, iconOrLabel, reviewIcons, openAccessibility, REMOVAL_REASONS, removalReasonLabel, friendlyDate, timeTag, emptyState, celebrate, sparkles, itemArt, setBiome, biomeSymbol, memberBadge, biomeSwatch, biomeLook, biomePreview, openBiomePreview, previewOnHover, previewButton, startModSession };
 })();

@@ -142,7 +142,9 @@ function buildPostCard(p, isMe, reload) {
 
 function buildReviewCard(r, isMe, reload) {
   const article = el("article", "post");
-  article.appendChild(el("h2", "post-title", r.title));
+  const titleEl = el("h2", "post-title", r.title);
+  UI.reviewIcons(r).forEach((icon) => titleEl.append(" ", icon));
+  article.appendChild(titleEl);
 
   const product = r.products ? r.products.brand + " — " + r.products.name : "Unknown product";
   const productText = r.variation ? product + " (" + r.variation + ")" : product;
@@ -353,7 +355,10 @@ async function showBiome(profileId, isMe) {
   const [itemsRes, slotsRes, shelfRes, ownedRes, rewardsRes] = await Promise.all([
     supabaseClient.from("biome_items").select("key, kind, size, name, description, rarity, image, starter, sort_order, over_pot").order("sort_order"),
     loadSlots(profileId),
-    supabaseClient.from("profiles").select("biome_shelf").eq("id", profileId).single(),
+    // (the shelf decoration comes from database/2026-10-29-events-halloween.sql)
+    supabaseClient.from("profiles").select("biome_shelf, shelf_overlay").eq("id", profileId).single()
+      .then((res) => (res.error && /shelf_overlay/.test(res.error.message)
+        ? supabaseClient.from("profiles").select("biome_shelf").eq("id", profileId).single() : res)),
     isMe ? supabaseClient.from("biome_inventory").select("item_key").eq("user_id", profileId) : Promise.resolve({ data: [] }),
     supabaseClient.from("achievements").select("name, reward_item").not("reward_item", "is", null),
   ]);
@@ -365,6 +370,7 @@ async function showBiome(profileId, isMe) {
   (rewardsRes.data || []).forEach((a) => { if (items[a.reward_item]) items[a.reward_item].earnedWith = a.name; });
   const placed = slotsByNumber(slotsRes.data);
   let shelfKey = shelfRes.data.biome_shelf;
+  let overlayKey = shelfRes.data.shelf_overlay || null;
   const owned = {};
   (ownedRes.data || []).forEach((row) => { owned[row.item_key] = (owned[row.item_key] || 0) + 1; });
 
@@ -421,6 +427,12 @@ async function showBiome(profileId, isMe) {
     render();
   }
 
+  async function setOverlay(key) {
+    if (key === overlayKey) return;
+    if (await save("set_shelf_overlay", { p_key: key })) overlayKey = key;
+    render();
+  }
+
   async function setCompanion(slot, key) {
     if ((placed[slot] || {}).companion === key) return;
     if (await save("set_biome_companion", { p_slot: slot, p_key: key })) await reloadSlots();
@@ -454,6 +466,16 @@ async function showBiome(profileId, isMe) {
         render();
       })));
     editorEl.appendChild(shelves);
+
+    // Shelf decorations (like the cobwebs), once you have one
+    const overlays = Object.values(items).filter((it) => it.kind === "shelf_overlay" && owned[it.key]);
+    if (overlays.length) {
+      editorEl.appendChild(el("h3", null, "Shelf decoration"));
+      const decor = el("div", "biome-tiles");
+      decor.appendChild(tile("None", null, null, !overlayKey, () => setOverlay(null)));
+      overlays.forEach((it) => decor.appendChild(tile(it.name, null, it.image, it.key === overlayKey, () => setOverlay(it.key))));
+      editorEl.appendChild(decor);
+    }
 
     if (selected === null) {
       editorEl.appendChild(el("p", "feed-empty", "Tap a spot on the shelf to choose what goes there."));
@@ -523,7 +545,8 @@ async function showBiome(profileId, isMe) {
       editable: true,
       selected: selected,
       onSelect: (slot) => { selected = slot; message = ""; render(); },
-    } : null));
+      overlay: overlayKey,
+    } : { overlay: overlayKey }));
 
     const empty = Object.keys(placed).length === 0;
     hintEl.hidden = editing || !empty;
@@ -564,25 +587,124 @@ function showTraits(profile) {
 }
 
 // Achievements earned, shown on every profile under the shelf
+// Achievements: a chip each. Hovering, tapping or tabbing to one opens an
+// info box (like the shelf's) saying how it was earned, when, and its
+// reward. Event achievements carry their event's badge.
 async function showAchievements(profileId) {
   const box = document.getElementById("achievements");
-  const { data, error } = await supabaseClient
-    .from("user_achievements")
-    .select("earned_at, achievement:achievements!achievement_key(name, description, sort_order)")
-    .eq("user_id", profileId)
-    .order("earned_at", { ascending: true });
+  const load = (columns) => supabaseClient.from("user_achievements").select(columns)
+    .eq("user_id", profileId).order("earned_at", { ascending: true });
+  // (events come from database/2026-10-29-events-halloween.sql)
+  let { data, error } = await load("earned_at, achievement:achievements!achievement_key(name, description, sort_order, " +
+    "reward:biome_items!reward_item(name, rarity), event:events!event_key(name, starts_at, badge_image))");
+  if (error) ({ data, error } = await load("earned_at, achievement:achievements!achievement_key(name, description, sort_order, reward:biome_items!reward_item(name, rarity))"));
   if (error || !data.length) return;
 
   box.innerHTML = "";
+  box.classList.add("has-achievement-tips");
   box.appendChild(el("h3", "points-subtitle", "Achievements"));
   const list = el("ul", "achievement-list");
+  const tip = el("div", "biome-tip achievement-tip");
+  tip.id = "achievement-tip";
+  tip.setAttribute("role", "tooltip");
+  tip.hidden = true;
+  let current = null;
+
+  function badgeFor(event, className) {
+    const img = document.createElement("img");
+    img.className = className;
+    img.src = event.badge_image;
+    img.alt = "";
+    return img;
+  }
+
+  function show(chip) {
+    const row = chip._row;
+    const a = row.achievement;
+    const parts = [];
+    const head = el("div", "biome-tip-head");
+    head.appendChild(el("strong", null, a.name));
+    parts.push(head);
+    if (a.event) {
+      const ev = el("p", "achievement-tip-event");
+      if (a.event.badge_image) {
+        const b = badgeFor(a.event, "achievement-tip-badge");
+        b.addEventListener("error", () => b.remove());
+        ev.appendChild(b);
+      }
+      ev.appendChild(document.createTextNode(a.event.name + " " + new Date(a.event.starts_at).getFullYear() + " event"));
+      parts.push(ev);
+    }
+    if (a.description) parts.push(el("p", "biome-tip-text", a.description));
+    parts.push(el("p", "achievement-tip-date", "Earned " + formatDate(row.earned_at)));
+    if (a.reward) parts.push(el("p", "biome-tip-earned", "Reward: " + a.reward.name));
+    tip.replaceChildren(...parts);
+    tip.hidden = false;
+    if (current && current !== chip) current.removeAttribute("aria-describedby");
+    current = chip;
+    chip.setAttribute("aria-describedby", tip.id);
+
+    // above the chip, kept inside the box (below it if there's no room)
+    const area = box.getBoundingClientRect(), r = chip.getBoundingClientRect();
+    let left = r.left - area.left + r.width / 2 - tip.offsetWidth / 2;
+    left = Math.max(0, Math.min(left, area.width - tip.offsetWidth));
+    let top = r.top - area.top - tip.offsetHeight - 6;
+    if (area.top + top < 4) top = r.bottom - area.top + 6;
+    tip.style.left = left + "px";
+    tip.style.top = top + "px";
+  }
+
+  function hide() {
+    if (current) current.removeAttribute("aria-describedby");
+    current = null;
+    tip.hidden = true;
+  }
+
   data.forEach((row) => {
-    const li = el("li", "achievement");
-    li.append(starIcon(), el("span", "achievement-name", row.achievement.name));
-    li.title = row.achievement.description + " Earned " + formatDate(row.earned_at) + ".";
+    if (!row.achievement) return;
+    const li = el("li");
+    const chip = el("button", "achievement" + (row.achievement.event ? " is-event" : ""));
+    chip.type = "button";
+    chip._row = row;
+    if (row.achievement.event && row.achievement.event.badge_image) {
+      const badge = badgeFor(row.achievement.event, "achievement-badge");
+      // until the badge art is in, event achievements keep the star
+      badge.addEventListener("error", () => badge.replaceWith(starIcon()));
+      chip.appendChild(badge);
+    } else {
+      chip.appendChild(starIcon());
+    }
+    chip.appendChild(el("span", "achievement-name", row.achievement.name));
+    li.appendChild(chip);
     list.appendChild(li);
   });
-  box.appendChild(list);
+
+  let lastPointer = "mouse";
+  let pressing = false; // a tap also focuses the chip; let the tap decide
+  list.addEventListener("pointerdown", (e) => { lastPointer = e.pointerType; pressing = true; });
+  list.addEventListener("pointerover", (e) => {
+    if (e.pointerType !== "mouse") return;
+    const chip = e.target.closest(".achievement");
+    if (chip && chip !== current) show(chip);
+  });
+  list.addEventListener("pointerleave", (e) => { if (e.pointerType === "mouse") hide(); });
+  list.addEventListener("click", (e) => {
+    pressing = false;
+    const chip = e.target.closest(".achievement");
+    if (!chip) return;
+    if (lastPointer === "mouse" && chip === current) return;
+    if (chip === current && lastPointer !== "mouse") hide(); else show(chip);
+  });
+  list.addEventListener("focusin", (e) => {
+    if (pressing) return;
+    const chip = e.target.closest(".achievement");
+    if (chip) show(chip);
+  });
+  list.addEventListener("focusout", (e) => { if (!list.contains(e.relatedTarget)) hide(); });
+  list.addEventListener("keydown", (e) => { if (e.key === "Escape") hide(); });
+  document.addEventListener("click", (e) => { if (current && !list.contains(e.target)) hide(); });
+
+  box.append(list, tip);
   box.hidden = false;
 }
 
@@ -779,10 +901,12 @@ async function loadContent(profile, isMe) {
   const postsEl = document.getElementById("profile-posts");
   const reload = () => loadContent(profile, isMe);
 
+  // (the event columns come from database/2026-10-29-events-halloween.sql)
+  const reviewQuery = (extra) => supabaseClient.from("reviews")
+    .select("id, rating, title, body, variation, would_repurchase, holy_grail, " + extra + "created_at, edited_at, held_at, products!product_id(name, brand), review_likes(user_id), review_standouts(review_id)", { count: "exact" })
+    .eq("user_id", profile.id).order("created_at", { ascending: false }).limit(30);
   const [reviewsRes, postsRes] = await Promise.all([
-    supabaseClient.from("reviews")
-      .select("id, rating, title, body, variation, would_repurchase, holy_grail, created_at, edited_at, held_at, products!product_id(name, brand), review_likes(user_id), review_standouts(review_id)", { count: "exact" })
-      .eq("user_id", profile.id).order("created_at", { ascending: false }).limit(30),
+    reviewQuery("no_longer_using, seasonal, ").then((res) => (res.error ? reviewQuery("") : res)),
     supabaseClient.from("posts")
       .select("id, title, body, created_at, edited_at, held_at, likes(user_id), comments(count), polls(poll_options(label, position))", { count: "exact" })
       .eq("user_id", profile.id).order("created_at", { ascending: false }).limit(30),

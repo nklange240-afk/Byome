@@ -1,6 +1,8 @@
 // Homepage: members who are logged in get a welcome back and shortcuts,
 // instead of the "join the community" pitch meant for visitors.
 (async function () {
+  // While an event is on, everyone sees a banner for it at the top
+  if (typeof UI !== "undefined") UI.eventBanner(document.querySelector("main"));
   const { data } = await supabaseClient.auth.getSession();
   if (!data.session) return;
   const { data: me } = await supabaseClient.from("profiles")

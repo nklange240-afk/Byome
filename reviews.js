@@ -83,6 +83,22 @@ categoryFilter.addEventListener("change", () => {
 // The write form stays folded away until you ask for it, so the reviews
 // come first
 const writeToggle = document.getElementById("write-review-toggle");
+// Event checkboxes on the review form ("I no longer use this", "This is a
+// fall or seasonal product"): only shown, and only sent, while an event is on
+const eventField = document.getElementById("event-review-field");
+UI.liveEvent().then((event) => {
+  if (!event) return;
+  document.getElementById("event-review-legend").textContent = event.name + " (optional)";
+  eventField.hidden = false;
+});
+function eventChoices() {
+  if (eventField.hidden) return {};
+  return {
+    no_longer_using: document.getElementById("review-no-longer-using").checked,
+    seasonal: document.getElementById("review-seasonal").checked,
+  };
+}
+
 function setWriting(open) {
   form.hidden = !open;
   writeToggle.setAttribute("aria-expanded", String(open));
@@ -708,6 +724,10 @@ function startOverReviews() {
   loadReviews();
 }
 
+// The event checkbox columns (database/2026-10-29-events-halloween.sql); left
+// out if they aren't in the database yet
+let REVIEW_EVENT_COLUMNS = "no_longer_using, seasonal, ";
+
 async function loadReviews(more) {
   const from = more === true ? reviewsShown : 0;
   const to = (more === true ? reviewsShown + PAGE_SIZE : Math.max(PAGE_SIZE, reviewsShown)) - 1;
@@ -718,6 +738,7 @@ async function loadReviews(more) {
   let query = supabaseClient
     .from("reviews")
     .select("id, product_id, rating, title, body, variation, would_repurchase, holy_grail, created_at, edited_at, held_at, user_id, helpful_count, " +
+      REVIEW_EVENT_COLUMNS +
       // filtering by skin type needs an inner join on the reviewer's profile
       "profiles!user_id" + (skinFilter ? "!inner" : "") + "(username, avatar_path, avatar_ring, profile_biome, show_biome_symbol, is_moderator, badge, skin_type), " +
       "products!product_id!inner(name, brand, photo_url, category, subcategory), review_likes(user_id), review_updates(id, body, created_at, held_at), review_standouts(review_id)");
@@ -767,6 +788,11 @@ async function loadReviews(more) {
 
   if (more === true) listEl.querySelectorAll(".load-more").forEach((b) => b.remove());
   else listEl.innerHTML = "";
+  if (error && REVIEW_EVENT_COLUMNS && /no_longer_using|seasonal/.test(error.message)) {
+    // the event columns aren't in the database yet: load without them
+    REVIEW_EVENT_COLUMNS = "";
+    return loadReviews(more);
+  }
   if (error) {
     listEl.appendChild(el("p", "feed-empty", "Couldn't load reviews: " + error.message));
     return;
@@ -982,6 +1008,7 @@ function buildUpdateForm(r, onSaved, onCancel) {
 function buildReview(r) {
   const article = el("article", "post");
   const titleEl = el("h2", "post-title", r.title);
+  UI.reviewIcons(r).forEach((icon) => titleEl.append(" ", icon));
   article.appendChild(titleEl);
 
   // Product photo (if it has one) beside the product name and rating
@@ -1124,6 +1151,7 @@ form.addEventListener("submit", async (event) => {
     body: bodyInput.value.trim(),
     variation: variationSelect.value || null,
     ...extras.get(),
+    ...eventChoices(),
   }).select("held_at").single();
 
   if (error) {

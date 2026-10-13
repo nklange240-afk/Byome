@@ -2062,6 +2062,16 @@ select:focus-visible {
   height: auto;
 }
 
+/* A shelf decoration (like the cobwebs): drawn on the shelf's own canvas,
+   over the shelf and behind the pots */
+.biome-shelf-overlay {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+}
+
 /* One spot = the pot's square canvas, placed by biome.js */
 .biome-slot {
   position: absolute;
@@ -2708,10 +2718,50 @@ div.biome-slot:focus-visible,
   padding: 0.25rem 0.75rem;
   border: 1px solid var(--gold);
   border-radius: 999px;
+  background: none;
   color: var(--gold);
+  font-family: inherit;
   font-size: 0.85rem;
   font-weight: 600;
-  cursor: default;
+  cursor: help;
+}
+
+.achievement:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+/* An event's badge in place of the star */
+.achievement-badge {
+  width: 1.15em;
+  height: 1.15em;
+  object-fit: contain;
+}
+
+/* The info box for an achievement (styled like the shelf's) */
+.has-achievement-tips {
+  position: relative;
+}
+
+.achievement-tip-event {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.15rem;
+  color: var(--gold-text);
+  font-weight: 600;
+  font-size: 0.78rem;
+}
+
+.achievement-tip-badge {
+  width: 1.3em;
+  height: 1.3em;
+  object-fit: contain;
+}
+
+.achievement-tip-date {
+  margin-top: 0.2rem;
+  opacity: 0.8;
 }
 
 /* =========================================================
@@ -2834,6 +2884,58 @@ div.biome-slot:focus-visible,
   color: var(--cream);
   color: color-mix(in srgb, var(--cream) 82%, transparent); /* dimmed text, but links inside stay full strength */
   margin: 0.25rem 0 0.75rem;
+}
+
+/* Icons by a review's heading (no longer using it, fall favorite). Until
+   their art is in, they show as small words in a pill */
+.review-icon {
+  display: inline-block;
+  width: 1.15em;
+  height: 1.15em;
+  vertical-align: -0.15em;
+  object-fit: contain;
+}
+
+.review-icon.is-text {
+  width: auto;
+  height: auto;
+  padding: 0.05rem 0.45rem;
+  border: 1px solid var(--moss);
+  border-radius: 999px;
+  font-family: var(--font-body);
+  font-size: 0.7rem;
+  font-weight: 600;
+  vertical-align: 0.2em;
+  color: var(--cream);
+  opacity: 0.85;
+}
+
+/* The event checkboxes on the review form */
+.event-review-field {
+  border: none;
+  padding: 0;
+  margin: 0 0 0.9rem;
+}
+
+.event-review-field .check-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.35rem;
+}
+
+/* A post a moderator pinned to the top of the Community */
+.post.is-pinned {
+  border-color: var(--gold);
+}
+
+.post-pinned-tag {
+  margin: 0 0 0.35rem;
+  color: var(--gold-text);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 /* A gentle heads-up under a field (not an error that blocks anything) */
@@ -3482,6 +3584,14 @@ dialog.celebrate::backdrop {
   object-fit: contain;
 }
 
+/* A shelf decoration sits exactly over the shelf (same canvas shape) */
+.celebrate-art.is-decorated-shelf > .celebrate-decoration,
+.shop-art.is-decorated-shelf > .celebrate-decoration {
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
 /* A potted plant needs room above the pot for the plant */
 .celebrate-art.is-potted {
   width: 140px;
@@ -3752,6 +3862,12 @@ html.a11y-contrast .biome-meadow {
   --blue-text: #E1F1FC;
 }
 
+.biome-autumn {
+  --forest-dark: #4A1E18;
+  --forest-mid: #6A2E20;
+  --moss: #C77A45;
+}
+
 .biome-ocean {
   --forest-dark: #14344E;
   --forest-mid: #1F4A6B;
@@ -4002,6 +4118,20 @@ body.biome-meadow > .biome-overlay {
 .p-petal[style*="--hue: 1"] { --petal: #FFF7EC; }
 .p-petal[style*="--hue: 2"] { --petal: #F8E7A6; }
 .p-petal[style*="--hue: 3"] { --petal: #DCCBF2; }
+
+/* Autumn woodland: falling leaves in red, orange, gold and brown */
+.p-leaf {
+  --leafc: #D9531E;
+  width: calc(var(--size) * 2.8);
+  height: calc(var(--size) * 2.2);
+  border-radius: 0 90% 0 90%;
+  background: linear-gradient(135deg, var(--leafc) 55%, color-mix(in srgb, var(--leafc) 70%, #3A1A0A));
+  opacity: 0.9;
+}
+
+.p-leaf[style*="--hue: 1"] { --leafc: #E8A33A; }
+.p-leaf[style*="--hue: 2"] { --leafc: #B8321F; }
+.p-leaf[style*="--hue: 3"] { --leafc: #9A6A2E; }
 
 /* Desert: warm specks of sand in the air */
 .p-mote {
@@ -4299,6 +4429,12 @@ body.biome-meadow > .biome-overlay {
     67% { transform: translate(calc(var(--dx) * -0.5), calc(var(--travel, 110vh) * 0.67)); }
     83% { transform: translate(calc(var(--dx) * 0.4), calc(var(--travel, 110vh) * 0.83)); }
     100% { transform: translate(0, var(--travel, 110vh)); }
+  }
+
+  /* Leaves tumble down like petals, a little faster */
+  .p-leaf {
+    top: -3% !important;
+    animation: petal-fall calc(var(--dur, 20s) * 1.2) linear var(--delay, 0s) infinite;
   }
 
   /* Petals tumble slowly as they drift down */
@@ -5810,4 +5946,310 @@ dialog.a11y-dialog {
     flex-direction: row;
     text-align: left;
   }
+}
+
+/* =========================================================
+   EVENTS PAGE (events.html)
+   ========================================================= */
+.events-intro {
+  margin-bottom: 1.25rem;
+}
+
+.event-card {
+  margin-bottom: 1.5rem;
+  padding: 1.1rem 1.1rem 0.6rem;
+  border: 1px solid var(--moss);
+  border-radius: 12px;
+  background-color: var(--forest-mid);
+}
+
+.event-card.is-live {
+  border-color: var(--gold);
+}
+
+.event-head {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.event-badge {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.event-name {
+  font-family: var(--font-heading);
+  font-size: 1.4rem;
+  line-height: 1.2;
+}
+
+.event-when {
+  margin-top: 0.2rem;
+  font-size: 0.9rem;
+}
+
+.event-pill {
+  display: inline-block;
+  padding: 0.05rem 0.55rem;
+  border: 1px solid var(--moss);
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.event-pill.is-live {
+  border-color: var(--gold-text);
+  color: var(--gold-text);
+}
+
+.event-tagline {
+  margin-top: 0.75rem;
+}
+
+.event-note {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  opacity: 0.9;
+}
+
+.event-achievements {
+  list-style: none;
+  margin: 1rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.event-achievement {
+  display: flex;
+  gap: 0.85rem;
+  padding: 0.75rem;
+  border: 1px solid var(--moss);
+  border-radius: 10px;
+}
+
+.event-achievement.is-earned,
+.event-achievement.is-qualified {
+  border-color: var(--gold-text);
+}
+
+.event-reward {
+  flex: 0 0 84px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.event-reward .event-reward-art {
+  position: relative;
+  width: 84px;
+  height: 84px;
+}
+
+.event-reward .event-reward-art > img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.event-reward-art.is-potted > .biome-plant {
+  position: absolute;
+  left: 0;
+  top: -40%;
+  width: 100%;
+  height: auto;
+}
+
+.event-reward-art.is-potted > .biome-pot-front {
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+.event-reward-art.is-decorated-shelf > .celebrate-decoration {
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+.event-reward-soon {
+  font-size: 0.75rem;
+  opacity: 0.8;
+}
+
+.event-achievement-name {
+  font-family: var(--font-heading);
+  font-size: 1.05rem;
+}
+
+.event-achievement-how {
+  margin-top: 0.25rem;
+  font-size: 0.9rem;
+}
+
+.event-achievement-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.8rem;
+  margin-top: 0.35rem;
+  font-size: 0.82rem;
+}
+
+.event-points {
+  color: var(--gold-text);
+  font-weight: 600;
+}
+
+.event-status {
+  margin-top: 0.35rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.event-status.is-earned,
+.event-status.is-qualified {
+  color: var(--gold-text);
+}
+
+.event-go {
+  display: inline-block;
+  margin-top: 0.35rem;
+  font-size: 0.88rem;
+}
+
+.events-past-title {
+  margin: 2rem 0 0.75rem;
+}
+
+/* The "an event is on" banner on the Community and home pages */
+.event-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin: 0 0 1rem;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid var(--gold);
+  border-radius: 10px;
+  background-color: var(--forest-mid);
+  font-size: 0.92rem;
+}
+
+.event-banner img {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.shop-meta.shop-limited {
+  color: var(--gold-text);
+  font-weight: 600;
+}
+
+/* =========================================================
+   EVENT ORANGE: event chips, tags and achievements
+   ========================================================= */
+:root {
+  --event-orange: #F28C38;
+  --event-text: #F7A55E;      /* orange that's easy to read on the dark themes */
+}
+
+.biome-meadow {
+  --event-text: #A04812;      /* deeper orange on the light Meadow */
+}
+
+.category-chip.is-event {
+  border-color: var(--event-orange);
+  color: var(--event-text);
+}
+
+.category-chip.is-event[aria-pressed="true"] {
+  background-color: var(--event-orange);
+  border-color: var(--event-orange);
+  color: #2A1608;
+}
+
+.post-category-tag.is-event {
+  border-color: var(--event-orange);
+  color: var(--event-text);
+}
+
+.post-pinned-tag.is-event {
+  color: var(--event-text);
+}
+
+.post.is-pinned:has(.post-pinned-tag.is-event) {
+  border-color: var(--event-orange);
+}
+
+.achievement.is-event {
+  border-color: var(--event-orange);
+  color: var(--event-text);
+}
+
+.achievement.is-event:focus-visible {
+  outline-color: var(--event-orange);
+}
+
+.achievement-tip-event {
+  color: var(--event-orange);
+}
+
+.post-event-row {
+  margin: 0.25rem 0 0.6rem;
+}
+
+/* The event's posts on the Events page */
+.event-posts {
+  margin-top: 1rem;
+}
+
+.event-posts-title {
+  font-family: var(--font-heading);
+  font-size: 1.05rem;
+  margin-bottom: 0.4rem;
+}
+
+.event-posts.is-featured .event-posts-title {
+  color: var(--event-text);
+}
+
+.event-post-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.event-post {
+  display: flex;
+  flex-direction: column;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--moss);
+  border-radius: 8px;
+}
+
+.event-posts.is-featured .event-post {
+  border-color: var(--event-orange);
+}
+
+.event-post-link {
+  font-weight: 600;
+  color: var(--cream);
+  text-decoration: none;
+}
+
+.event-post-link:hover,
+.event-post-link:focus-visible {
+  text-decoration: underline;
+}
+
+.event-post-meta {
+  font-size: 0.8rem;
+  opacity: 0.8;
 }

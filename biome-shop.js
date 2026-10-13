@@ -55,13 +55,25 @@ function shopOrder(a, b) {
   return rarityRank(a) - rarityRank(b) || a.price - b.price || a.name.localeCompare(b.name);
 }
 
+function shopItems(extra) {
+  return supabaseClient.from("biome_items")
+    .select("key, kind, size, name, description, rarity, price, max_supply, max_per_member, sold, image, over_pot, " + extra + "starter")
+    .eq("available", true).eq("starter", false).not("price", "is", null)
+    .order("price").order("name");
+}
+
+// Limited-time items only show while their window is open
+function inWindow(item) {
+  const now = Date.now();
+  return (!item.available_from || new Date(item.available_from).getTime() <= now)
+    && (!item.available_until || new Date(item.available_until).getTime() >= now);
+}
+
 async function loadShop() {
   const [pointsRes, itemsRes, ownedRes] = await Promise.all([
     supabaseClient.from("user_points").select("biome, pending_biome").eq("user_id", currentUser.id).maybeSingle(),
-    supabaseClient.from("biome_items")
-      .select("key, kind, size, name, description, rarity, price, max_supply, max_per_member, sold, image, over_pot")
-      .eq("available", true).eq("starter", false).not("price", "is", null)
-      .order("price").order("name"),
+    // (limited-time windows come from database/2026-10-29-events-halloween.sql)
+    shopItems("available_from, available_until, ").then((res) => (res.error ? shopItems("") : res)),
     supabaseClient.from("biome_inventory").select("item_key").eq("user_id", currentUser.id),
   ]);
 
@@ -82,7 +94,7 @@ async function loadShop() {
   (ownedRes.data || []).forEach((row) => { owned[row.item_key] = (owned[row.item_key] || 0) + 1; });
 
   SECTIONS.forEach((section) => {
-    const items = itemsRes.data.filter((it) => it.kind === section.kind).sort(shopOrder);
+    const items = itemsRes.data.filter((it) => it.kind === section.kind && inWindow(it)).sort(shopOrder);
     if (!items.length && !section.empty) return;
     const into = section.lower ? shopMoreEl : shopEl;
     into.appendChild(el("h2", "section-title", section.title));
@@ -116,6 +128,10 @@ function buildCard(item, balance, ownedCount) {
   card.appendChild(el("span", "rarity rarity-" + item.rarity, (sparkly ? "\u2726 " : "") + item.rarity));
   card.appendChild(el("h3", null, item.name));
   if (item.description) card.appendChild(el("p", "shop-meta", item.description));
+  if (item.available_until) {
+    card.appendChild(el("p", "shop-meta shop-limited", "Limited time: in the shop until " +
+      new Date(item.available_until).toLocaleDateString("en-US", { timeZone: "America/Chicago", month: "long", day: "numeric" }) + "."));
+  }
   if (item.size) card.appendChild(el("p", "shop-meta", item.size === "small" ? "Can be placed on the top two shelves" : "Can be placed on the bottom shelf"));
   if (item.kind === "biome") card.appendChild(el("p", "shop-meta", "Sets the scene on your profile. Choose it on Edit profile."));
 

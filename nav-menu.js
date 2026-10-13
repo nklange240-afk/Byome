@@ -51,6 +51,7 @@
   function guestMenu() {
     menu.replaceChildren();
     link("reviews.html", "Reviews");
+    link("events.html", "Events");
     line();
     link("login.html", "Log in");
     link("signup.html", "Sign up", true);
@@ -65,6 +66,7 @@
     link("reviews.html", "Reviews");
     link("suggest-product.html", "Suggest a product");
     link("byome-shop.html", "Byome Shop");
+    link("events.html", "Events");
     link("invite.html", "Invite friends");
     line();
     link("profile.html", "My profile");
