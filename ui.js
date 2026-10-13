@@ -486,10 +486,12 @@ const UI = (function () {
               throughContent: [["snow", 16]], // a little snow falls faintly over the posts too
               shadeFrom: 0.15 }, // pale dusty blue, deepening to dark blue by the bottom
     // Autumn woodland: golden light at the top, deepening through rust to
-    // maple red by the bottom of the page, with leaves drifting down
+    // maple red by the bottom of the page, with leaves drifting down. For
+    // now its side art is the forest art recoloured in patches of red,
+    // orange and gold (same shapes and shading).
     autumn: { name: "Autumn woodland", symbol: "\u{1F342}", top: [164, 100, 32], deep: [62, 22, 24],
               stops: [[164, 100, 32], [150, 68, 34], [62, 22, 24]], shadeFrom: 0,
-              particles: [["leaf", 22]] },
+              particles: [["leaf", 22]], overlay: "biome-assets/overlay-autumn.webp" },
     ocean: { name: "Open ocean", symbol: "\u{1F30A}", top: [20, 52, 78], deep: [4, 12, 26], particles: [["bubble", 16], ["biolum", 26]], rays: true,
              // the "biolum" specks only glow once you're deep down; a few
              // more glow very faintly through the posts and cards
