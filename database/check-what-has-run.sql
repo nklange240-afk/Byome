@@ -52,5 +52,6 @@ from (values
   ('2026-10-26-bug-finder.sql',           exists (select 1 from fn where name = 'give_achievement')),
   ('2026-10-27-ladybug.sql',              exists (select 1 from public.biome_items where key = 'ladybug')),
   ('2026-10-28-bug-log.sql',              exists (select 1 from tbl where name = 'bug_reports')),
-  ('2026-10-29-events-halloween.sql',     exists (select 1 from tbl where name = 'events'))
+  ('2026-10-29-events-halloween.sql',     exists (select 1 from tbl where name = 'events')),
+  ('2026-10-30-typo-log.sql',             exists (select 1 from tbl where name = 'typo_reports'))
 ) as checks(file, ok);

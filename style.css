@@ -3659,7 +3659,8 @@ dialog.celebrate h2 {
     animation: companion-drift 6s ease-in-out infinite;
   }
 
-  .biome-companion.companion-ladybug {
+  /* Companions that sit on a pot (the ladybug, the beetle) keep still */
+  .biome-companion.is-resting {
     animation: none;
   }
 
