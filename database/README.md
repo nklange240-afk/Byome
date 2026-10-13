@@ -57,3 +57,4 @@ byome's database lives in Supabase. These files are a backup and a history of ch
 - `2026-11-03-jack-o-lantern-pot.sql`: the Jack-o'-lantern pot (medium, for the bottom shelf; heirloom), the reward for "Harvest Moon" in Haunted Harvest. Anyone who already qualified gets it straight away.
 - `2026-11-04-pot-a-colada.sql`: the "Haworthia Hoarder" achievement, earned by buying a second zebra haworthia, and its reward, the Pot-a-colada (a small pineapple pot, uncommon). Members who already bought two get it straight away.
 - `2026-11-05-bleeding-heart.sql`: the Bleeding heart (medium plant, for the bottom shelf; rare), the reward for "Fresh Blood" in Haunted Harvest. Anyone who already qualified gets it straight away.
+- `2026-11-06-halloween-medium-pots.sql`: medium versions of the Slime green, Witch purple, Midnight black and Harvest orange pots for the bottom shelf (common, 50 Byome points), in the Byome Shop only during Haunted Harvest.
