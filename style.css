@@ -3543,9 +3543,14 @@ dialog.celebrate h2 {
     85% { transform: rotate(-0.8deg); }
   }
 
-  /* Companions drift gently, as if hovering by the plant */
+  /* Companions drift gently, as if hovering by the plant (the ladybug
+     sits still on its pot) */
   .biome-companion {
     animation: companion-drift 6s ease-in-out infinite;
+  }
+
+  .biome-companion.companion-ladybug {
+    animation: none;
   }
 
   @keyframes companion-drift {

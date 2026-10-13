@@ -49,5 +49,6 @@ from (values
   ('2026-10-23-referral-rewards.sql',     exists (select 1 from fn where name = 'set_biome_companion')),
   ('2026-10-24-variation-points.sql',     exists (select 1 from public.point_rules where action = 'product_variation')),
   ('2026-10-25-medium-pots.sql',          exists (select 1 from public.biome_items where key = 'terra-cotta-medium')),
-  ('2026-10-26-bug-finder.sql',           exists (select 1 from fn where name = 'give_achievement'))
+  ('2026-10-26-bug-finder.sql',           exists (select 1 from fn where name = 'give_achievement')),
+  ('2026-10-27-ladybug.sql',              exists (select 1 from public.biome_items where key = 'ladybug'))
 ) as checks(file, ok);
