@@ -17,8 +17,9 @@ on conflict (key) do update set
   rarity = excluded.rarity, price = excluded.price, image = excluded.image;
 
 insert into public.achievements (key, name, description, reward_item, sort_order)
-values ('haworthia-hoarder', 'Haworthia Hoarder', 'Bought two zebra haworthia... and found a use for the spare.', 'pot-a-colada', 26)
-on conflict (key) do nothing;
+values ('haworthia-hoarder', 'Haworthia Hoarder', 'Haworthia or haworthias? I''ve heard it both ways.', 'pot-a-colada', 26)
+on conflict (key) do update set
+  name = excluded.name, description = excluded.description, reward_item = excluded.reward_item;
 
 
 -- ---------- Buying the second zebra haworthia ----------
