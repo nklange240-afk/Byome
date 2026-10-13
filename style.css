@@ -6254,3 +6254,12 @@ dialog.a11y-dialog {
   font-size: 0.8rem;
   opacity: 0.8;
 }
+
+/* A picture across the top of an event on the Events page */
+.event-banner-art {
+  display: block;
+  width: 100%;
+  max-width: 520px;
+  height: auto;
+  margin: 0 auto 0.9rem;
+}

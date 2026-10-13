@@ -90,6 +90,15 @@ function postList(posts, title, className) {
 
 function eventSection(ev, loggedIn, shopItems) {
   const section = el("section", "event-card is-" + ev.status);
+  // A picture across the top of the event (a sneak peek before it starts)
+  if (ev.banner_image) {
+    const banner = document.createElement("img");
+    banner.className = "event-banner-art";
+    banner.src = ev.banner_image;
+    banner.alt = ev.banner_alt || "";
+    banner.addEventListener("error", () => banner.remove());
+    section.appendChild(banner);
+  }
   const head = el("div", "event-head");
   if (ev.badge_image) {
     const badge = document.createElement("img");
@@ -169,13 +178,17 @@ function eventSection(ev, loggedIn, shopItems) {
   const { data: session } = await supabaseClient.auth.getSession();
   const loggedIn = Boolean(session.session);
 
-  const { data: events, error } = await supabaseClient.from("events").select("key, starts_at").order("starts_at", { ascending: false });
+  // (banners come from database/2026-11-01-event-banner.sql; fine without)
+  const list = (columns) => supabaseClient.from("events").select(columns).order("starts_at", { ascending: false });
+  let { data: events, error } = await list("key, starts_at, banner_image, banner_alt");
+  if (error) ({ data: events, error } = await list("key, starts_at"));
   if (error || !events || !events.length) {
     box.replaceChildren(el("p", "feed-empty", "No events yet. Check back soon!"));
     return;
   }
   const overviews = (await Promise.all(events.map((e) => supabaseClient.rpc("event_overview", { p_event: e.key }))))
-    .map((res) => res.data).filter(Boolean);
+    .map((res, i) => res.data && Object.assign(res.data, { banner_image: events[i].banner_image, banner_alt: events[i].banner_alt }))
+    .filter(Boolean);
   const now = new Date().toISOString();
   const { data: shopItems } = await supabaseClient.from("biome_items").select("key")
     .not("available_until", "is", null).lte("available_from", now).gte("available_until", now);
