@@ -1728,7 +1728,6 @@ select:focus-visible {
 #review-variation:hover {
   border-color: var(--gold);
 }
-css
 /* =========================================================
    CUSTOM PRODUCT / VARIATION DROPDOWN
    Created by reviews.js -> enhanceSelect()
