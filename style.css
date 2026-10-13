@@ -3862,6 +3862,12 @@ html.a11y-contrast .biome-meadow {
   --blue-text: #E1F1FC;
 }
 
+.biome-autumn {
+  --forest-dark: #4A1E18;
+  --forest-mid: #6A2E20;
+  --moss: #C77A45;
+}
+
 .biome-ocean {
   --forest-dark: #14344E;
   --forest-mid: #1F4A6B;
@@ -4112,6 +4118,20 @@ body.biome-meadow > .biome-overlay {
 .p-petal[style*="--hue: 1"] { --petal: #FFF7EC; }
 .p-petal[style*="--hue: 2"] { --petal: #F8E7A6; }
 .p-petal[style*="--hue: 3"] { --petal: #DCCBF2; }
+
+/* Autumn woodland: falling leaves in red, orange, gold and brown */
+.p-leaf {
+  --leafc: #D9531E;
+  width: calc(var(--size) * 2.8);
+  height: calc(var(--size) * 2.2);
+  border-radius: 0 90% 0 90%;
+  background: linear-gradient(135deg, var(--leafc) 55%, color-mix(in srgb, var(--leafc) 70%, #3A1A0A));
+  opacity: 0.9;
+}
+
+.p-leaf[style*="--hue: 1"] { --leafc: #E8A33A; }
+.p-leaf[style*="--hue: 2"] { --leafc: #B8321F; }
+.p-leaf[style*="--hue: 3"] { --leafc: #9A6A2E; }
 
 /* Desert: warm specks of sand in the air */
 .p-mote {
@@ -4409,6 +4429,12 @@ body.biome-meadow > .biome-overlay {
     67% { transform: translate(calc(var(--dx) * -0.5), calc(var(--travel, 110vh) * 0.67)); }
     83% { transform: translate(calc(var(--dx) * 0.4), calc(var(--travel, 110vh) * 0.83)); }
     100% { transform: translate(0, var(--travel, 110vh)); }
+  }
+
+  /* Leaves tumble down like petals, a little faster */
+  .p-leaf {
+    top: -3% !important;
+    animation: petal-fall calc(var(--dur, 20s) * 1.2) linear var(--delay, 0s) infinite;
   }
 
   /* Petals tumble slowly as they drift down */

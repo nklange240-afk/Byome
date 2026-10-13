@@ -47,9 +47,11 @@ create table if not exists public.events (
   grace_until timestamptz not null,   -- things started during the event can be finished until then
   story_post_id uuid references public.posts(id) on delete set null,
   badge_image text,                   -- the event's badge, shown on its achievements
+  biome text,                         -- the biome its Events page is shown in
   created_at timestamptz not null default now(),
   check (ends_at > starts_at and grace_until >= ends_at)
 );
+alter table public.events add column if not exists biome text;
 alter table public.events enable row level security;
 drop policy if exists "Anyone can see events" on public.events;
 create policy "Anyone can see events" on public.events for select using (true);
@@ -60,6 +62,7 @@ values ('halloween-2026', 'Haunted Harvest',
         '2026-10-15 05:00:00+00', '2026-11-02 05:59:00+00', '2026-11-16 05:59:00+00',
         'biome-assets/event-halloween-2026.png')
 on conflict (key) do nothing;
+update public.events set biome = 'autumn' where key = 'halloween-2026' and biome is null;
 
 create or replace function public.halloween() returns public.events
 language sql stable security definer set search_path to public as $$
@@ -107,6 +110,14 @@ alter table public.biome_items add constraint biome_items_check check (
 -- Limited-time shop items
 alter table public.biome_items add column if not exists available_from timestamptz;
 alter table public.biome_items add column if not exists available_until timestamptz;
+
+-- The Autumn woodland biome: in the Byome Shop from the start of Haunted
+-- Harvest, then all year round
+insert into public.biome_items (key, kind, size, name, description, rarity, price, image, sort_order, max_per_member, available_from)
+values ('autumn', 'biome', null, 'Autumn woodland',
+        'Golden light through the trees, deepening to maple red, with leaves drifting down.',
+        'uncommon', 300, '', 7, 1, '2026-10-15 05:00:00+00')
+on conflict (key) do nothing;
 
 alter table public.profiles add column if not exists shelf_overlay text references public.biome_items(key);
 
@@ -547,7 +558,7 @@ begin
   status := case when now() < e.starts_at then 'upcoming' when now() <= e.ends_at then 'live'
                  when now() <= e.grace_until then 'finishing' else 'ended' end;
   if status = 'upcoming' then
-    return jsonb_build_object('key', e.key, 'name', e.name, 'status', status,
+    return jsonb_build_object('key', e.key, 'name', e.name, 'status', status, 'biome', e.biome,
       'starts_at', e.starts_at, 'ends_at', e.ends_at, 'grace_until', e.grace_until);
   end if;
 
@@ -578,7 +589,7 @@ begin
   from achievements a left join biome_items i on i.key = a.reward_item
   where a.event_key = e.key;
 
-  return jsonb_build_object('key', e.key, 'name', e.name, 'tagline', e.tagline, 'status', status,
+  return jsonb_build_object('key', e.key, 'name', e.name, 'tagline', e.tagline, 'status', status, 'biome', e.biome,
     'starts_at', e.starts_at, 'ends_at', e.ends_at, 'grace_until', e.grace_until,
     'badge_image', e.badge_image, 'story_post_id', e.story_post_id, 'achievements', list);
 end $$;

@@ -152,6 +152,9 @@ function eventSection(ev, loggedIn, shopItems) {
   box.replaceChildren();
   const current = overviews.filter((ev) => ev.status !== "ended");
   const past = overviews.filter((ev) => ev.status === "ended");
+  // The page is set in the current (or most recent) event's own biome
+  const lead = current[current.length - 1] || past[0];
+  if (lead && lead.biome) UI.setBiome(lead.biome);
   current.forEach((ev) => box.appendChild(eventSection(ev, loggedIn, shopItems || [])));
   if (!current.length) box.appendChild(el("p", "feed-empty", "No events on right now. Check back soon!"));
   if (past.length) {
