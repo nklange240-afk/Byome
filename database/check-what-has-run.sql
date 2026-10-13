@@ -56,5 +56,5 @@ from (values
   ('2026-10-30-typo-log.sql',             exists (select 1 from tbl where name = 'typo_reports')),
   ('2026-10-31-halloween-pots.sql',       exists (select 1 from public.biome_items where key = 'witch-purple')),
   ('2026-11-01-event-banner.sql',         exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'events' and column_name = 'banner_image')),
-  ('2026-11-02-black-cat-pot.sql',        exists (select 1 from public.biome_items where key = 'black-cat-pot'))
+  ('2026-11-02-scaredy-cat-pot.sql',      exists (select 1 from public.biome_items where key = 'scaredy-cat'))
 ) as checks(file, ok);
