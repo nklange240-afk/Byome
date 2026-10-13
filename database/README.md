@@ -54,3 +54,4 @@ byome's database lives in Supabase. These files are a backup and a history of ch
 - `2026-10-31-halloween-pots.sql`: limited-edition Halloween pots in the Byome Shop (only during Haunted Harvest): Slime green, Witch purple, Midnight black and Harvest orange (common, 40 Byome points) and the striped Candy corn pot (uncommon, 100).
 - `2026-11-01-event-banner.sql`: a picture across the top of an event on the Events page. Haunted Harvest gets the five Halloween pots as a sneak peek (it shows before the event starts too).
 - `2026-11-02-scaredy-cat-pot.sql`: the Scaredy Cat pot (medium, for the bottom shelf; uncommon), the reward for "Beauty Horror Story" in Haunted Harvest. Anyone who already qualified gets it straight away.
+- `2026-11-03-jack-o-lantern-pot.sql`: the Jack-o'-lantern pot (medium, for the bottom shelf; heirloom), the reward for "Harvest Moon" in Haunted Harvest. Anyone who already qualified gets it straight away.
