@@ -292,7 +292,16 @@ const UI = (function () {
     if (options.text) dialog.appendChild(el("p", "celebrate-text", options.text));
 
     const actions = el("div", "celebrate-actions");
-    if (!/profile\.html$/.test(window.location.pathname) || window.location.search) {
+    if (options.item && options.item.kind === "biome") {
+      const choose = el("a", "btn btn-ghost", "Choose my biome");
+      choose.href = "edit-profile.html";
+      actions.appendChild(choose);
+    } else if (options.item) {
+      // Opens your profile with the shelf editor ready
+      const place = el("a", "btn btn-ghost", "Put it on my shelf");
+      place.href = "profile.html?shelf=edit";
+      actions.appendChild(place);
+    } else if (!/profile\.html$/.test(window.location.pathname) || window.location.search) {
       const see = el("a", "btn btn-ghost", "See my shelf");
       see.href = "profile.html";
       actions.appendChild(see);
