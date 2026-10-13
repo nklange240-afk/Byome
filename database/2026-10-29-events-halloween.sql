@@ -486,6 +486,19 @@ create trigger event_after_review_update after insert or update of held_at on pu
 -- ---------- Pinned posts (moderators only) ----------
 alter table public.posts add column if not exists pinned_at timestamptz;
 
+-- ---------- Event posts ----------
+-- A post can be part of an event (members tick a box while it's on), and
+-- moderators can feature event posts: featured ones head the Events page
+-- and sit at the top of the Community while the event is on.
+alter table public.posts add column if not exists event_key text references public.events(key);
+alter table public.posts add column if not exists featured_at timestamptz;
+create index if not exists posts_event_idx on public.posts (event_key) where event_key is not null;
+
+create or replace function public.event_is_live(p_event text) returns boolean
+language sql stable security definer set search_path to public as $$
+  select exists (select 1 from events where key = p_event and now() between starts_at and ends_at)
+$$;
+
 -- Only moderators (through set_post_pinned) can pin; everyone else's
 -- changes to it are refused, and new posts can't start pinned
 create or replace function public.lock_post_fields() returns trigger
@@ -499,6 +512,17 @@ begin
      and coalesce(current_setting('byome.pinning', true), '') <> 'on' then
     raise exception 'Only moderators can pin posts';
   end if;
+  if new.featured_at is distinct from old.featured_at
+     and coalesce(current_setting('byome.pinning', true), '') <> 'on' then
+    raise exception 'Only moderators can feature posts';
+  end if;
+  -- an author can add their post to an event that's on, but not move it
+  -- between events or take it out (moderators can)
+  if new.event_key is distinct from old.event_key
+     and coalesce(current_setting('byome.pinning', true), '') <> 'on'
+     and not (old.event_key is null and event_is_live(new.event_key)) then
+    raise exception 'That post can''t be moved to or from an event';
+  end if;
   return new;
 end $$;
 
@@ -506,6 +530,9 @@ create or replace function public.posts_start_unpinned() returns trigger
 language plpgsql set search_path to public as $$
 begin
   new.pinned_at := null;
+  new.featured_at := null;
+  -- only an event that's on right now
+  if new.event_key is not null and not event_is_live(new.event_key) then new.event_key := null; end if;
   return new;
 end $$;
 drop trigger if exists posts_start_unpinned on public.posts;
@@ -523,8 +550,27 @@ end $$;
 revoke execute on function public.set_post_pinned(uuid, boolean) from public, anon;
 grant execute on function public.set_post_pinned(uuid, boolean) to authenticated;
 
+-- Moderators: feature a post in the event that's on (or stop featuring it)
+create or replace function public.set_post_featured(p_post uuid, p_featured boolean) returns void
+language plpgsql security definer set search_path to public as $$
+declare live text;
+begin
+  if auth.uid() is not null and not is_moderator() then raise exception 'Only moderators can feature posts'; end if;
+  select key into live from events where now() between starts_at and ends_at order by starts_at limit 1;
+  if p_featured and live is null then raise exception 'No event is on right now'; end if;
+  perform set_config('byome.pinning', 'on', true);
+  if p_featured then
+    update posts set event_key = coalesce(event_key, live), featured_at = now() where id = p_post;
+  else
+    update posts set featured_at = null where id = p_post;
+  end if;
+  perform set_config('byome.pinning', 'off', true);
+end $$;
+revoke execute on function public.set_post_featured(uuid, boolean) from public, anon;
+grant execute on function public.set_post_featured(uuid, boolean) to authenticated;
+
 -- The event's horror stories thread: paste the post's link (or its id).
--- It's pinned too. (SQL Editor only.)
+-- It's featured in the event too. (SQL Editor only.)
 create or replace function public.set_event_story_post(p_event text, p_post text) returns text
 language plpgsql security definer set search_path to public as $$
 declare
@@ -536,8 +582,10 @@ begin
   if t is null then return 'There''s no post with that link.'; end if;
   update events set story_post_id = pid where key = p_event;
   if not found then return 'There''s no event "' || p_event || '".'; end if;
-  perform set_post_pinned(pid, true);
-  return 'Done: "' || t || '" is the event''s horror stories post, and it''s pinned.';
+  perform set_config('byome.pinning', 'on', true);
+  update posts set event_key = p_event, featured_at = coalesce(featured_at, now()) where id = pid;
+  perform set_config('byome.pinning', 'off', true);
+  return 'Done: "' || t || '" is the event''s horror stories post, and it''s featured.';
 end $$;
 revoke execute on function public.set_event_story_post(text, text) from public, anon, authenticated;
 
@@ -590,6 +638,17 @@ begin
   where a.event_key = e.key;
 
   return jsonb_build_object('key', e.key, 'name', e.name, 'tagline', e.tagline, 'status', status, 'biome', e.biome,
+    'featured', (select coalesce(jsonb_agg(x order by x.featured_at desc), '[]'::jsonb) from (
+      select p.id, p.title, p.category, p.created_at, p.featured_at, u.username,
+             (select count(*) from comments c where c.post_id = p.id and c.held_at is null) as comments
+      from posts p join profiles u on u.id = p.user_id
+      where p.event_key = e.key and p.featured_at is not null and p.held_at is null) x),
+    'posts', (select coalesce(jsonb_agg(x order by x.created_at desc), '[]'::jsonb) from (
+      select p.id, p.title, p.category, p.created_at, u.username,
+             (select count(*) from comments c where c.post_id = p.id and c.held_at is null) as comments
+      from posts p join profiles u on u.id = p.user_id
+      where p.event_key = e.key and p.featured_at is null and p.held_at is null
+      order by p.created_at desc limit 30) x),
     'starts_at', e.starts_at, 'ends_at', e.ends_at, 'grace_until', e.grace_until,
     'badge_image', e.badge_image, 'story_post_id', e.story_post_id, 'achievements', list);
 end $$;

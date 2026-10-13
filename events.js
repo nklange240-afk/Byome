@@ -70,6 +70,24 @@ function achievementCard(a, ev, loggedIn) {
   return card;
 }
 
+// A list of the event's posts; each opens in the Community with its comments
+function postList(posts, title, className) {
+  const wrap = el("div", "event-posts " + (className || ""));
+  wrap.appendChild(el("h3", "event-posts-title", title));
+  const ul = el("ul", "event-post-list");
+  posts.forEach((p) => {
+    const li = el("li", "event-post");
+    const link = el("a", "event-post-link", p.title || "(untitled post)");
+    link.href = "feed.html?post=" + encodeURIComponent(p.id) + "&comments=open";
+    li.appendChild(link);
+    const bits = [p.username, p.category, p.comments === 1 ? "1 comment" : p.comments + " comments"].filter(Boolean);
+    li.appendChild(el("span", "event-post-meta", bits.join(" \u00b7 ")));
+    ul.appendChild(li);
+  });
+  wrap.appendChild(ul);
+  return wrap;
+}
+
 function eventSection(ev, loggedIn, shopItems) {
   const section = el("section", "event-card is-" + ev.status);
   const head = el("div", "event-head");
@@ -119,9 +137,22 @@ function eventSection(ev, loggedIn, shopItems) {
     section.appendChild(join);
   }
 
+  if (ev.featured && ev.featured.length) section.appendChild(postList(ev.featured, "Featured", "is-featured"));
+
   const list = el("ul", "event-achievements");
   (ev.achievements || []).forEach((a) => list.appendChild(achievementCard(a, ev, loggedIn)));
   section.appendChild(list);
+
+  if (ev.posts && ev.posts.length) {
+    section.appendChild(postList(ev.posts, "From the community"));
+  } else if (ev.status === "live") {
+    const none = el("p", "event-note");
+    none.append("Posts marked as part of " + ev.name + " will show up here. ");
+    const link = el("a", "inline-link", "Start one in the Community");
+    link.href = "feed.html";
+    none.append(link, ".");
+    section.appendChild(none);
+  }
 
   if (ev.status === "live" && shopItems.length) {
     const shop = el("p", "event-note");

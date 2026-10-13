@@ -6149,3 +6149,107 @@ dialog.a11y-dialog {
   color: var(--gold-text);
   font-weight: 600;
 }
+
+/* =========================================================
+   EVENT ORANGE: event chips, tags and achievements
+   ========================================================= */
+:root {
+  --event-orange: #F28C38;
+  --event-text: #F7A55E;      /* orange that's easy to read on the dark themes */
+}
+
+.biome-meadow {
+  --event-text: #A04812;      /* deeper orange on the light Meadow */
+}
+
+.category-chip.is-event {
+  border-color: var(--event-orange);
+  color: var(--event-text);
+}
+
+.category-chip.is-event[aria-pressed="true"] {
+  background-color: var(--event-orange);
+  border-color: var(--event-orange);
+  color: #2A1608;
+}
+
+.post-category-tag.is-event {
+  border-color: var(--event-orange);
+  color: var(--event-text);
+}
+
+.post-pinned-tag.is-event {
+  color: var(--event-text);
+}
+
+.post.is-pinned:has(.post-pinned-tag.is-event) {
+  border-color: var(--event-orange);
+}
+
+.achievement.is-event {
+  border-color: var(--event-orange);
+  color: var(--event-text);
+}
+
+.achievement.is-event:focus-visible {
+  outline-color: var(--event-orange);
+}
+
+.achievement-tip-event {
+  color: var(--event-orange);
+}
+
+.post-event-row {
+  margin: 0.25rem 0 0.6rem;
+}
+
+/* The event's posts on the Events page */
+.event-posts {
+  margin-top: 1rem;
+}
+
+.event-posts-title {
+  font-family: var(--font-heading);
+  font-size: 1.05rem;
+  margin-bottom: 0.4rem;
+}
+
+.event-posts.is-featured .event-posts-title {
+  color: var(--event-text);
+}
+
+.event-post-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.event-post {
+  display: flex;
+  flex-direction: column;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--moss);
+  border-radius: 8px;
+}
+
+.event-posts.is-featured .event-post {
+  border-color: var(--event-orange);
+}
+
+.event-post-link {
+  font-weight: 600;
+  color: var(--cream);
+  text-decoration: none;
+}
+
+.event-post-link:hover,
+.event-post-link:focus-visible {
+  text-decoration: underline;
+}
+
+.event-post-meta {
+  font-size: 0.8rem;
+  opacity: 0.8;
+}

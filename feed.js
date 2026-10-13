@@ -14,6 +14,9 @@ const MAX_INDENT_DEPTH = 4;
 let currentUser = null;
 let isModerator = false;
 let selectedCategory = ""; // "" means all categories
+let selectedEvent = "";    // the event chip: only that event's posts
+let liveEvent = null;      // the event that's on, if any
+const eventNames = {};     // event key -> name, for the tags on posts
 
 // Small helper: create an element with a class and text in one line.
 // It uses textContent, so user-written text can never inject HTML.
@@ -137,6 +140,7 @@ async function init() {
   isModerator = Boolean(me && me.is_moderator);
 
   UI.eventBanner(document.querySelector("main"), document.querySelector("main > h1"));
+  await setUpEvents();
   await REPORTS.loadMine(currentUser.id); // so flags you've used start red
   await loadPosts();
   showLinkedPost();
@@ -168,7 +172,8 @@ async function showLinkedPost() {
     feedEl.prepend(article);
   }
 
-  if (commentId && UUID.test(commentId)) await article._openComments();
+  // (from the Events page: feed.html?post=<id>&comments=open)
+  if ((commentId && UUID.test(commentId)) || params.get("comments") === "open") await article._openComments();
   const comment = commentId && article.querySelector('.comment[data-comment-id="' + commentId + '"]');
   const target = comment || article;
   const still = typeof A11Y !== "undefined" ? A11Y.reducedMotion() : window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -183,7 +188,30 @@ async function showLinkedPost() {
 // an edit or a new post keeps however many were already showing.
 const PAGE_SIZE = 20;
 let postsShown = 0;
-const POST_COLUMNS = "id, title, body, category, created_at, edited_at, held_at, user_id, profiles!user_id(username, avatar_path, avatar_ring, profile_biome, show_biome_symbol, is_moderator, badge), likes(user_id), comments(count), polls(closes_at, poll_options(id, label, position))";
+let POST_COLUMNS = "id, title, body, category, created_at, edited_at, held_at, user_id, profiles!user_id(username, avatar_path, avatar_ring, profile_biome, show_biome_symbol, is_moderator, badge), likes(user_id), comments(count), polls(closes_at, poll_options(id, label, position))";
+
+// Events (database/2026-10-29-events-halloween.sql): which event a post is
+// part of, and whether a moderator featured it. Left out until that's run.
+async function setUpEvents() {
+  const probe = await supabaseClient.from("posts").select("event_key, featured_at").limit(1);
+  if (probe.error) return;
+  POST_COLUMNS += ", event_key, featured_at";
+  const { data: events } = await supabaseClient.from("events").select("key, name");
+  (events || []).forEach((e) => { eventNames[e.key] = e.name; });
+  liveEvent = await UI.liveEvent();
+  if (!liveEvent) return;
+
+  // "Part of Haunted Harvest" on the post form
+  document.getElementById("post-event-label").textContent = "Part of " + liveEvent.name;
+  document.getElementById("post-event-row").hidden = false;
+
+  // An orange chip beside the categories, for the event's posts
+  const chip = el("button", "category-chip is-event", liveEvent.name);
+  chip.type = "button";
+  chip.dataset.event = liveEvent.key;
+  chip.setAttribute("aria-pressed", "false");
+  categoryFilter.appendChild(chip);
+}
 
 async function loadPosts(more) {
   const from = more === true ? postsShown : 0;
@@ -195,9 +223,8 @@ async function loadPosts(more) {
     .order("id")
     .range(from, to);
 
-  if (selectedCategory) {
-    query = query.eq("category", selectedCategory);
-  }
+  if (selectedEvent) query = query.eq("event_key", selectedEvent);
+  else if (selectedCategory) query = query.eq("category", selectedCategory);
 
   // Pinned posts go first (only on the first page); they're left out of
   // the list below so they don't show twice
@@ -215,7 +242,9 @@ async function loadPosts(more) {
 
   if (posts.length === 0 && more !== true) {
     postsShown = 0;
-    const text = selectedCategory
+    const text = selectedEvent
+      ? "No " + (eventNames[selectedEvent] || "event") + " posts yet. Be the first to start one!"
+      : selectedCategory
       ? "No " + selectedCategory + " posts yet. Be the first to start one!"
       : "No posts yet. Be the first to start one!";
     feedEl.appendChild(UI.emptyState({ image: "biome-assets/plant-welcome-sprout.png", text: text }));
@@ -237,12 +266,23 @@ async function loadPosts(more) {
 // Posts a moderator has pinned (newest pin first), in the chosen category.
 // pinned_at comes from database/2026-10-29-events-halloween.sql; until
 // that's run there are none.
+// While an event is on, its featured posts sit up there too.
 async function loadPinned() {
-  let query = supabaseClient.from("posts").select(POST_COLUMNS + ", pinned_at")
-    .not("pinned_at", "is", null).order("pinned_at", { ascending: false }).limit(5);
-  if (selectedCategory) query = query.eq("category", selectedCategory);
-  const { data, error } = await query;
-  return error || !data ? [] : data;
+  const narrow = (q) => (selectedEvent ? q.eq("event_key", selectedEvent) : selectedCategory ? q.eq("category", selectedCategory) : q);
+  const pinnedQ = narrow(supabaseClient.from("posts").select(POST_COLUMNS + ", pinned_at")
+    .not("pinned_at", "is", null).order("pinned_at", { ascending: false }).limit(5));
+  const featuredQ = liveEvent ? narrow(supabaseClient.from("posts").select(POST_COLUMNS + ", pinned_at")
+    .eq("event_key", liveEvent.key).not("featured_at", "is", null).order("featured_at", { ascending: false }).limit(5)) : null;
+  const [pinned, featured] = await Promise.all([pinnedQ, featuredQ || Promise.resolve({ data: [] })]);
+  const list = [];
+  (pinned.error ? [] : pinned.data || []).concat(featured.error ? [] : featured.data || []).forEach((p) => {
+    if (!list.some((x) => x.id === p.id)) list.push(p);
+  });
+  return list;
+}
+
+function eventChosen() {
+  return Boolean(liveEvent && document.getElementById("post-event").checked && !document.getElementById("post-event-row").hidden);
 }
 
 function loadMoreButton(onClick) {
@@ -253,9 +293,11 @@ function loadMoreButton(onClick) {
 }
 
 function buildPost(post, pollResult) {
-  const article = el("article", "post" + (post.pinned_at ? " is-pinned" : ""));
+  const featuredNow = Boolean(post.featured_at && liveEvent && post.event_key === liveEvent.key);
+  const article = el("article", "post" + (post.pinned_at || featuredNow ? " is-pinned" : ""));
   article.dataset.postId = post.id;
-  if (post.pinned_at) article.appendChild(el("p", "post-pinned-tag", "Pinned"));
+  if (featuredNow) article.appendChild(el("p", "post-pinned-tag is-event", "Featured in " + liveEvent.name));
+  else if (post.pinned_at) article.appendChild(el("p", "post-pinned-tag", "Pinned"));
   const poll = POLLS.pollOf(post);
   if (poll) article.classList.add("has-poll");
 
@@ -264,6 +306,7 @@ function buildPost(post, pollResult) {
     const titleRow = el("div", "post-title-row");
     titleRow.appendChild(el("h2", "post-title", post.title));
     if (post.category) titleRow.appendChild(el("span", "post-category-tag", post.category));
+    if (post.event_key && eventNames[post.event_key]) titleRow.appendChild(el("span", "post-category-tag is-event", eventNames[post.event_key]));
     article.appendChild(titleRow);
   } else if (post.category) {
     article.appendChild(el("span", "post-category-tag", post.category));
@@ -367,6 +410,20 @@ function buildPost(post, pollResult) {
       loadPosts();
     });
     actions.appendChild(pin);
+
+    // While an event is on: feature a post in it (top of the Events page,
+    // and of the Community until the event ends)
+    if (liveEvent) {
+      const featured = Boolean(post.featured_at && post.event_key === liveEvent.key);
+      const feat = actionButton(featured ? "Unfeature" : "Feature in " + liveEvent.name);
+      feat.addEventListener("click", async () => {
+        feat.disabled = true;
+        const { error } = await supabaseClient.rpc("set_post_featured", { p_post: post.id, p_featured: !featured });
+        if (error) { feat.disabled = false; alert(error.message); return; }
+        loadPosts();
+      });
+      actions.appendChild(feat);
+    }
   }
 
   article.append(actions, commentsSection);
@@ -601,10 +658,15 @@ postForm.addEventListener("submit", async (event) => {
     });
     error = res.error;
     saved = res.data ? { held_at: res.data.held } : null;
+    // a poll joins the event straight after it's made
+    if (!error && res.data && eventChosen()) {
+      await supabaseClient.from("posts").update({ event_key: liveEvent.key }).eq("id", res.data.id);
+    }
   } else {
     const res = await supabaseClient
       .from("posts")
-      .insert({ title: title, body: body, category: category, user_id: currentUser.id })
+      .insert(Object.assign({ title: title, body: body, category: category, user_id: currentUser.id },
+        eventChosen() ? { event_key: liveEvent.key } : {}))
       .select("held_at")
       .single();
     error = res.error;
@@ -671,8 +733,16 @@ function buildCategoryButtons() {
 
   categoryFilter.addEventListener("click", (e) => {
     const btn = e.target.closest(".category-chip");
-    if (!btn || btn.dataset.value === selectedCategory) return;
-    selectedCategory = btn.dataset.value;
+    if (!btn) return;
+    if (btn.dataset.event) {
+      if (selectedEvent === btn.dataset.event) return;
+      selectedEvent = btn.dataset.event;
+      selectedCategory = "";
+    } else {
+      if (!selectedEvent && btn.dataset.value === selectedCategory) return;
+      selectedEvent = "";
+      selectedCategory = btn.dataset.value;
+    }
     categoryFilter.querySelectorAll(".category-chip").forEach((b) => {
       b.setAttribute("aria-pressed", String(b === btn));
     });
