@@ -57,5 +57,6 @@ from (values
   ('2026-10-31-halloween-pots.sql',       exists (select 1 from public.biome_items where key = 'witch-purple')),
   ('2026-11-01-event-banner.sql',         exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'events' and column_name = 'banner_image')),
   ('2026-11-02-scaredy-cat-pot.sql',      exists (select 1 from public.biome_items where key = 'scaredy-cat')),
-  ('2026-11-03-jack-o-lantern-pot.sql',   exists (select 1 from public.biome_items where key = 'jack-o-lantern'))
+  ('2026-11-03-jack-o-lantern-pot.sql',   exists (select 1 from public.biome_items where key = 'jack-o-lantern')),
+  ('2026-11-04-pot-a-colada.sql',         exists (select 1 from public.achievements where key = 'haworthia-hoarder'))
 ) as checks(file, ok);

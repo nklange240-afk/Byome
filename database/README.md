@@ -55,3 +55,4 @@ byome's database lives in Supabase. These files are a backup and a history of ch
 - `2026-11-01-event-banner.sql`: a picture across the top of an event on the Events page. Haunted Harvest gets the five Halloween pots as a sneak peek (it shows before the event starts too).
 - `2026-11-02-scaredy-cat-pot.sql`: the Scaredy Cat pot (medium, for the bottom shelf; uncommon), the reward for "Beauty Horror Story" in Haunted Harvest. Anyone who already qualified gets it straight away.
 - `2026-11-03-jack-o-lantern-pot.sql`: the Jack-o'-lantern pot (medium, for the bottom shelf; heirloom), the reward for "Harvest Moon" in Haunted Harvest. Anyone who already qualified gets it straight away.
+- `2026-11-04-pot-a-colada.sql`: the "Haworthia Hoarder" achievement, earned by buying a second zebra haworthia, and its reward, the Pot-a-colada (a small pineapple pot, uncommon). Members who already bought two get it straight away.
