@@ -327,7 +327,7 @@ async function showPoints(userId, isModerator) {
 }
 
 // ---------- Biome shelf ----------
-// Everyone's profile shows their shelf. On your own profile, "Arrange"
+// Everyone's profile shows their shelf. On your own profile, "Edit my shelf"
 // lets you pick a pot (and plant) for each spot, and which shelf to use.
 // All the rules (owning enough, right size) are checked by the database.
 // The pots on a shelf, with their plants and visiting companions. The
@@ -351,6 +351,7 @@ async function showBiome(profileId, isMe) {
   const hintEl = document.getElementById("biome-hint");
   const editorEl = document.getElementById("biome-editor");
   const arrangeBtn = document.getElementById("biome-arrange");
+  const waitingEl = document.getElementById("biome-waiting");
 
   const [itemsRes, slotsRes, shelfRes, ownedRes, rewardsRes] = await Promise.all([
     supabaseClient.from("biome_items").select("key, kind, size, name, description, rarity, image, starter, sort_order, over_pot").order("sort_order"),
@@ -359,7 +360,8 @@ async function showBiome(profileId, isMe) {
     supabaseClient.from("profiles").select("biome_shelf, shelf_overlay").eq("id", profileId).single()
       .then((res) => (res.error && /shelf_overlay/.test(res.error.message)
         ? supabaseClient.from("profiles").select("biome_shelf").eq("id", profileId).single() : res)),
-    isMe ? supabaseClient.from("biome_inventory").select("item_key").eq("user_id", profileId) : Promise.resolve({ data: [] }),
+    isMe ? supabaseClient.from("biome_inventory").select("item_key").eq("user_id", profileId).order("acquired_at", { ascending: false })
+      : Promise.resolve({ data: [] }),
     supabaseClient.from("achievements").select("name, reward_item").not("reward_item", "is", null),
   ]);
   if (itemsRes.error || slotsRes.error || shelfRes.error) return; // biome isn't set up in the database yet
@@ -374,9 +376,61 @@ async function showBiome(profileId, isMe) {
   const owned = {};
   (ownedRes.data || []).forEach((row) => { owned[row.item_key] = (owned[row.item_key] || 0) + 1; });
 
-  let editing = false;
+  // profile.html?shelf=edit (from "Put it on my shelf") opens the editor
+  let editing = isMe && new URLSearchParams(window.location.search).get("shelf") === "edit";
   let selected = null;
   let message = "";
+
+  // Things you own that aren't on your shelf yet, newest first: spare pots
+  // and plants, companions not visiting a pot, and a shelf or decoration
+  // you're not using. (Biomes are chosen on Edit profile instead.)
+  function waiting() {
+    const used = {};
+    Object.values(placed).forEach((p) => [p.pot, p.plant, p.companion].forEach((k) => { if (k) used[k] = (used[k] || 0) + 1; }));
+    const list = [];
+    Object.keys(owned).forEach((key) => {
+      const it = items[key];
+      if (!it || it.starter || it.kind === "biome") return;
+      const count = it.kind === "shelf" ? (key === shelfKey ? 0 : 1)
+        : it.kind === "shelf_overlay" ? (key === overlayKey ? 0 : 1)
+        : owned[key] - (used[key] || 0);
+      if (count > 0) list.push({ item: it, count: count });
+    });
+    return list;
+  }
+
+  // "Hide" remembers exactly what was waiting, so anything new shows the tray again
+  const hideKey = "byome-shelf-waiting-hidden";
+  function hiddenList() { try { return localStorage.getItem(hideKey); } catch (e) { return null; } }
+  function waitingId(list) { return list.map((w) => w.item.key + ":" + w.count).sort().join(","); }
+
+  function renderWaiting() {
+    const list = isMe && !editing ? waiting() : [];
+    waitingEl.replaceChildren();
+    waitingEl.hidden = !list.length || hiddenList() === waitingId(list);
+    if (waitingEl.hidden) return;
+    waitingEl.appendChild(el("p", "biome-waiting-title", "Waiting for your shelf"));
+    const row = el("div", "biome-waiting-items");
+    list.slice(0, 6).forEach((w) => {
+      const thing = el("span", "biome-waiting-item");
+      const i = document.createElement("img");
+      i.src = BIOME.src(w.item.kind === "companion" ? w.item.image.replace(/\.png$/, "-icon.png") : w.item.image);
+      i.alt = "";
+      thing.append(i, el("span", null, w.item.name + (w.count > 1 ? " \u00d7" + w.count : "")));
+      row.appendChild(thing);
+    });
+    if (list.length > 6) row.appendChild(el("span", "biome-waiting-more", "+" + (list.length - 6) + " more"));
+    waitingEl.appendChild(row);
+    const actions = el("div", "biome-waiting-actions");
+    const go = el("button", "btn btn-solid", list.length === 1 ? "Put it on my shelf" : "Put them on my shelf");
+    go.type = "button";
+    go.addEventListener("click", () => { editing = true; selected = null; message = ""; render(); arrangeBtn.focus(); });
+    const hide = el("button", "btn btn-ghost", "Hide");
+    hide.type = "button";
+    hide.addEventListener("click", () => { try { localStorage.setItem(hideKey, waitingId(list)); } catch (e) { /* fine */ } renderWaiting(); });
+    actions.append(go, hide);
+    waitingEl.appendChild(actions);
+  }
 
   // How many more of this item could go in this spot (Infinity for starter items)
   function spare(key, slot) {
@@ -550,11 +604,12 @@ async function showBiome(profileId, isMe) {
 
     const empty = Object.keys(placed).length === 0;
     hintEl.hidden = editing || !empty;
-    hintEl.textContent = isMe ? "Your shelf is empty. Tap Arrange to add pots." : "Nothing on this shelf yet.";
+    hintEl.textContent = isMe ? "Your shelf is empty. Tap Edit my shelf to add pots." : "Nothing on this shelf yet.";
 
     editorEl.hidden = !editing;
     if (editing) renderEditor();
-    arrangeBtn.textContent = editing ? "Done" : "Arrange";
+    arrangeBtn.textContent = editing ? "Done" : "Edit my shelf";
+    renderWaiting();
   }
 
   if (isMe) {
@@ -568,6 +623,7 @@ async function showBiome(profileId, isMe) {
   }
   render();
   section.hidden = false;
+  if (editing) section.scrollIntoView({ block: "start" });
 }
 
 // Skin and hair details, if the member chose to share them

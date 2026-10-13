@@ -6266,3 +6266,68 @@ dialog.a11y-dialog {
   height: auto;
   margin: 0 auto 0.9rem;
 }
+
+/* Your own profile: things you own that aren't on your shelf yet */
+.biome-waiting {
+  margin: 0.75rem 0 1rem;
+  padding: 0.9rem 1rem;
+  background-color: var(--forest-mid);
+  border: 2px dashed var(--gold);
+  border-radius: 10px;
+}
+
+.biome-waiting-title {
+  margin: 0 0 0.6rem;
+  font-family: var(--font-heading);
+  font-size: 1.05rem;
+}
+
+.biome-waiting-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.9rem;
+  margin-bottom: 0.8rem;
+}
+
+.biome-waiting-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.9rem;
+}
+
+.biome-waiting-item img {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+}
+
+.biome-waiting-more {
+  align-self: center;
+  font-size: 0.9rem;
+}
+
+.biome-waiting-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.biome-waiting-actions .btn {
+  cursor: pointer;
+}
+
+/* While editing, every spot shows a faint dashed outline, so it's clear
+   they can be tapped */
+button.biome-slot .biome-slot-ring {
+  border-color: rgba(224, 168, 62, 0.7);
+}
+
+/* Moderation queue: where a suggested product would be listed */
+.mod-category-row {
+  margin: 0.4rem 0 0.8rem;
+}
+
+.mod-category-row .post-category-tag {
+  margin-left: 0;
+}

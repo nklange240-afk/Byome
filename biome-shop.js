@@ -165,12 +165,12 @@ function buildCard(item, balance, ownedCount) {
     }
     showMessage("You bought the " + item.name.toLowerCase() +
       (data && data.serial ? " (#" + data.serial + " of " + item.max_supply + ")" : "") +
-      (item.kind === "biome" ? "! Choose it on Edit profile." : "! Put it on your shelf from your profile."), true);
+      (item.kind === "biome" ? "! Choose it on Edit profile." : "! It's waiting on your profile: tap Edit my shelf to place it."), true);
     UI.celebrate({
       label: item.kind === "biome" ? "A new biome" : "New for your shelf",
       heading: item.name,
       text: (data && data.serial ? "Number " + data.serial + " of " + item.max_supply + ". " : "") +
-        (item.kind === "biome" ? "Choose it on Edit profile to set your profile in it." : "Arrange it on your shelf from your profile."),
+        (item.kind === "biome" ? "Choose it on Edit profile to set your profile in it." : "It's waiting for you. Tap below to put it on your shelf."),
       item: item,
     });
     loadShop();
