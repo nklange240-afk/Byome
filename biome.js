@@ -262,10 +262,11 @@ const BIOME = (function () {
           spot.appendChild(img("biome-pot-front", frontOf(pot.image), ""));
         }
       }
-      // A companion (like the swallowtail) visits the pot: its canvas is as
-      // wide as the pot's and taller, with the bottoms lined up, so it can
-      // sit up among the plant's leaves. It drifts gently (see style.css).
-      if (companion) spot.appendChild(img("biome-companion", companion.image, ""));
+      // A companion visits the pot: its canvas is as wide as the pot's (and
+      // can be taller), with the bottoms lined up, so the swallowtail sits
+      // up among the plant's leaves and the ladybug on the pot itself.
+      // Flying ones drift gently (see style.css).
+      if (companion) spot.appendChild(img("biome-companion companion-" + here.companion, companion.image, ""));
       // Rare pots twinkle (not while arranging, to keep that view calm).
       // Only pots for now: plants and companions don't.
       if (!opts.editable && typeof UI !== "undefined" && pot && (pot.rarity === "rare" || pot.rarity === "heirloom")) {

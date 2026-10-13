@@ -481,12 +481,16 @@ async function showBiome(profileId, isMe) {
         editorEl.appendChild(el("p", "feed-empty", "Medium pots for the bottom shelf are coming soon."));
       }
 
-      // Companions visit a pot. Only shown once you have one.
-      const companions = Object.values(items).filter((it) => it.kind === "companion" && owned[it.key]);
-      if (companions.length) {
+      // Companions visit a pot. Only shown once you have one. Some only
+      // visit pots of one size (the ladybug: small pots).
+      const owners = Object.values(items).filter((it) => it.kind === "companion" && owned[it.key]);
+      const companions = owners.filter((it) => !it.size || it.size === size);
+      if (owners.length) {
         editorEl.appendChild(el("h3", null, "Companion"));
         if (!here.pot) {
           editorEl.appendChild(el("p", "feed-empty", "Put a pot here first, then a companion can visit it."));
+        } else if (!companions.length) {
+          editorEl.appendChild(el("p", "feed-empty", owners.map((it) => "The " + it.name.toLowerCase() + " only visits " + it.size + " pots.").join(" ")));
         } else {
           const visitors = el("div", "biome-tiles");
           visitors.appendChild(tile("None", null, null, !here.companion, () => setCompanion(selected, null)));
