@@ -1,0 +1,161 @@
+// Events: seasonal events with their own achievements, points and items.
+// Upcoming events only say when they start. Live ones list their
+// achievements, rewards and (logged in) your progress. Past ones stay
+// here as a view-only archive. What's in each event comes from
+// event_overview() in database/2026-10-29-events-halloween.sql.
+
+function el(tag, className, text) {
+  const node = document.createElement(tag);
+  if (className) node.className = className;
+  if (text !== undefined) node.textContent = text;
+  return node;
+}
+
+function shortDate(iso) {
+  return new Date(iso).toLocaleDateString("en-US", { timeZone: "America/Chicago", month: "short", day: "numeric" });
+}
+
+// Where to go to work on each achievement
+const ACTION_LINKS = {
+  "hh-cobwebs": { href: "reviews.html", text: "Write a review" },
+  "hh-pumpkin-spice": { href: "reviews.html", text: "Write a review" },
+  "hh-fresh-blood": { href: "suggest-product.html", text: "Suggest a product" },
+  "hh-friendly-ghost": { href: "invite.html", text: "Invite friends" },
+  "hh-bait-the-trap": { href: "feed.html", text: "Start a poll" },
+  "hh-back-from-the-dead": { href: "profile.html", text: "Find your older reviews" },
+};
+
+function achievementCard(a, ev, loggedIn) {
+  const card = el("li", "event-achievement" + (a.earned ? " is-earned" : a.qualified ? " is-qualified" : ""));
+
+  const art = el("div", "event-reward");
+  if (a.reward) {
+    art.appendChild(UI.itemArt(a.reward, "event-reward-art"));
+  } else {
+    art.appendChild(el("span", "event-reward-soon", "Reward coming soon"));
+  }
+  card.appendChild(art);
+
+  const body = el("div", "event-achievement-body");
+  body.appendChild(el("h3", "event-achievement-name", a.name));
+  if (a.how_to) body.appendChild(el("p", "event-achievement-how", a.how_to));
+
+  const meta = el("p", "event-achievement-meta");
+  meta.appendChild(el("span", "event-points", "+" + a.points + " Byome points"));
+  if (a.reward) meta.appendChild(el("span", "event-reward-name", a.reward.name));
+  body.appendChild(meta);
+
+  // Your progress
+  if (loggedIn) {
+    let status = null;
+    if (a.earned) status = el("p", "event-status is-earned", "✓ Earned");
+    else if (a.qualified) status = el("p", "event-status is-qualified", "✓ Done! Your reward is on its way.");
+    else if (a.progress) status = el("p", "event-status", Math.min(a.progress.have, a.progress.need) + " of " + a.progress.need);
+    if (status) body.appendChild(status);
+  }
+
+  // How to get started (only while it can still be earned)
+  if (ev.status === "live" && !a.earned && !a.qualified) {
+    let link = ACTION_LINKS[a.key];
+    if (a.key === "hh-horror-story" && ev.story_post_id) {
+      link = { href: "feed.html?post=" + encodeURIComponent(ev.story_post_id), text: "Go to the post" };
+    }
+    if (link) {
+      const go = el("a", "inline-link event-go", link.text);
+      go.href = link.href;
+      body.appendChild(go);
+    }
+  }
+  card.appendChild(body);
+  return card;
+}
+
+function eventSection(ev, loggedIn, shopItems) {
+  const section = el("section", "event-card is-" + ev.status);
+  const head = el("div", "event-head");
+  if (ev.badge_image) {
+    const badge = document.createElement("img");
+    badge.className = "event-badge";
+    badge.src = ev.badge_image;
+    badge.alt = "";
+    badge.addEventListener("error", () => badge.remove());
+    head.appendChild(badge);
+  }
+  const titles = el("div");
+  titles.appendChild(el("h2", "event-name", ev.name));
+  const when = el("p", "event-when");
+  if (ev.status === "upcoming") {
+    when.appendChild(el("span", "event-pill", "Coming soon"));
+    when.append(" Starts " + UI.centralTime(ev.starts_at) + ".");
+  } else {
+    when.textContent = shortDate(ev.starts_at) + " – " + shortDate(ev.ends_at) + ", " + new Date(ev.ends_at).getFullYear();
+    if (ev.status === "live") when.prepend(el("span", "event-pill is-live", "On now"), " ");
+  }
+  titles.appendChild(when);
+  head.appendChild(titles);
+  section.appendChild(head);
+
+  if (ev.status === "upcoming") {
+    section.appendChild(el("p", "event-tagline", "Check back when it starts for achievements, Byome points and limited-edition treats."));
+    return section;
+  }
+
+  if (ev.tagline) section.appendChild(el("p", "event-tagline", ev.tagline));
+  const note = el("p", "event-note");
+  if (ev.status === "live") {
+    note.textContent = "On until " + UI.centralTime(ev.ends_at) + ". Each achievement can be earned once.";
+  } else if (ev.status === "finishing") {
+    note.textContent = "This event has ended, but things started during it still count until " + UI.centralTime(ev.grace_until) +
+      ": friends finishing their first post and review, poll votes and product approvals.";
+  } else {
+    note.textContent = "This event has ended. Thanks to everyone who took part!";
+  }
+  section.appendChild(note);
+  if (ev.status === "live" && !loggedIn) {
+    const join = el("p", "event-note");
+    const link = el("a", "inline-link", "Log in");
+    link.href = "login.html";
+    join.append(link, " to take part and see your progress.");
+    section.appendChild(join);
+  }
+
+  const list = el("ul", "event-achievements");
+  (ev.achievements || []).forEach((a) => list.appendChild(achievementCard(a, ev, loggedIn)));
+  section.appendChild(list);
+
+  if (ev.status === "live" && shopItems.length) {
+    const shop = el("p", "event-note");
+    const link = el("a", "inline-link", "Byome Shop");
+    link.href = "byome-shop.html";
+    shop.append("Limited-edition treats are in the ", link, " while the event's on.");
+    section.appendChild(shop);
+  }
+  return section;
+}
+
+(async function () {
+  const box = document.getElementById("events");
+  const { data: session } = await supabaseClient.auth.getSession();
+  const loggedIn = Boolean(session.session);
+
+  const { data: events, error } = await supabaseClient.from("events").select("key, starts_at").order("starts_at", { ascending: false });
+  if (error || !events || !events.length) {
+    box.replaceChildren(el("p", "feed-empty", "No events yet. Check back soon!"));
+    return;
+  }
+  const overviews = (await Promise.all(events.map((e) => supabaseClient.rpc("event_overview", { p_event: e.key }))))
+    .map((res) => res.data).filter(Boolean);
+  const now = new Date().toISOString();
+  const { data: shopItems } = await supabaseClient.from("biome_items").select("key")
+    .not("available_until", "is", null).lte("available_from", now).gte("available_until", now);
+
+  box.replaceChildren();
+  const current = overviews.filter((ev) => ev.status !== "ended");
+  const past = overviews.filter((ev) => ev.status === "ended");
+  current.forEach((ev) => box.appendChild(eventSection(ev, loggedIn, shopItems || [])));
+  if (!current.length) box.appendChild(el("p", "feed-empty", "No events on right now. Check back soon!"));
+  if (past.length) {
+    box.appendChild(el("h2", "section-title events-past-title", "Past events"));
+    past.forEach((ev) => box.appendChild(eventSection(ev, loggedIn, [])));
+  }
+})();

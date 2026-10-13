@@ -12,6 +12,7 @@ const categoryFilter = document.getElementById("category-filter");
 const MAX_INDENT_DEPTH = 4;
 
 let currentUser = null;
+let isModerator = false;
 let selectedCategory = ""; // "" means all categories
 
 // Small helper: create an element with a class and text in one line.
@@ -131,7 +132,11 @@ async function init() {
   }
 
   currentUser = data.session.user;
+  // Moderators can pin posts
+  const { data: me } = await supabaseClient.from("profiles").select("is_moderator").eq("id", currentUser.id).maybeSingle();
+  isModerator = Boolean(me && me.is_moderator);
 
+  UI.eventBanner(document.querySelector("main"), document.querySelector("main > h1"));
   await REPORTS.loadMine(currentUser.id); // so flags you've used start red
   await loadPosts();
   showLinkedPost();
@@ -194,6 +199,9 @@ async function loadPosts(more) {
     query = query.eq("category", selectedCategory);
   }
 
+  // Pinned posts go first (only on the first page); they're left out of
+  // the list below so they don't show twice
+  const pinned = more === true ? [] : await loadPinned();
   const { data: posts, error } = await query;
 
   if (more === true) feedEl.querySelectorAll(".load-more").forEach((b) => b.remove());
@@ -215,14 +223,26 @@ async function loadPosts(more) {
   }
 
   // Poll results for any polls, in one go
-  const pollResults = await POLLS.results(posts.filter((p) => POLLS.pollOf(p)).map((p) => p.id));
+  const pollResults = await POLLS.results(posts.concat(pinned).filter((p) => POLLS.pollOf(p)).map((p) => p.id));
+  pinned.forEach((post) => feedEl.appendChild(buildPost(post, pollResults.get(post.id))));
   posts.forEach((post) => {
-    // (a post opened from a notification may already be showing at the top)
-    if (more === true && feedEl.querySelector('.post[data-post-id="' + post.id + '"]')) return;
+    // (a post opened from a notification, or a pinned one, may already be showing)
+    if (feedEl.querySelector('.post[data-post-id="' + post.id + '"]')) return;
     feedEl.appendChild(buildPost(post, pollResults.get(post.id)));
   });
   postsShown = from + posts.length;
   if (posts.length === to - from + 1) feedEl.appendChild(loadMoreButton(() => loadPosts(true)));
+}
+
+// Posts a moderator has pinned (newest pin first), in the chosen category.
+// pinned_at comes from database/2026-10-29-events-halloween.sql; until
+// that's run there are none.
+async function loadPinned() {
+  let query = supabaseClient.from("posts").select(POST_COLUMNS + ", pinned_at")
+    .not("pinned_at", "is", null).order("pinned_at", { ascending: false }).limit(5);
+  if (selectedCategory) query = query.eq("category", selectedCategory);
+  const { data, error } = await query;
+  return error || !data ? [] : data;
 }
 
 function loadMoreButton(onClick) {
@@ -233,8 +253,9 @@ function loadMoreButton(onClick) {
 }
 
 function buildPost(post, pollResult) {
-  const article = el("article", "post");
+  const article = el("article", "post" + (post.pinned_at ? " is-pinned" : ""));
   article.dataset.postId = post.id;
+  if (post.pinned_at) article.appendChild(el("p", "post-pinned-tag", "Pinned"));
   const poll = POLLS.pollOf(post);
   if (poll) article.classList.add("has-poll");
 
@@ -335,6 +356,18 @@ function buildPost(post, pollResult) {
   }
 
   if (post.user_id !== currentUser.id) actions.appendChild(REPORTS.button("post", post.id));
+
+  // Moderators: pin a post to the top of the Community, or unpin it
+  if (isModerator) {
+    const pin = actionButton(post.pinned_at ? "Unpin" : "Pin");
+    pin.addEventListener("click", async () => {
+      pin.disabled = true;
+      const { error } = await supabaseClient.rpc("set_post_pinned", { p_post: post.id, p_pinned: !post.pinned_at });
+      if (error) { pin.disabled = false; alert(error.message); return; }
+      loadPosts();
+    });
+    actions.appendChild(pin);
+  }
 
   article.append(actions, commentsSection);
   return article;

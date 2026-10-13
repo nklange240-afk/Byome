@@ -119,7 +119,7 @@ const BIOME = (function () {
   // The info box shown when you hover over (or tap, or tab to) a plant, pot
   // or the shelf. It never takes clicks, sits above the item, and disappears
   // when you move away, tap elsewhere or press Escape.
-  function addInfoBox(wrap, shelf) {
+  function addInfoBox(wrap, shelf, overlay) {
     const tip = el("div", "biome-tip");
     tip.id = "biome-tip-" + Math.random().toString(36).slice(2);
     tip.setAttribute("role", "tooltip");
@@ -128,7 +128,10 @@ const BIOME = (function () {
     let current = null;
 
     function contentFor(target) {
-      if (target === wrap) return shelf ? [describe(shelf)] : null;
+      if (target === wrap) {
+        if (!shelf) return null;
+        return overlay ? [describe(shelf), describe(overlay)] : [describe(shelf)];
+      }
       const pot = target._pot, plant = target._plant, companion = target._companion;
       const parts = plant ? [describe(plant), describe(pot, "In a ")] : [describe(pot)];
       if (companion) parts.push(describe(companion));
@@ -173,7 +176,7 @@ const BIOME = (function () {
 
     function targetOf(node) {
       const spot = node.closest(".biome-slot");
-      return spot || (node.classList.contains("biome-shelf-img") ? wrap : null);
+      return spot || (node.classList.contains("biome-shelf-img") || node.classList.contains("biome-shelf-overlay") ? wrap : null);
     }
 
     let lastPointer = "mouse";
@@ -206,7 +209,8 @@ const BIOME = (function () {
   // items:   { key: { name, image, rarity, description, earnedWith } } from biome_items
   // shelfKey: which shelf to draw
   // placed:  { slotNumber: { pot: key, plant: key or null, companion: key or null } }
-  // options: { editable, selected, onSelect(slot) } for arranging your own shelf
+  // options: { editable, selected, onSelect(slot) } for arranging your own
+  //          shelf, and overlay: a shelf decoration's key (like the cobwebs)
   function build(items, shelfKey, placed, options) {
     const opts = options || {};
     const wrap = document.createElement("div");
@@ -216,6 +220,9 @@ const BIOME = (function () {
     const shelf = items[shelfKey] || items["default-shelf"];
     wrap.setAttribute("aria-label", shelf ? "Plant shelf: " + shelf.name : "Plant shelf");
     if (shelf) wrap.appendChild(img("biome-shelf-img", shelf.image, ""));
+    // A shelf decoration covers the whole shelf (same canvas), behind the pots
+    const overlay = opts.overlay && items[opts.overlay];
+    if (shelf && overlay) wrap.appendChild(img("biome-shelf-overlay", overlay.image, ""));
 
     layoutSlots().forEach((s) => {
       const here = (placed && placed[s.slot]) || {};
@@ -277,7 +284,7 @@ const BIOME = (function () {
 
     if (!opts.editable) {
       wrap.tabIndex = 0; // focusing the shelf itself shows the shelf's info
-      addInfoBox(wrap, shelf);
+      addInfoBox(wrap, shelf, overlay);
     }
     return wrap;
   }

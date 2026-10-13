@@ -18,8 +18,8 @@
   <meta name="twitter:card" content="summary_large_image" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=106" />
-  <script src="a11y.js?v=106"></script>
+  <link rel="stylesheet" href="style.css?v=107" />
+  <script src="a11y.js?v=107"></script>
 </head>
 <body data-biome="forest">
   <header class="site-header">
@@ -71,6 +71,12 @@
         </button>
         <p class="extras-hint">Holy grail is only available with a 5-leaf rating. Save it for products you'd never be without.</p>
       </div>
+      <!-- Shown only while an event that uses them is on (reviews.js) -->
+      <fieldset id="event-review-field" class="event-review-field" hidden>
+        <legend id="event-review-legend" class="field-label">Event</legend>
+        <label class="check-row"><input type="checkbox" id="review-no-longer-using" /> I no longer use this.</label>
+        <label class="check-row"><input type="checkbox" id="review-seasonal" /> This is a fall or seasonal product.</label>
+      </fieldset>
       <label for="review-title" class="visually-hidden">Review heading</label>
       <input type="text" id="review-title" class="composer-title" maxlength="100" required placeholder="Heading" />
       <label for="review-body" class="visually-hidden">Your review</label>
@@ -122,12 +128,12 @@
     </section>
   </main>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase-client.js?v=106"></script>
-  <script src="profile-fields.js?v=106"></script>
-  <script src="nav-menu.js?v=106"></script>
-  <script src="ui.js?v=106"></script>
-  <script src="edit-forms.js?v=106"></script>
-  <script src="report.js?v=106"></script>
-  <script src="reviews.js?v=106"></script>
+  <script src="supabase-client.js?v=107"></script>
+  <script src="profile-fields.js?v=107"></script>
+  <script src="nav-menu.js?v=107"></script>
+  <script src="ui.js?v=107"></script>
+  <script src="edit-forms.js?v=107"></script>
+  <script src="report.js?v=107"></script>
+  <script src="reviews.js?v=107"></script>
 </body>
 </html>
