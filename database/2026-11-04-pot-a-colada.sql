@@ -10,7 +10,7 @@
 
 insert into public.biome_items (key, kind, size, name, description, rarity, price, image, sort_order)
 values ('pot-a-colada', 'pot', 'small', 'Pot-a-colada',
-        'Not quite a pineapple... until you add a zebra haworthia on top!',
+        'Slice this one up for the road.',
         'uncommon', null, 'biome-assets/pot-pot-a-colada.png', 27)
 on conflict (key) do update set
   kind = excluded.kind, size = excluded.size, name = excluded.name, description = excluded.description,
