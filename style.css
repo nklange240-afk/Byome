@@ -2063,13 +2063,16 @@ select:focus-visible {
 }
 
 /* A shelf decoration (like the cobwebs): drawn on the shelf's own canvas,
-   over the shelf and behind the pots */
+   over everything on the shelf (pots, plants and companions). Taps go
+   through it to the pot underneath. */
 .biome-shelf-overlay {
   position: absolute;
   left: 0;
   top: 0;
   width: 100%;
   height: 100%;
+  z-index: 4;
+  pointer-events: none;
 }
 
 /* One spot = the pot's square canvas, placed by biome.js */
