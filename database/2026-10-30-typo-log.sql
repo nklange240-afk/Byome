@@ -1,8 +1,8 @@
 -- =========================================================
 -- Byome: a log of the typos members spot, with rewards.
 --  - Each typo you credit earns the member 25 Byome points.
---  - 1st typo: "Well Spotted", with the Spotted beetle (a companion that
---    sits on a small pot). 5 typos: "Fresh Eyes". 25 typos: "Typo Hero".
+--  - 1st typo: "Well Spotted", with Gus the asparagus beetle (a companion
+--    that sits on a small pot). 5 typos: "Fresh Eyes". 25 typos: "Typo Hero".
 -- Run in the Supabase SQL Editor. Safe to run again. Paste the whole file
 -- with nothing highlighted. (Needs the companion files from before.)
 --
@@ -18,11 +18,11 @@
 -- =========================================================
 
 
--- ---------- The Spotted beetle (sits on small pots, like the Ladybug) ----------
+-- ---------- The Asparagus beetle, Gus (sits on small pots, like the Ladybug) ----------
 insert into public.biome_items (key, kind, size, name, description, rarity, price, image, sort_order, max_per_member)
-values ('spotted-beetle', 'companion', 'small', 'Spotted beetle',
-        'For members with sharp eyes who spot a typo. Thank you!',
-        'uncommon', null, 'biome-assets/companion-spotted-beetle.png', 3, 1)
+values ('spotted-beetle', 'companion', 'small', 'Asparagus beetle',
+        'He goes by Gus, and he has sharp eyes for typos, just like you. Thanks for helping keep Byome tidy!',
+        'uncommon', null, 'biome-assets/companion-asparagus-beetle.png', 3, 1)
 on conflict (key) do update set
   kind = excluded.kind, size = excluded.size, name = excluded.name, description = excluded.description,
   rarity = excluded.rarity, image = excluded.image, max_per_member = excluded.max_per_member;
