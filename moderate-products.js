@@ -123,7 +123,7 @@ async function loadQueue() {
   const [{ data: products, error }, { data: everything }] = await Promise.all([
     supabaseClient
       .from("products")
-      .select("id, name, brand, photo_url, variations, created_at, profiles!suggested_by(username)")
+      .select("id, name, brand, category, subcategory, photo_url, variations, created_at, profiles!suggested_by(username)")
       .eq("status", "pending")
       .order("created_at", { ascending: true }),
     // Every live or waiting product, to spot repeat suggestions
@@ -161,6 +161,14 @@ function buildQueueItem(product, matches) {
   const meta = el("div", "post-meta");
   meta.appendChild(el("span", "post-author", product.brand));
   view.appendChild(meta);
+
+  // Where it would be listed, e.g. "Makeup › Lipstick"
+  const where = [product.category, product.subcategory].filter(Boolean).join(" \u203a ");
+  if (where) {
+    const tagRow = el("p", "mod-category-row");
+    tagRow.appendChild(el("span", "post-category-tag", where));
+    view.appendChild(tagRow);
+  }
 
   const photo = product.photo_url ? safeUrl(product.photo_url) : null;
   if (photo) {
