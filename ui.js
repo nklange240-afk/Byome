@@ -296,7 +296,7 @@ const UI = (function () {
       const choose = el("a", "btn btn-ghost", "Choose my biome");
       choose.href = "edit-profile.html";
       actions.appendChild(choose);
-    } else if (options.item) {
+    } else if (options.item && !options.placed) {
       // Opens your profile with the shelf editor ready
       const place = el("a", "btn btn-ghost", "Put it on my shelf");
       place.href = "profile.html?shelf=edit";
@@ -360,17 +360,28 @@ const UI = (function () {
     if (!fresh.length) return;
     writeSeen(userId, seen.concat(fresh.map((r) => r.achievement_key)));
 
+    // Reward plants are planted for you when there's a free spot of their
+    // size; check which ones actually made it onto the shelf
+    const plantKeys = fresh.map((r) => (r.achievements || {}).biome_items).filter((it) => it && it.kind === "plant").map((it) => it.key);
+    const planted = {};
+    if (plantKeys.length) {
+      const { data: slots } = await supabaseClient.from("biome_slots").select("plant_key").eq("user_id", userId).in("plant_key", plantKeys);
+      (slots || []).forEach((s) => { planted[s.plant_key] = true; });
+    }
+
     fresh.forEach((r) => {
       const a = r.achievements || {};
       const item = a.biome_items;
       const event = a.events;
+      const placed = Boolean(item && planted[item.key]);
       celebrate({
         label: event ? event.name + " achievement" : "Achievement unlocked",
         heading: a.name || "New achievement",
         text: (a.description ? a.description + " " : "") +
-          (item ? "Your reward: " + item.name + (item.kind === "plant" ? ", already on your shelf." : ".") : "") +
+          (item ? "Your reward: " + item.name + (placed ? ", already on your shelf." : ".") : "") +
           (event && a.event_points ? " Plus " + a.event_points + " Byome points!" : ""),
         item: item,
+        placed: placed,
       });
     });
   }

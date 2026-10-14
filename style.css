@@ -6331,3 +6331,16 @@ button.biome-slot .biome-slot-ring {
 .mod-category-row .post-category-tag {
   margin-left: 0;
 }
+
+/* The event's little icon (like the pumpkin) inside its tag on posts */
+.post-category-tag.is-event {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.event-tag-icon {
+  width: 1.15em;
+  height: 1.15em;
+  object-fit: contain;
+}

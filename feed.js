@@ -18,6 +18,19 @@ let selectedEvent = "";    // the event chip: only that event's posts
 let liveEvent = null;      // the event that's on, if any
 const eventNames = {};     // event key -> name, for the tags on posts
 
+// The orange tag on an event's posts, with the event's little icon
+// (biome-assets/icon-event-<key>.png; just the name if there isn't one)
+function eventTag(key) {
+  const tag = el("span", "post-category-tag is-event");
+  const icon = document.createElement("img");
+  icon.className = "event-tag-icon";
+  icon.src = "biome-assets/icon-event-" + key + ".png";
+  icon.alt = "";
+  icon.addEventListener("error", () => icon.remove());
+  tag.append(icon, eventNames[key]);
+  return tag;
+}
+
 // Small helper: create an element with a class and text in one line.
 // It uses textContent, so user-written text can never inject HTML.
 function el(tag, className, text) {
@@ -306,7 +319,7 @@ function buildPost(post, pollResult) {
     const titleRow = el("div", "post-title-row");
     titleRow.appendChild(el("h2", "post-title", post.title));
     if (post.category) titleRow.appendChild(el("span", "post-category-tag", post.category));
-    if (post.event_key && eventNames[post.event_key]) titleRow.appendChild(el("span", "post-category-tag is-event", eventNames[post.event_key]));
+    if (post.event_key && eventNames[post.event_key]) titleRow.appendChild(eventTag(post.event_key));
     article.appendChild(titleRow);
   } else if (post.category) {
     article.appendChild(el("span", "post-category-tag", post.category));
