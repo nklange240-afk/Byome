@@ -263,9 +263,9 @@ const BIOME = (function () {
         // over_pot and drawn on top of the whole pot instead.
         if (plant.over_pot) {
           spot.appendChild(img("biome-pot-front", frontOf(pot.image), ""));
-          spot.appendChild(img("biome-plant is-over-pot", plant.image, ""));
+          spot.appendChild(img("biome-plant is-over-pot plant-" + plant.key, plant.image, ""));
         } else {
-          spot.appendChild(img("biome-plant", plant.image, ""));
+          spot.appendChild(img("biome-plant plant-" + plant.key, plant.image, ""));
           spot.appendChild(img("biome-pot-front", frontOf(pot.image), ""));
         }
       }

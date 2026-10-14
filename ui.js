@@ -229,7 +229,7 @@ const UI = (function () {
       box.classList.add("is-potted");
       const pot = "biome-assets/pot-terra-cotta.png";
       const front = pot.replace(/\.png$/, "-front.png");
-      const plant = el("img", "biome-plant" + (className ? "" : " celebrate-grow") + (item.over_pot ? " is-over-pot" : ""));
+      const plant = el("img", "biome-plant plant-" + item.key + (className ? "" : " celebrate-grow") + (item.over_pot ? " is-over-pot" : ""));
       plant.src = art(item.image);
       plant.alt = "";
       const potImg = el("img", "biome-pot");
