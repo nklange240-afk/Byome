@@ -6060,10 +6060,16 @@ dialog.a11y-dialog {
   object-fit: contain;
 }
 
+/* Plants sit in their pot the same way as on the shelf (see biome.js:
+   the plant's canvas is lifted 68.75% of the pot's), with room above */
+.event-reward .event-reward-art.is-potted {
+  margin-top: 3rem;
+}
+
 .event-reward-art.is-potted > .biome-plant {
   position: absolute;
   left: 0;
-  top: -40%;
+  top: -68.75%;
   width: 100%;
   height: auto;
 }
