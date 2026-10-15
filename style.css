@@ -6447,3 +6447,19 @@ button.biome-slot .biome-slot-ring {
 .biome-tile.is-misfit {
   opacity: 0.5;
 }
+
+/* A house card that links somewhere (like the Events page) */
+a.ad-house {
+  display: block;
+}
+
+a.ad-house > img {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* An empty ad box (Google had no ad) lets taps through to the card behind */
+.ad-slot .adsbygoogle:not([data-ad-status="filled"]) {
+  pointer-events: none;
+}

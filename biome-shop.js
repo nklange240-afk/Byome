@@ -216,7 +216,9 @@ function buildCard(item, balance, ownedCount, event) {
 // Behind the bottom ad is one of Byome's own cards (HOUSE_ADS, picked at
 // random), which shows whenever Google has no ad to fill the space; the
 // middle sign just disappears instead, so cards never stack up. A card
-// about an item (hideIfOwned) isn't shown to members who already own it.
+// about an item (hideIfOwned) isn't shown to members who already own it,
+// a card with an end date (until) stops showing after it, and a card with
+// a link (href) can be tapped.
 const AD_CLIENT = "ca-pub-1517865451153702"; // Byome's AdSense account
 const AD_SIGNS = [
   { box: "ad-sign-middle", slot: "5772047833" },             // "Byome 300x250 Mid-Scroll"
@@ -227,6 +229,8 @@ const HOUSE_ADS = [
   { image: "biome-assets/ad-house-thanks.png", text: "Thank you for joining Byome!" },
   { image: "biome-assets/ad-house-better-place.png", text: "You make Byome a better place!" },
   { image: "biome-assets/ad-house-terry.png", text: "Rare: Terry pot now available!", hideIfOwned: "terry" },
+  { image: "biome-assets/ad-house-haunted-harvest.png", text: "Haunted Harvest, October 15 to November 1. Find it under the Events tab!",
+    href: "events.html", until: "2026-11-02T05:59:00Z" },
 ];
 
 async function houseAd() {
@@ -234,12 +238,18 @@ async function houseAd() {
   const { data } = await supabaseClient.from("biome_inventory").select("item_key")
     .eq("user_id", currentUser.id).in("item_key", items);
   const owned = new Set((data || []).map((r) => r.item_key));
-  const cards = HOUSE_ADS.filter((c) => !owned.has(c.hideIfOwned));
+  const now = Date.now();
+  const cards = HOUSE_ADS.filter((c) => !owned.has(c.hideIfOwned) && (!c.until || new Date(c.until).getTime() > now));
   const card = cards[Math.floor(Math.random() * cards.length)];
   const img = el("img", "ad-house");
   img.src = card.image;
   img.alt = card.text;
-  return img;
+  if (!card.href) return img;
+  const link = el("a", "ad-house");
+  link.href = card.href;
+  img.className = "";
+  link.appendChild(img);
+  return link;
 }
 
 async function showAdSigns() {
