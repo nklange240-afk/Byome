@@ -6363,3 +6363,18 @@ button.biome-slot .biome-slot-ring {
   z-index: 1;
   animation: none !important;
 }
+
+/* Shop: an event's items carry its badge in the corner */
+.shop-card > .shop-event-badge {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  z-index: 5;
+  width: 2.2rem;
+  height: 2.2rem;
+  object-fit: contain;
+}
+
+.shop-meta.shop-limited.is-event {
+  color: var(--event-text);
+}

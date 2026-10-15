@@ -70,12 +70,15 @@ function inWindow(item) {
 }
 
 async function loadShop() {
-  const [pointsRes, itemsRes, ownedRes] = await Promise.all([
+  const [pointsRes, itemsRes, ownedRes, eventsRes] = await Promise.all([
     supabaseClient.from("user_points").select("biome, pending_biome").eq("user_id", currentUser.id).maybeSingle(),
     // (limited-time windows come from database/2026-10-29-events-halloween.sql)
     shopItems("available_from, available_until, ").then((res) => (res.error ? shopItems("") : res)),
     supabaseClient.from("biome_inventory").select("item_key").eq("user_id", currentUser.id),
+    // (events come from database/2026-10-29-events-halloween.sql; fine without)
+    supabaseClient.from("events").select("key, name, badge_image, starts_at, ends_at"),
   ]);
+  const events = eventsRes.error ? [] : eventsRes.data || [];
 
   shopEl.innerHTML = "";
   shopMoreEl.innerHTML = "";
@@ -103,12 +106,21 @@ async function loadShop() {
       return;
     }
     const grid = el("div", "shop-grid");
-    items.forEach((it) => grid.appendChild(buildCard(it, balance, owned[it.key] || 0)));
+    items.forEach((it) => grid.appendChild(buildCard(it, balance, owned[it.key] || 0, eventFor(it, events))));
     into.appendChild(grid);
   });
 }
 
-function buildCard(item, balance, ownedCount) {
+// The event a limited-time item belongs to: its time in the shop falls
+// within the event's dates
+function eventFor(item, events) {
+  if (!item.available_until) return null;
+  const from = new Date(item.available_from || item.available_until).getTime();
+  const until = new Date(item.available_until).getTime();
+  return events.find((ev) => new Date(ev.starts_at).getTime() <= from && until <= new Date(ev.ends_at).getTime()) || null;
+}
+
+function buildCard(item, balance, ownedCount, event) {
   const card = el("article", "shop-card rarity-edge-" + item.rarity);
 
   // Plants are shown in the starter pot; rare things sparkle
@@ -123,13 +135,23 @@ function buildCard(item, balance, ownedCount) {
     UI.previewOnHover(pic, item);
   }
   if (ownedCount) card.appendChild(el("span", "owned-tag", ownedCount > 1 ? "Owned ×" + ownedCount : "Owned"));
+  // Event items carry the event's badge in the corner
+  if (event && event.badge_image) {
+    const badge = document.createElement("img");
+    badge.className = "shop-event-badge";
+    badge.src = event.badge_image;
+    badge.alt = "";
+    badge.title = event.name;
+    badge.addEventListener("error", () => badge.remove());
+    card.appendChild(badge);
+  }
 
   const sparkly = item.rarity === "rare" || item.rarity === "heirloom";
   card.appendChild(el("span", "rarity rarity-" + item.rarity, (sparkly ? "\u2726 " : "") + item.rarity));
   card.appendChild(el("h3", null, item.name));
   if (item.description) card.appendChild(el("p", "shop-meta", item.description));
   if (item.available_until) {
-    card.appendChild(el("p", "shop-meta shop-limited", "Limited time: in the shop until " +
+    card.appendChild(el("p", "shop-meta shop-limited" + (event ? " is-event" : ""), (event ? event.name : "Limited time") + ": in the shop until " +
       new Date(item.available_until).toLocaleDateString("en-US", { timeZone: "America/Chicago", month: "long", day: "numeric" }) + "."));
   }
   if (item.size) card.appendChild(el("p", "shop-meta", item.size === "small" ? "Can be placed on the top two shelves" : "Can be placed on the bottom shelf"));
