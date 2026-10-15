@@ -63,5 +63,6 @@ from (values
   ('2026-11-06-halloween-medium-pots.sql', exists (select 1 from public.biome_items where key = 'witch-purple-medium')),
   ('2026-11-07-marigold.sql',             exists (select 1 from public.biome_items where key = 'marigold')),
   ('2026-11-08-venus-flytrap.sql',        exists (select 1 from public.biome_items where key = 'venus-flytrap')),
-  ('2026-11-09-pumpkin-painted-pot.sql',  exists (select 1 from public.biome_items where key = 'pumpkin-painted'))
+  ('2026-11-09-pumpkin-painted-pot.sql',  exists (select 1 from public.biome_items where key = 'pumpkin-painted')),
+  ('2026-11-10-ghost-pot.sql',            exists (select 1 from public.biome_items where key = 'ghost'))
 ) as checks(file, ok);
