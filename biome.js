@@ -151,7 +151,7 @@ const BIOME = (function () {
       // Place it above the item (above the plant if there is one), centred,
       // kept inside the shelf; below the item if there's no room above.
       const box = wrap.getBoundingClientRect();
-      const anchor = target === wrap ? wrap.querySelector(".biome-shelf-img") : (target.querySelector(".biome-plant") || target.querySelector(".biome-pot"));
+      const anchor = target === wrap ? wrap.querySelector(".biome-shelf-img") : (target.querySelector(".biome-plant:not(.biome-soil)") || target.querySelector(".biome-pot"));
       const r = (anchor || target).getBoundingClientRect();
       const tw = tip.offsetWidth, th = tip.offsetHeight;
       let left = r.left - box.left + r.width / 2 - tw / 2;
@@ -261,11 +261,14 @@ const BIOME = (function () {
         // Most plants sit inside the pot (pot, plant, pot front). Plants whose
         // leaves spill over the rim, like the African violet, are marked
         // over_pot and drawn on top of the whole pot instead.
+        // Some plants come with their own soil, which sits inside the pot
+        const soil = typeof UI !== "undefined" && UI.soilImage ? UI.soilImage(plant) : null;
+        if (soil) spot.appendChild(img("biome-plant biome-soil plant-" + plant.key, soil, ""));
         if (plant.over_pot) {
           spot.appendChild(img("biome-pot-front", frontOf(pot.image), ""));
-          spot.appendChild(img("biome-plant is-over-pot", plant.image, ""));
+          spot.appendChild(img("biome-plant is-over-pot plant-" + plant.key, plant.image, ""));
         } else {
-          spot.appendChild(img("biome-plant", plant.image, ""));
+          spot.appendChild(img("biome-plant plant-" + plant.key, plant.image, ""));
           spot.appendChild(img("biome-pot-front", frontOf(pot.image), ""));
         }
       }

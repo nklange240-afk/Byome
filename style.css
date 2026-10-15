@@ -6344,3 +6344,16 @@ button.biome-slot .biome-slot-ring {
   height: 1.15em;
   object-fit: contain;
 }
+
+/* Small per-plant nudges, so each sits nicely in its pot (moved by a
+   share of the plant's own size, so it works on the shelf and in previews) */
+.biome-plant.plant-marigold {
+  translate: 0 4%;
+}
+
+/* A plant's own soil sits inside the pot: under the pot's front, and it
+   doesn't sway or grow with the plant */
+.biome-plant.biome-soil {
+  z-index: 1;
+  animation: none !important;
+}

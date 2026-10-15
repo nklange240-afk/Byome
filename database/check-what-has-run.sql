@@ -61,5 +61,6 @@ from (values
   ('2026-11-04-pot-a-colada.sql',         exists (select 1 from public.achievements where key = 'haworthia-hoarder')),
   ('2026-11-05-bleeding-heart.sql',       exists (select 1 from public.biome_items where key = 'bleeding-heart')),
   ('2026-11-06-halloween-medium-pots.sql', exists (select 1 from public.biome_items where key = 'witch-purple-medium')),
-  ('2026-11-07-marigold.sql',             exists (select 1 from public.biome_items where key = 'marigold'))
+  ('2026-11-07-marigold.sql',             exists (select 1 from public.biome_items where key = 'marigold')),
+  ('2026-11-08-venus-flytrap.sql',        exists (select 1 from public.biome_items where key = 'venus-flytrap'))
 ) as checks(file, ok);
