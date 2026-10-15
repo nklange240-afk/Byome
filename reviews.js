@@ -1054,8 +1054,13 @@ function buildReview(r) {
   info.appendChild(rating);
 
   const tags = el("div", "review-tags");
-  const isStandout = Boolean(r.review_standouts && r.review_standouts.length);
-  if (isStandout) tags.appendChild(el("span", "review-tag standout", "Standout review"));
+  // (one review has at most one standout, so this comes back as a single
+  // record, not a list)
+  const isStandout = Boolean(r.review_standouts && (!Array.isArray(r.review_standouts) || r.review_standouts.length));
+  if (isStandout) {
+    article.classList.add("is-standout");
+    tags.appendChild(el("span", "review-tag standout", "\u2726 Standout review"));
+  }
   if (r.holy_grail) {
     const tag = el("span", "review-tag holy-grail");
     tag.append(starIcon(), document.createTextNode("Holy grail"));

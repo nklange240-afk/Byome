@@ -161,7 +161,11 @@ function buildReviewCard(r, isMe, reload) {
   article.appendChild(rating);
 
   const tags = el("div", "review-tags");
-  if (r.review_standouts && r.review_standouts.length) tags.appendChild(el("span", "review-tag standout", "Standout review"));
+  // (one review has at most one standout: a single record, not a list)
+  if (r.review_standouts && (!Array.isArray(r.review_standouts) || r.review_standouts.length)) {
+    article.classList.add("is-standout");
+    tags.appendChild(el("span", "review-tag standout", "\u2726 Standout review"));
+  }
   if (r.holy_grail) {
     const tag = el("span", "review-tag holy-grail");
     tag.append(starIcon(), document.createTextNode("Holy grail"));
