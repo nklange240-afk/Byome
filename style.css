@@ -1468,11 +1468,21 @@ a.post-author:focus-visible {
   text-decoration: underline;
 }
 
-/* ----- Standout tag (moderator-awarded) ----- */
+/* ----- Standout reviews (moderator-awarded): a gold frame and a solid
+   gold tag ----- */
+.post.is-standout {
+  margin: 0.75rem 0;
+  padding: 1.1rem 1rem;
+  border: 2px solid var(--gold);
+  border-radius: 12px;
+  box-shadow: 0 0 0 4px rgba(224, 168, 62, 0.12);
+}
+
 .review-tag.standout {
-  color: var(--leaf);
-  border-color: var(--leaf);
-  font-weight: 600;
+  background-color: var(--gold);
+  border-color: var(--gold);
+  color: var(--forest-dark);
+  font-weight: 700;
 }
 
 /* ----- Profile page ----- */
