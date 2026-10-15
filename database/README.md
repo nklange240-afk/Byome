@@ -63,3 +63,4 @@ byome's database lives in Supabase. These files are a backup and a history of ch
 - `2026-11-09-pumpkin-painted-pot.sql`: the Pumpkin pot (small, uncommon), the reward for "Pumpkin Spice and Everything" in Haunted Harvest. Anyone who already qualified gets it straight away.
 - `2026-11-10-ghost-pot.sql`: the Ghost pot (small, uncommon, 100 Byome points), in the Byome Shop only during Haunted Harvest.
 - `2026-11-11-black-cat-pot.sql`: the Black cat pot (small, uncommon, 100 Byome points), in the Byome Shop only during Haunted Harvest.
+- `2026-11-12-small-pots-anywhere.sql`: "medium" pots and plants are called Large; small pots can go on any shelf (large ones still need the bottom shelf); a plant must match its pot's size; the ladybug can visit a small pot on the bottom shelf.

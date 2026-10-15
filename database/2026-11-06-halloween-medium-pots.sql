@@ -1,5 +1,5 @@
 -- =========================================================
--- Byome: medium versions of the four solid Halloween pots, for the
+-- Byome: large versions of the four solid Halloween pots, for the
 -- bottom shelf. Common, 50 Byome points (the small ones are 40), as many
 -- as you like. Like the small ones, they're only in the shop during
 -- Haunted Harvest (Oct 15 – Nov 1, Central Time); anyone who buys one
@@ -10,13 +10,13 @@
 
 insert into public.biome_items (key, kind, size, name, description, rarity, price, image, sort_order, available_from, available_until)
 values
-  ('slime-green-medium', 'pot', 'medium', 'Medium slime green pot', 'A bright, slimy green for spooky season.',
+  ('slime-green-medium', 'pot', 'medium', 'Large slime green pot', 'A bright, slimy green for spooky season.',
    'common', 50, 'biome-assets/pot-slime-green-medium.png', 31, '2026-10-15 05:00:00+00', '2026-11-02 05:59:00+00'),
-  ('witch-purple-medium', 'pot', 'medium', 'Medium witch purple pot', 'A deep, bewitching purple for spooky season.',
+  ('witch-purple-medium', 'pot', 'medium', 'Large witch purple pot', 'A deep, bewitching purple for spooky season.',
    'common', 50, 'biome-assets/pot-witch-purple-medium.png', 32, '2026-10-15 05:00:00+00', '2026-11-02 05:59:00+00'),
-  ('midnight-black-medium', 'pot', 'medium', 'Medium midnight black pot', 'As dark as a moonless night.',
+  ('midnight-black-medium', 'pot', 'medium', 'Large midnight black pot', 'As dark as a moonless night.',
    'common', 50, 'biome-assets/pot-midnight-black-medium.png', 33, '2026-10-15 05:00:00+00', '2026-11-02 05:59:00+00'),
-  ('harvest-orange-medium', 'pot', 'medium', 'Medium harvest orange pot', 'The warm orange of the harvest season.',
+  ('harvest-orange-medium', 'pot', 'medium', 'Large harvest orange pot', 'The warm orange of the harvest season.',
    'common', 50, 'biome-assets/pot-harvest-orange-medium.png', 34, '2026-10-15 05:00:00+00', '2026-11-02 05:59:00+00')
 on conflict (key) do update set
   kind = excluded.kind, size = excluded.size, name = excluded.name, description = excluded.description,
