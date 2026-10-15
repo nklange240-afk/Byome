@@ -60,3 +60,6 @@ byome's database lives in Supabase. These files are a backup and a history of ch
 - `2026-11-06-halloween-medium-pots.sql`: medium versions of the Slime green, Witch purple, Midnight black and Harvest orange pots for the bottom shelf (common, 50 Byome points), in the Byome Shop only during Haunted Harvest.
 - `2026-11-07-marigold.sql`: the Marigolds (medium plant for the bottom shelf, spilling over the rim; uncommon), the reward for "Back from the Dead" in Haunted Harvest. Anyone who already qualified gets it straight away.
 - `2026-11-08-venus-flytrap.sql`: the Venus flytrap (small plant that hangs over its pot, with its own soil inside; uncommon), the reward for "Bait the Trap" in Haunted Harvest. Anyone who already qualified gets it straight away.
+- `2026-11-09-pumpkin-painted-pot.sql`: the Pumpkin pot (small, uncommon), the reward for "Pumpkin Spice and Everything" in Haunted Harvest. Anyone who already qualified gets it straight away.
+- `2026-11-10-ghost-pot.sql`: the Ghost pot (small, uncommon, 100 Byome points), in the Byome Shop only during Haunted Harvest.
+- `2026-11-11-black-cat-pot.sql`: the Black cat pot (small, uncommon, 100 Byome points), in the Byome Shop only during Haunted Harvest.
