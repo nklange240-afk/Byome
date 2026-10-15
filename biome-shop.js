@@ -147,14 +147,17 @@ function buildCard(item, balance, ownedCount, event) {
   }
 
   const sparkly = item.rarity === "rare" || item.rarity === "heirloom";
-  card.appendChild(el("span", "rarity rarity-" + item.rarity, (sparkly ? "\u2726 " : "") + item.rarity));
+  const labels = el("div", "shop-labels");
+  labels.appendChild(el("span", "rarity rarity-" + item.rarity, (sparkly ? "\u2726 " : "") + item.rarity));
+  if (item.size) labels.appendChild(el("span", "size-chip size-" + (item.size === "medium" ? "large" : "small"), UI.sizeName(item.size)));
+  card.appendChild(labels);
   card.appendChild(el("h3", null, item.name));
   if (item.description) card.appendChild(el("p", "shop-meta", item.description));
   if (item.available_until) {
     card.appendChild(el("p", "shop-meta shop-limited" + (event ? " is-event" : ""), (event ? event.name : "Limited time") + ": in the shop until " +
       new Date(item.available_until).toLocaleDateString("en-US", { timeZone: "America/Chicago", month: "long", day: "numeric" }) + "."));
   }
-  if (item.size) card.appendChild(el("p", "shop-meta", item.size === "small" ? "Can be placed on the top two shelves" : "Can be placed on the bottom shelf"));
+  if (item.size) card.appendChild(el("p", "shop-meta", item.size === "small" ? "Fits on any shelf." : "Needs the extra space of the bottom shelf."));
   if (item.kind === "biome") card.appendChild(el("p", "shop-meta", "Sets the scene on your profile. Choose it on Edit profile."));
 
   const price = el("p", "shop-price");

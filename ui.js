@@ -289,7 +289,22 @@ const UI = (function () {
   const queue = [];
   let showing = false;
 
-  // options: { label, heading, text, item }
+  // Sizes: the database calls them "small" and "medium"; members see
+  // Small and Large (there's nothing bigger yet)
+  function sizeName(size) {
+    return size === "medium" ? "Large" : "Small";
+  }
+
+  // A little "S" or "L" mark for item tiles
+  function sizeBadge(size) {
+    const badge = el("span", "size-badge size-" + (size === "medium" ? "large" : "small"), sizeName(size).charAt(0));
+    badge.title = sizeName(size);
+    badge.setAttribute("aria-label", sizeName(size));
+    return badge;
+  }
+
+  // options: { label, heading, text, item, placed, notice }
+  // notice: a friendly heads-up rather than a celebration (no shelf links)
   function celebrate(options) {
     queue.push(options);
     if (!showing) showNext();
@@ -310,7 +325,9 @@ const UI = (function () {
     if (options.text) dialog.appendChild(el("p", "celebrate-text", options.text));
 
     const actions = el("div", "celebrate-actions");
-    if (options.item && options.item.kind === "biome") {
+    if (options.notice) {
+      // just the button
+    } else if (options.item && options.item.kind === "biome") {
       const choose = el("a", "btn btn-ghost", "Choose my biome");
       choose.href = "edit-profile.html";
       actions.appendChild(choose);
@@ -324,7 +341,7 @@ const UI = (function () {
       see.href = "profile.html";
       actions.appendChild(see);
     }
-    const ok = el("button", "btn btn-solid", "Lovely!");
+    const ok = el("button", "btn btn-solid", options.notice ? "Got it" : "Lovely!");
     ok.type = "button";
     ok.addEventListener("click", () => dialog.close());
     actions.appendChild(ok);
@@ -954,5 +971,5 @@ const UI = (function () {
     if (document.body.dataset.biome) setBiome(document.body.dataset.biome);
   });
 
-  return { liveEvent, eventBanner, centralTime, iconOrLabel, reviewIcons, openAccessibility, REMOVAL_REASONS, removalReasonLabel, friendlyDate, timeTag, emptyState, celebrate, sparkles, itemArt, soilImage, setBiome, biomeSymbol, memberBadge, biomeSwatch, biomeLook, biomePreview, openBiomePreview, previewOnHover, previewButton, startModSession };
+  return { liveEvent, eventBanner, centralTime, iconOrLabel, reviewIcons, openAccessibility, REMOVAL_REASONS, removalReasonLabel, friendlyDate, timeTag, emptyState, celebrate, sparkles, itemArt, soilImage, sizeName, sizeBadge, setBiome, biomeSymbol, memberBadge, biomeSwatch, biomeLook, biomePreview, openBiomePreview, previewOnHover, previewButton, startModSession };
 })();

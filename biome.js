@@ -49,7 +49,8 @@ const BIOME = (function () {
   }
 
   // How wide a pot's art appears on the shelf, in shelf pixels.
-  // Medium is 1.25x small (a 640 canvas), the most that fits the bottom row.
+  // Medium ("Large" to members) is 1.25x small (a 640 canvas), the most that
+  // fits the bottom row. Small pots can go on any shelf.
   const ART_WIDTH = { small: 404, medium: 505 };
 
   function sizeOfSlot(slot) {
@@ -233,9 +234,19 @@ const BIOME = (function () {
 
       const spot = document.createElement(opts.editable ? "button" : "div");
       spot.className = "biome-slot biome-slot-" + s.size + (pot ? "" : " is-empty");
-      spot.style.left = s.left.toFixed(3) + "%";
-      spot.style.top = s.top.toFixed(3) + "%";
-      spot.style.width = s.width.toFixed(3) + "%";
+      let { left, top, width } = s;
+      // A small pot on the bottom shelf keeps its own (small) size, centred
+      // in the spot and standing on the same shelf
+      if (pot && pot.size === "small" && s.size === "medium") {
+        const f = ART_WIDTH.small / ART_WIDTH.medium;
+        const widthPx = (width / 100) * CANVAS.w;
+        top += ((ART.bottom / ART.canvas) * widthPx * (1 - f) / CANVAS.h) * 100;
+        left += (width * (1 - f)) / 2;
+        width *= f;
+      }
+      spot.style.left = left.toFixed(3) + "%";
+      spot.style.top = top.toFixed(3) + "%";
+      spot.style.width = width.toFixed(3) + "%";
       spot.dataset.slot = String(s.slot);
 
       let description = pot ? (plant ? plant.name + " in a " + pot.name.toLowerCase() : pot.name) : "empty";

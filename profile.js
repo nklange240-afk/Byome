@@ -497,16 +497,26 @@ async function showBiome(profileId, isMe) {
     render();
   }
 
-  function itemTiles(kind, size, slot, current, onPick) {
+  // A tile per item of this kind you could put here. fits(item) is true,
+  // or the friendly reason it can't go here: those still show (faded, after
+  // the ones that fit), and tapping one explains why.
+  function itemTiles(kind, slot, current, fits, onPick) {
     const wrap = el("div", "biome-tiles");
-    Object.values(items)
-      .filter((it) => it.kind === kind && it.size === size)
+    const choices = Object.values(items)
+      .filter((it) => it.kind === kind)
       .filter((it) => it.key === current || spare(it.key, slot) > 0)
-      .forEach((it) => {
-        const left = spare(it.key, slot);
-        const meta = it.starter ? "Free" : (left === Infinity ? "" : left + " spare");
-        wrap.appendChild(tile(it.name, it.key === current ? "In this spot" : meta, it.image, it.key === current, () => onPick(it.key)));
+      .map((it) => ({ it: it, ok: it.key === current ? true : fits(it) }));
+    choices.filter((c) => c.ok === true).concat(choices.filter((c) => c.ok !== true)).forEach(({ it, ok }) => {
+      const left = spare(it.key, slot);
+      const meta = it.key === current ? "In this spot" : it.starter ? "Free" : (left === Infinity ? "" : left + " spare");
+      const t = tile(it.name, meta, it.image, it.key === current, () => {
+        if (ok === true) onPick(it.key);
+        else UI.celebrate({ heading: "Uh oh!", text: ok, item: it, notice: true });
       });
+      if (it.size) t.appendChild(UI.sizeBadge(it.size));
+      if (ok !== true) t.classList.add("is-misfit");
+      wrap.appendChild(t);
+    });
     return wrap;
   }
 
@@ -538,39 +548,59 @@ async function showBiome(profileId, isMe) {
     if (selected === null) {
       editorEl.appendChild(el("p", "feed-empty", "Tap a spot on the shelf to choose what goes there."));
     } else {
-      const size = BIOME.sizeOfSlot(selected);
+      const spotSize = BIOME.sizeOfSlot(selected);
       const here = placed[selected] || {};
+      const pot = here.pot ? items[here.pot] : null;
+      const plant = here.plant ? items[here.plant] : null;
+      const word = (size) => UI.sizeName(size).toLowerCase();
+
+      // Large things need the bottom shelf; a plant matches its pot's size
+      const plantFits = (it) => {
+        if (it.size === "medium" && spotSize === "small") {
+          return "That's a large plant and needs extra space. Place it on the bottom shelf, where it has room to grow.";
+        }
+        if (pot && it.size !== pot.size) {
+          return "That's a " + word(it.size) + " plant, and the pot here is " + word(pot.size) +
+            ". Swap in a " + word(it.size) + " pot first, then add the plant.";
+        }
+        return true;
+      };
+      const potFits = (it) => {
+        if (it.size === "medium" && spotSize === "small") {
+          return "That's a large pot and needs extra space. Place it on the bottom shelf, where it has room to stretch out.";
+        }
+        if (plant && it.size !== plant.size) {
+          return "The " + plant.name.toLowerCase() + " here is a " + word(plant.size) + " plant, so it needs a " +
+            word(plant.size) + " pot. Pick a " + word(plant.size) + " pot, or choose \u201cNo plant\u201d first.";
+        }
+        return true;
+      };
 
       // Plant first: plants come in a terra cotta pot, which can be swapped below
-      editorEl.appendChild(el("h3", null, "Plant for this " + size + " spot"));
-      const plants = itemTiles("plant", size, selected, here.plant, (key) => setSlot(selected, here.pot || null, key));
+      editorEl.appendChild(el("h3", null, "Plant"));
+      const plants = itemTiles("plant", selected, here.plant, plantFits, (key) => setSlot(selected, here.pot || null, key));
       if (plants.children.length === 0) {
-        editorEl.appendChild(el("p", "feed-empty", size === "medium"
-          ? "Plants for the bottom shelf are coming soon."
-          : "No spare plants. To move a plant here, empty its current spot first."));
+        editorEl.appendChild(el("p", "feed-empty", "No spare plants. To move a plant here, empty its current spot first."));
       } else {
         if (here.pot) plants.prepend(tile("No plant", null, null, !here.plant, () => setSlot(selected, here.pot, null)));
         editorEl.appendChild(plants);
       }
 
       editorEl.appendChild(el("h3", null, "Pot"));
-      const pots = itemTiles("pot", size, selected, here.pot, (key) => setSlot(selected, key, here.plant || null));
+      const pots = itemTiles("pot", selected, here.pot, potFits, (key) => setSlot(selected, key, here.plant || null));
       pots.prepend(tile("Empty spot", null, null, !here.pot, () => setSlot(selected, null, null)));
       editorEl.appendChild(pots);
-      if (pots.children.length === 1 && size === "medium") {
-        editorEl.appendChild(el("p", "feed-empty", "Medium pots for the bottom shelf are coming soon."));
-      }
 
       // Companions visit a pot. Only shown once you have one. Some only
       // visit pots of one size (the ladybug: small pots).
       const owners = Object.values(items).filter((it) => it.kind === "companion" && owned[it.key]);
-      const companions = owners.filter((it) => !it.size || it.size === size);
+      const companions = owners.filter((it) => !it.size || (pot && it.size === pot.size));
       if (owners.length) {
         editorEl.appendChild(el("h3", null, "Companion"));
         if (!here.pot) {
           editorEl.appendChild(el("p", "feed-empty", "Put a pot here first, then a companion can visit it."));
         } else if (!companions.length) {
-          editorEl.appendChild(el("p", "feed-empty", owners.map((it) => "The " + it.name.toLowerCase() + " only visits " + it.size + " pots.").join(" ")));
+          editorEl.appendChild(el("p", "feed-empty", owners.map((it) => "The " + it.name.toLowerCase() + " only visits " + word(it.size) + " pots.").join(" ")));
         } else {
           const visitors = el("div", "biome-tiles");
           visitors.appendChild(tile("None", null, null, !here.companion, () => setCompanion(selected, null)));
