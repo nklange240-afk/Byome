@@ -6350,3 +6350,10 @@ button.biome-slot .biome-slot-ring {
 .biome-plant.plant-marigold {
   translate: 0 4%;
 }
+
+/* A plant's own soil sits inside the pot: under the pot's front, and it
+   doesn't sway or grow with the plant */
+.biome-plant.biome-soil {
+  z-index: 1;
+  animation: none !important;
+}

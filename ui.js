@@ -218,6 +218,14 @@ const UI = (function () {
 
   // The item's picture: plants are shown growing in the starter pot,
   // since that's where reward plants are placed
+  // Plants drawn with their own soil (plant-<key>-soil.png, on the plant's
+  // canvas): the soil sits inside the pot, under the pot's front, while the
+  // plant can hang over the rim
+  const PLANTS_WITH_SOIL = ["venus-flytrap"];
+  function soilImage(item) {
+    return item && PLANTS_WITH_SOIL.indexOf(item.key) !== -1 ? item.image.replace(/\.png$/, "-soil.png") : null;
+  }
+
   function itemArt(item, className) {
     if (item.kind === "biome") {
       const swatch = biomeSwatch(item.key, (className || "celebrate-art") + " is-biome biome-swatch");
@@ -238,7 +246,17 @@ const UI = (function () {
       const frontImg = el("img", "biome-pot-front");
       frontImg.src = art(front);
       frontImg.alt = "";
-      box.append(potImg, plant, frontImg);
+      const soil = soilImage(item);
+      if (soil) {
+        const soilImg = el("img", "biome-plant biome-soil plant-" + item.key);
+        soilImg.src = art(soil);
+        soilImg.alt = "";
+        box.append(potImg, soilImg);
+        if (item.over_pot) box.append(frontImg, plant);
+        else box.append(plant, frontImg);
+      } else {
+        box.append(potImg, plant, frontImg);
+      }
     } else if (item.kind === "shelf_overlay") {
       // A shelf decoration, shown on the wooden shelf
       box.classList.add("is-decorated-shelf");
@@ -936,5 +954,5 @@ const UI = (function () {
     if (document.body.dataset.biome) setBiome(document.body.dataset.biome);
   });
 
-  return { liveEvent, eventBanner, centralTime, iconOrLabel, reviewIcons, openAccessibility, REMOVAL_REASONS, removalReasonLabel, friendlyDate, timeTag, emptyState, celebrate, sparkles, itemArt, setBiome, biomeSymbol, memberBadge, biomeSwatch, biomeLook, biomePreview, openBiomePreview, previewOnHover, previewButton, startModSession };
+  return { liveEvent, eventBanner, centralTime, iconOrLabel, reviewIcons, openAccessibility, REMOVAL_REASONS, removalReasonLabel, friendlyDate, timeTag, emptyState, celebrate, sparkles, itemArt, soilImage, setBiome, biomeSymbol, memberBadge, biomeSwatch, biomeLook, biomePreview, openBiomePreview, previewOnHover, previewButton, startModSession };
 })();
