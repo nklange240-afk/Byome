@@ -301,4 +301,7 @@ async function showAdSigns() {
   currentUser = data.session.user;
   loadShop();
   showAdSigns();
+  // Counts towards the hidden "Window Shopper" achievement (and pops it up
+  // when earned). From database/2026-11-13-hidden-achievements.sql; fine without.
+  supabaseClient.rpc("log_shop_visit").then(({ error }) => { if (!error) UI.checkAchievements && UI.checkAchievements(); });
 })();

@@ -375,7 +375,14 @@ const UI = (function () {
     catch (e) { /* private browsing: celebrations may repeat, which is harmless */ }
   }
 
-  async function checkAchievements() {
+  // One check at a time, so two close together can't show the same pop-up twice
+  let achievementCheck = Promise.resolve();
+  function checkAchievements() {
+    achievementCheck = achievementCheck.then(checkAchievementsNow, checkAchievementsNow);
+    return achievementCheck;
+  }
+
+  async function checkAchievementsNow() {
     if (typeof supabaseClient === "undefined") return;
     const { data } = await supabaseClient.auth.getSession();
     if (!data.session) return;
@@ -412,9 +419,11 @@ const UI = (function () {
       celebrate({
         label: event ? event.name + " achievement" : "Achievement unlocked",
         heading: a.name || "New achievement",
-        text: (a.description ? a.description + " " : "") +
-          (item ? "Your reward: " + item.name + (placed ? ", already on your shelf." : ".") : "") +
-          (event && a.event_points ? " Plus " + a.event_points + " Byome points!" : ""),
+        text: [
+          a.description,
+          item ? "Your reward: " + item.name + (placed ? ", already on your shelf." : ".") : "",
+          a.event_points ? "Plus " + a.event_points + " Byome points!" : "",
+        ].filter(Boolean).join(" "),
         item: item,
         placed: placed,
       });
@@ -971,5 +980,5 @@ const UI = (function () {
     if (document.body.dataset.biome) setBiome(document.body.dataset.biome);
   });
 
-  return { liveEvent, eventBanner, centralTime, iconOrLabel, reviewIcons, openAccessibility, REMOVAL_REASONS, removalReasonLabel, friendlyDate, timeTag, emptyState, celebrate, sparkles, itemArt, soilImage, sizeName, sizeBadge, setBiome, biomeSymbol, memberBadge, biomeSwatch, biomeLook, biomePreview, openBiomePreview, previewOnHover, previewButton, startModSession };
+  return { liveEvent, eventBanner, centralTime, iconOrLabel, reviewIcons, openAccessibility, REMOVAL_REASONS, removalReasonLabel, friendlyDate, timeTag, emptyState, celebrate, checkAchievements, sparkles, itemArt, soilImage, sizeName, sizeBadge, setBiome, biomeSymbol, memberBadge, biomeSwatch, biomeLook, biomePreview, openBiomePreview, previewOnHover, previewButton, startModSession };
 })();
