@@ -64,3 +64,4 @@ byome's database lives in Supabase. These files are a backup and a history of ch
 - `2026-11-10-ghost-pot.sql`: the Ghost pot (small, uncommon, 100 Byome points), in the Byome Shop only during Haunted Harvest.
 - `2026-11-11-black-cat-pot.sql`: the Black cat pot (small, uncommon, 100 Byome points), in the Byome Shop only during Haunted Harvest.
 - `2026-11-12-small-pots-anywhere.sql`: "medium" pots and plants are called Large; small pots can go on any shelf (large ones still need the bottom shelf); a plant must match its pot's size; the ladybug can visit a small pot on the bottom shelf.
+- `2026-11-13-hidden-achievements.sql`: four hidden achievements with a few Byome points each (Well Rounded: 4 categories; Jack of All Trades: all 6; Brand Loyalist: 5 products from one brand; Window Shopper: 10 shop visits in different hours without buying). Their items come later: `select public.release_achievement_reward('well-rounded', 'item-key');`
