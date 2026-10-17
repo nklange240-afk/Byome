@@ -6463,7 +6463,3 @@ a.ad-house > img {
 .ad-slot .adsbygoogle:not([data-ad-status="filled"]) {
   pointer-events: none;
 }
-
-.biome-plant.plant-candy {
-  translate: 0 -9%;
-}
