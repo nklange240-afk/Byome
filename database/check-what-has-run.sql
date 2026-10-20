@@ -68,5 +68,6 @@ from (values
   ('2026-11-11-black-cat-pot.sql',        exists (select 1 from public.biome_items where key = 'black-cat')),
   ('2026-11-12-small-pots-anywhere.sql',  exists (select 1 from public.biome_items where key = 'terra-cotta-medium' and name = 'Large terra cotta pot')),
   ('2026-11-13-hidden-achievements.sql',  exists (select 1 from public.achievements where key = 'window-shopper')),
-  ('2026-11-14-candy.sql',                exists (select 1 from public.biome_items where key = 'candy'))
+  ('2026-11-14-candy.sql',                exists (select 1 from public.biome_items where key = 'candy')),
+  ('2026-11-15-beta-safety.sql',          exists (select 1 from pg_trigger where tgname = 'posts_rate_limit'))
 ) as checks(file, ok);
