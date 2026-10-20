@@ -840,12 +840,18 @@ function starIcon() {
 
 // On reviews the leaf button means "Helpful". Same behavior as the leaf
 // likes on the community feed (and it earns the same points).
-function buildLikeButton(table, idColumn, id, likes) {
+function buildLikeButton(table, idColumn, id, likes, authorId) {
   let liked = currentUser ? likes.some((l) => l.user_id === currentUser.id) : false;
   let count = likes.length;
 
   const btn = el("button", "action-btn like-btn");
   btn.type = "button";
+  // Your own review: just the count (you can't mark it helpful yourself)
+  const own = Boolean(currentUser && authorId && authorId === currentUser.id);
+  if (own) {
+    btn.disabled = true;
+    btn.title = "You can't mark your own review as helpful";
+  }
 
   function paint() {
     btn.innerHTML = "";
@@ -857,6 +863,7 @@ function buildLikeButton(table, idColumn, id, likes) {
   paint();
 
   btn.addEventListener("click", async () => {
+    if (own) return;
     if (!currentUser) { window.location.href = "login.html"; return; }
     btn.disabled = true;
     if (liked) {
@@ -1096,7 +1103,7 @@ function buildReview(r) {
   }
 
   const actions = el("div", "post-actions");
-  actions.appendChild(buildLikeButton("review_likes", "review_id", r.id, r.review_likes || []));
+  actions.appendChild(buildLikeButton("review_likes", "review_id", r.id, r.review_likes || [], r.user_id));
 
   if (currentUser && r.user_id === currentUser.id) {
     const edit = actionButton("Edit");

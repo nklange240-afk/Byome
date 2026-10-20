@@ -65,7 +65,7 @@ function heldNotice() {
 }
 
 // Edit / Delete buttons. `parts` are the bits of the card hidden while editing.
-function ownerActions(article, parts, table, id, label, makeForm, reload) {
+function ownerActions(article, parts, table, id, label, makeForm, reload, extraButtons) {
   const actions = el("div", "post-actions");
   const message = el("span", "auth-message");
   message.setAttribute("aria-live", "polite"); // read out by screen readers
@@ -98,8 +98,79 @@ function ownerActions(article, parts, table, id, label, makeForm, reload) {
     reload();
   });
 
-  actions.append(edit, del, message);
+  actions.append(edit, ...(extraButtons || []), del, message);
   return actions;
+}
+
+// Follow-ups the author added to a review, shown under it as on Reviews
+function describeGap(start, end) {
+  const days = Math.floor((new Date(end) - new Date(start)) / 86400000);
+  if (days < 1) return "Same day";
+  if (days < 14) return days + (days === 1 ? " day later" : " days later");
+  if (days < 60) return Math.round(days / 7) + " weeks later";
+  return Math.round(days / 30) + " months later";
+}
+
+function reviewUpdateBox(u, r, isMe, reload) {
+  const box = el("div", "review-update");
+  const label = el("p", "review-update-label");
+  label.append(el("strong", null, "Update"),
+    document.createTextNode(" \u00b7 " + describeGap(r.created_at, u.created_at) + " \u00b7 " + formatDate(u.created_at)));
+  box.appendChild(label);
+  if (u.held_at) box.appendChild(heldNotice());
+  box.appendChild(el("p", "review-update-body", u.body));
+  if (isMe) {
+    const del = el("button", "action-btn", "Delete update");
+    del.type = "button";
+    del.addEventListener("click", async () => {
+      if (!confirm("Delete this update?")) return;
+      await supabaseClient.from("review_updates").delete().eq("id", u.id);
+      reload();
+    });
+    box.appendChild(del);
+  }
+  return box;
+}
+
+// "Add update": a short follow-up on how the product held up
+function reviewUpdateForm(r, onSaved, onCancel) {
+  const form = el("form", "comment-form update-form");
+  form.appendChild(el("p", "field-label", "Add an update to this review"));
+  const textarea = el("textarea");
+  textarea.rows = 3;
+  textarea.maxLength = 1000;
+  textarea.required = true;
+  textarea.placeholder = "What's changed since your review? For example, how it held up over time, or a reaction you had.";
+  textarea.setAttribute("aria-label", "Review update");
+  const footer = el("div", "comment-form-footer");
+  const message = el("span", "auth-message");
+  message.setAttribute("aria-live", "polite"); // read out by screen readers
+  const buttons = el("div", "edit-buttons");
+  const cancel = el("button", "action-btn", "Cancel");
+  cancel.type = "button";
+  cancel.addEventListener("click", onCancel);
+  const submit = el("button", "btn btn-solid", "Post update");
+  submit.type = "submit";
+  buttons.append(cancel, submit);
+  footer.append(message, buttons);
+  form.append(textarea, footer);
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const body = textarea.value.trim();
+    if (!body) return;
+    submit.disabled = true;
+    const { data } = await supabaseClient.auth.getSession();
+    const { error } = await supabaseClient.from("review_updates")
+      .insert({ review_id: r.id, user_id: data.session.user.id, body: body });
+    if (error) {
+      message.textContent = error.message;
+      message.style.color = "#E07A5F";
+      submit.disabled = false;
+      return;
+    }
+    onSaved();
+  });
+  return form;
 }
 
 // Likes shown the same way as on the feed: a leaf and a number
@@ -179,13 +250,26 @@ function buildReviewCard(r, isMe, reload) {
   article.appendChild(metaRow(r.created_at, r.edited_at));
   if (r.held_at) article.appendChild(heldNotice());
   article.appendChild(el("p", "post-body", r.body));
+  (r.review_updates || []).slice().sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
+    .forEach((u) => article.appendChild(reviewUpdateBox(u, r, isMe, reload)));
   const likes = r.review_likes ? r.review_likes.length : 0;
   article.appendChild(countsRow(likes));
   if (isMe) {
     // Everything above the buttons hides while the edit form is open
     const parts = Array.from(article.children);
-    article.appendChild(ownerActions(article, parts, "reviews", r.id, "review",
-      (onSaved, onCancel) => EDIT_FORMS.review(r, productText, onSaved, onCancel), reload));
+    const addUpdate = el("button", "action-btn", "Add update");
+    addUpdate.type = "button";
+    let actions = null;
+    addUpdate.addEventListener("click", () => {
+      const existing = article.querySelector(".update-form");
+      if (existing) { existing.remove(); return; }
+      const form = reviewUpdateForm(r, reload, () => form.remove());
+      article.insertBefore(form, actions);
+      form.querySelector("textarea").focus();
+    });
+    actions = ownerActions(article, parts, "reviews", r.id, "review",
+      (onSaved, onCancel) => EDIT_FORMS.review(r, productText, onSaved, onCancel), reload, [addUpdate]);
+    article.appendChild(actions);
   }
   return article;
 }
@@ -993,7 +1077,7 @@ async function loadContent(profile, isMe) {
 
   // (the event columns come from database/2026-10-29-events-halloween.sql)
   const reviewQuery = (extra) => supabaseClient.from("reviews")
-    .select("id, rating, title, body, variation, would_repurchase, holy_grail, " + extra + "created_at, edited_at, held_at, products!product_id(name, brand), review_likes(user_id), review_standouts(review_id)", { count: "exact" })
+    .select("id, rating, title, body, variation, would_repurchase, holy_grail, " + extra + "created_at, edited_at, held_at, products!product_id(name, brand), review_likes(user_id), review_standouts(review_id), review_updates(id, body, created_at, held_at)", { count: "exact" })
     .eq("user_id", profile.id).order("created_at", { ascending: false }).limit(30);
   const [reviewsRes, postsRes] = await Promise.all([
     reviewQuery("no_longer_using, seasonal, ").then((res) => (res.error ? reviewQuery("") : res)),
