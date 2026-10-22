@@ -1047,10 +1047,15 @@ const UI = (function () {
     const check = () => {
       const len = t.value.length;
       const over = len - max;
-      const text = over > 0 ? "That's " + over + " character" + (over === 1 ? "" : "s") + " over the limit. Please trim it a little." : "";
+      // data-min: a minimum (posts and reviews), checked once something's written
+      const min = parseInt(t.dataset.min || "0", 10);
+      const short = min > 0 && t.value.trim().length > 0 && t.value.trim().length < min;
+      const text = over > 0 ? "That's " + over + " character" + (over === 1 ? "" : "s") + " over the limit. Please trim it a little."
+        : short ? "Please write at least " + min + " characters." : "";
       t.setCustomValidity(text);
       t.classList.toggle("is-over", over > 0);
       counter.classList.toggle("is-over", over > 0);
+      counter.classList.toggle("is-short", short);
       count.textContent = len + " / " + max;
       note.textContent = text;
     };

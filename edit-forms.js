@@ -60,6 +60,7 @@ const EDIT_FORMS = (function () {
     const bodyInput = el("textarea");
     bodyInput.rows = 4;
     bodyInput.maxLength = 2000;
+    bodyInput.dataset.min = "10";
     bodyInput.required = true;
     bodyInput.value = post.body;
     bodyInput.setAttribute("aria-label", "Post text");
@@ -166,6 +167,7 @@ const EDIT_FORMS = (function () {
     const bodyInput = el("textarea");
     bodyInput.rows = 5;
     bodyInput.maxLength = 2000;
+    bodyInput.dataset.min = "20";
     bodyInput.required = true;
     bodyInput.value = r.body;
     bodyInput.setAttribute("aria-label", "Your review");

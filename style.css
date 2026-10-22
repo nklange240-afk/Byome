@@ -7017,3 +7017,9 @@ textarea.is-over {
 .composer-footer.is-end {
   justify-content: flex-end;
 }
+
+/* Under a minimum (posts and reviews): a gentle nudge, not an error */
+.limit-count.is-short .limit-note {
+  color: var(--gold-text, var(--gold));
+  font-weight: 600;
+}
