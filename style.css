@@ -4005,6 +4005,15 @@ body > .biome-overlay {
     rgba(0, 0, 0, 0.45) calc(50% + 290px), #000 calc(50% + 440px));
 }
 
+/* The desert's cacti hug the very edges of their art, so on computers the
+   art is always exactly the screen's width (never wider and cropped); its
+   empty middle stays wider than the posts */
+@media (min-width: 901px) {
+  body.biome-desert > .biome-overlay:not(.is-full) {
+    background-size: 100% auto;
+  }
+}
+
 /* A pattern across the whole page (the desert's dunes): no fade behind
    the posts (it's faint already), and it repeats sideways too */
 body > .biome-overlay.is-full {
