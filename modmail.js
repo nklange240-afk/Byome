@@ -165,11 +165,14 @@ async function showThread(id) {
     box.append(el("p", "feed-empty", "We couldn't find that conversation."), link("modmail.html", "Back to mod mail"));
     return;
   }
-  document.querySelector("h1").textContent = t.subject;
   document.title = t.subject + " — Mod mail — Byome";
 
   const back = link("modmail.html", "← All mod mail", "inline-link modmail-back");
   box.appendChild(back);
+  // The conversation's subject, as its own heading above the messages
+  const title = el("h2", "modmail-thread-title");
+  title.append(el("span", "post-category-tag", KIND_LABELS[t.kind] || t.kind), el("span", null, t.subject));
+  box.appendChild(title);
   if (params.get("sent") === "1") {
     box.appendChild(el("p", "modmail-sent", t.kind === "feedback"
       ? "Thanks for the feedback! The moderators will take a look."
@@ -177,11 +180,11 @@ async function showThread(id) {
   }
 
   const meta = el("p", "modmail-meta");
-  const bits = [KIND_LABELS[t.kind] || t.kind];
-  if (t.as_mod && t.member) bits.push("from " + t.member);
+  const bits = [];
+  if (t.as_mod && t.member) bits.push("From " + t.member);
   if (t.about) bits.push("about " + t.about);
   if (t.as_mod && t.page) bits.push("sent from " + t.page);
-  bits.push(t.status === "closed" ? "marked done" : "open");
+  bits.push(t.status === "closed" ? "Marked done" : "Open");
   meta.textContent = bits.join(" · ");
   box.appendChild(meta);
 

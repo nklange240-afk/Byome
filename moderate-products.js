@@ -185,14 +185,18 @@ function buildQueueItem(product, matches) {
 
   if (product.variations && product.variations.length > 0) {
     view.appendChild(el("p", "post-body", "Variations: " + product.variations.join(", ")));
-    // Each approved variation earns the member points (up to 10 per product).
+    // Variations earn points when approved (up to 10 per product): the
+    // member's for theirs, the moderator's for ones they add.
     // Sizes aren't variations (and never earn points): point them out.
     const sizes = product.variations.filter(PRODUCT_MATCH.looksLikeSize);
     if (sizes.length) {
       view.appendChild(el("p", "field-hint field-warning", (sizes.length === 1 ? "This looks like a size: " : "These look like sizes: ") +
         sizes.join(", ") + ". Sizes aren't variations, so please edit " + (sizes.length === 1 ? "it" : "them") + " out before approving."));
     }
-    view.appendChild(el("p", "field-hint", "Each variation earns the member points when you approve. Edit out any that aren't real first."));
+    view.appendChild(el("p", "field-hint", "The variations the member entered earn them points when you approve (fixing a typo keeps their credit). Any real ones you add earn you points instead. Edit out any that aren't real first."));
+  } else {
+    // (database/2026-11-18-mod-variation-credit.sql)
+    view.appendChild(el("p", "field-hint", "No variations entered. If it comes in shades, scents or finishes, add them with Edit: you'll earn points for each one you add."));
   }
 
   const suggestedBy = product.profiles ? product.profiles.username : "Unknown";
