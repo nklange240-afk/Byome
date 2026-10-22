@@ -122,6 +122,9 @@ const POLLS = (function () {
       toggle.textContent = on ? "Remove poll" : "Add a poll";
       title.placeholder = on ? "Your question" : titleHint;
       body.placeholder = on ? "Add some details (optional)" : bodyHint;
+      // a poll's details are optional, so no minimum (an ordinary post needs 10)
+      body.dataset.min = on ? "" : "10";
+      if (typeof UI !== "undefined" && UI.refreshLimits) UI.refreshLimits();
     }
     toggle.addEventListener("click", () => {
       setOn(!on);
@@ -248,7 +251,7 @@ const POLLS = (function () {
 
     const body = el("textarea");
     body.rows = 3;
-    body.maxLength = 1000;
+    body.maxLength = 2000;
     body.value = post.body || "";
     body.placeholder = "Add some details (optional)";
     body.setAttribute("aria-label", "Details");

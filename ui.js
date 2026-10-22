@@ -1027,30 +1027,49 @@ const UI = (function () {
   }
 
   // ---------- Text limits ----------
-  // Browsers count each line break in a text box as two characters toward
-  // its maxlength, so long reviews with paragraphs stopped short of the
-  // limit, with no explanation. Instead, the limit is checked here (line
-  // breaks count once, as the database counts them): going over shows how
-  // many characters to trim, and the form won't send until it's fixed.
+  // Every text box with a limit gets a counter underneath ("120 / 2000").
+  // Browsers count each line break as two characters toward maxlength, so
+  // long posts with paragraphs used to stop short with no explanation;
+  // instead the limit is checked here (line breaks count once, as the
+  // database counts them). Going over turns the box and counter red, says
+  // how much to trim, and the form won't send until it's fixed.
   function limitTextarea(t) {
     if (t.dataset.limit || !(t.maxLength > 0)) return;
     const max = t.maxLength;
     t.dataset.limit = String(max);
     t.removeAttribute("maxlength");
-    const note = el("p", "limit-note");
-    note.setAttribute("aria-live", "polite");
-    note.hidden = true;
-    t.after(note);
+    const counter = el("p", "limit-count");
+    const count = el("span", "limit-count-number");
+    const note = el("span", "limit-note");
+    note.setAttribute("aria-live", "polite"); // the warning is read out; the count isn't, on every key
+    counter.append(count, note);
+    t.after(counter);
     const check = () => {
-      const over = t.value.length - max;
-      const text = over > 0 ? "That's " + over + " character" + (over === 1 ? "" : "s") + " over the " + max + "-character limit. Please trim it a little." : "";
+      const len = t.value.length;
+      const over = len - max;
+      // data-min: a minimum (posts and reviews), checked once something's written
+      const min = parseInt(t.dataset.min || "0", 10);
+      const short = min > 0 && t.value.trim().length > 0 && t.value.trim().length < min;
+      const text = over > 0 ? "That's " + over + " character" + (over === 1 ? "" : "s") + " over the limit. Please trim it a little."
+        : short ? "Please write at least " + min + " characters." : "";
       t.setCustomValidity(text);
       t.classList.toggle("is-over", over > 0);
+      counter.classList.toggle("is-over", over > 0);
+      counter.classList.toggle("is-short", short);
+      count.textContent = len + " / " + max;
       note.textContent = text;
-      note.hidden = over <= 0;
     };
     t.addEventListener("input", check);
+    t.addEventListener("focus", check);
+    // A form that's cleared after sending (the text changes without typing)
+    if (t.form) t.form.addEventListener("reset", () => setTimeout(check, 0));
+    t._checkLimit = check;
     check();
+  }
+  // When a page changes a text box's words itself (clearing it after
+  // posting, for example), the counter catches up
+  function refreshLimits() {
+    document.querySelectorAll("textarea[data-limit]").forEach((t) => t._checkLimit && t._checkLimit());
   }
   function watchTextareas() {
     document.querySelectorAll("textarea[maxlength]").forEach(limitTextarea);
@@ -1075,5 +1094,5 @@ const UI = (function () {
     if (document.body.dataset.biome) setBiome(document.body.dataset.biome);
   });
 
-  return { liveEvent, eventBanner, centralTime, iconOrLabel, reviewIcons, openAccessibility, REMOVAL_REASONS, removalReasonLabel, friendlyDate, timeTag, emptyState, celebrate, checkAchievements, sparkles, itemArt, soilImage, sizeName, sizeBadge, setBiome, biomeSymbol, memberBadge, biomeSwatch, biomeLook, biomePreview, openBiomePreview, previewOnHover, previewButton, startModSession };
+  return { liveEvent, eventBanner, centralTime, iconOrLabel, reviewIcons, openAccessibility, REMOVAL_REASONS, removalReasonLabel, friendlyDate, timeTag, emptyState, celebrate, checkAchievements, sparkles, itemArt, soilImage, sizeName, sizeBadge, setBiome, biomeSymbol, memberBadge, biomeSwatch, biomeLook, biomePreview, openBiomePreview, previewOnHover, previewButton, startModSession, refreshLimits };
 })();

@@ -24,8 +24,8 @@
   <meta name="twitter:card" content="summary_large_image" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=138" />
-  <script src="a11y.js?v=138"></script>
+  <link rel="stylesheet" href="style.css?v=139" />
+  <script src="a11y.js?v=139"></script>
 </head>
 <body data-biome="forest">
   <header class="site-header">
@@ -86,10 +86,9 @@
       <label for="review-title" class="visually-hidden">Review heading</label>
       <input type="text" id="review-title" class="composer-title" maxlength="100" required placeholder="Heading" />
       <label for="review-body" class="visually-hidden">Your review</label>
-      <textarea id="review-body" maxlength="2000" rows="4" required
+      <textarea id="review-body" maxlength="2000" data-min="20" rows="4" required
         placeholder="What worked, what didn't, and who it might suit."></textarea>
-      <div class="composer-footer">
-        <span id="review-count" class="char-count">0 / 2000</span>
+      <div class="composer-footer is-end">
         <button type="submit" class="btn btn-solid">Post review</button>
       </div>
     </form>
@@ -134,12 +133,12 @@
     </section>
   </main>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase-client.js?v=138"></script>
-  <script src="profile-fields.js?v=138"></script>
-  <script src="nav-menu.js?v=138"></script>
-  <script src="ui.js?v=138"></script>
-  <script src="edit-forms.js?v=138"></script>
-  <script src="report.js?v=138"></script>
-  <script src="reviews.js?v=138"></script>
+  <script src="supabase-client.js?v=139"></script>
+  <script src="profile-fields.js?v=139"></script>
+  <script src="nav-menu.js?v=139"></script>
+  <script src="ui.js?v=139"></script>
+  <script src="edit-forms.js?v=139"></script>
+  <script src="report.js?v=139"></script>
+  <script src="reviews.js?v=139"></script>
 </body>
 </html>

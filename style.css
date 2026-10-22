@@ -6979,3 +6979,47 @@ textarea.is-over {
   font-family: var(--font-body);
   font-weight: 400;
 }
+
+/* The counter under every text box with a limit (ui.js) */
+.limit-count {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.25rem 0.6rem;
+  margin: 0.3rem 0 0;
+  font-size: 0.82rem;
+  color: var(--cream);
+  color: color-mix(in srgb, var(--cream) 75%, transparent);
+  text-align: right;
+}
+
+.limit-count.is-over {
+  color: #E07A5F;
+  font-weight: 600;
+}
+
+.biome-meadow .limit-count.is-over,
+.biome-desert .limit-count.is-over {
+  color: var(--red-text);
+}
+
+.limit-count .limit-note {
+  margin: 0;
+  font-size: inherit;
+  color: inherit;
+}
+
+.limit-count .limit-note:empty {
+  display: none;
+}
+
+/* A form footer with just the button, on the right */
+.composer-footer.is-end {
+  justify-content: flex-end;
+}
+
+/* Under a minimum (posts and reviews): a gentle nudge, not an error */
+.limit-count.is-short .limit-note {
+  color: var(--gold-text, var(--gold));
+  font-weight: 600;
+}

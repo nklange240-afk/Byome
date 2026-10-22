@@ -124,8 +124,6 @@ function showCompose(kind) {
   body.required = true;
   bodyLabel.htmlFor = body.id;
   if (feedback) body.placeholder = "What happened, and on which page? If it's a bug, what were you doing just before?";
-  const count = el("span", "char-count", "0 / 2000");
-  body.addEventListener("input", () => { count.textContent = body.value.length + " / 2000"; });
   const send = el("button", "btn btn-solid", feedback ? "Send feedback" : "Send to the moderators");
   send.type = "submit";
   const message = el("p", "auth-message");
@@ -133,7 +131,7 @@ function showCompose(kind) {
   const cancel = link("modmail.html", "Cancel");
   const row = el("div", "modmail-send-row");
   row.append(send, cancel);
-  form.append(subjLabel, subject, bodyLabel, body, count, row, message);
+  form.append(subjLabel, subject, bodyLabel, body, row, message);
   box.appendChild(form);
 
   // Where the feedback was sent from (the page they were on)
