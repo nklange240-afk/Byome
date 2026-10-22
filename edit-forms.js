@@ -59,7 +59,7 @@ const EDIT_FORMS = (function () {
 
     const bodyInput = el("textarea");
     bodyInput.rows = 4;
-    bodyInput.maxLength = 1000;
+    bodyInput.maxLength = 2000;
     bodyInput.required = true;
     bodyInput.value = post.body;
     bodyInput.setAttribute("aria-label", "Post text");

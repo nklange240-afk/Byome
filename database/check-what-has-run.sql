@@ -72,5 +72,6 @@ from (values
   ('2026-11-15-beta-safety.sql',          exists (select 1 from pg_trigger where tgname = 'posts_rate_limit')),
   ('2026-11-16-starter-checklist.sql',    exists (select 1 from fn where name = 'my_starter_checklist')),
   ('2026-11-17-blocks-modmail.sql',       exists (select 1 from tbl where name = 'modmail_threads')),
-  ('2026-11-18-mod-variation-credit.sql', exists (select 1 from public.point_rules where action = 'mod_variations'))
+  ('2026-11-18-mod-variation-credit.sql', exists (select 1 from public.point_rules where action = 'mod_variations')),
+  ('2026-11-19-longer-posts.sql',         exists (select 1 from pg_constraint where conname = 'posts_body_check' and pg_get_constraintdef(oid) like '%2000%'))
 ) as checks(file, ok);

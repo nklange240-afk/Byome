@@ -1050,7 +1050,7 @@ function returnedCard(item, names, profile, isMe) {
     body.value = item.body;
     body.rows = 5;
     body.required = true;
-    body.maxLength = item.kind === "review" ? 2000 : 1000;
+    body.maxLength = item.kind === "review" || item.kind === "post" ? 2000 : 1000;
     body.id = "returned-body-" + item.id;
     bodyLabel.htmlFor = body.id;
     const save = el("button", "btn btn-solid", "Resubmit for review");

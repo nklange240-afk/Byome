@@ -248,7 +248,7 @@ const POLLS = (function () {
 
     const body = el("textarea");
     body.rows = 3;
-    body.maxLength = 1000;
+    body.maxLength = 2000;
     body.value = post.body || "";
     body.placeholder = "Add some details (optional)";
     body.setAttribute("aria-label", "Details");

@@ -700,7 +700,7 @@ postForm.addEventListener("submit", async (event) => {
   }
   postForm.reset();
   pollComposer.reset();
-  charCount.textContent = "0 / 1000";
+  charCount.textContent = "0 / 2000";
   setComposing(false);
   loadPosts();
 });
@@ -724,7 +724,7 @@ document.getElementById("post-cancel").addEventListener("click", () => {
 });
 
 postBody.addEventListener("input", () => {
-  charCount.textContent = postBody.value.length + " / 1000";
+  charCount.textContent = postBody.value.length + " / 2000";
 });
 
 // One button per category, using the same list as the "new post" form,
