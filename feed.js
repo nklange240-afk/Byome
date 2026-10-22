@@ -3,7 +3,6 @@ const postForm = document.getElementById("post-form");
 const postTitle = document.getElementById("post-title");
 const postBody = document.getElementById("post-body");
 const postMessage = document.getElementById("post-message");
-const charCount = document.getElementById("char-count");
 const postCategory = document.getElementById("post-category");
 const categoryFilter = document.getElementById("category-filter");
 
@@ -700,7 +699,6 @@ postForm.addEventListener("submit", async (event) => {
   }
   postForm.reset();
   pollComposer.reset();
-  charCount.textContent = "0 / 2000";
   setComposing(false);
   loadPosts();
 });
@@ -721,10 +719,6 @@ document.getElementById("post-cancel").addEventListener("click", () => {
   pollComposer.reset();
   setComposing(false);
   postStarter.focus();
-});
-
-postBody.addEventListener("input", () => {
-  charCount.textContent = postBody.value.length + " / 2000";
 });
 
 // One button per category, using the same list as the "new post" form,

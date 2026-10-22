@@ -4,7 +4,6 @@ const variationField = document.getElementById("variation-field");
 const variationSelect = document.getElementById("review-variation");
 const titleInput = document.getElementById("review-title");
 const bodyInput = document.getElementById("review-body");
-const countEl = document.getElementById("review-count");
 const messageEl = document.getElementById("review-message");
 const listEl = document.getElementById("reviews");
 const categoryFilter = document.getElementById("category-filter");
@@ -1181,13 +1180,8 @@ form.addEventListener("submit", async (event) => {
   }
   form.reset();
   variationField.hidden = true;
-  countEl.textContent = "0 / 2000";
   setWriting(false);
   loadReviews();
-});
-
-bodyInput.addEventListener("input", () => {
-  countEl.textContent = bodyInput.value.length + " / 2000";
 });
 
 const brandSearch = buildBrandSearch();

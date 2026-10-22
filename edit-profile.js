@@ -208,9 +208,6 @@ const BIO_PROBLEMS = {
 };
 
 const bioInput = document.getElementById("bio");
-const bioCount = document.getElementById("bio-count");
-function countBio() { bioCount.textContent = bioInput.value.length + " / 160"; }
-bioInput.addEventListener("input", countBio);
 
 document.getElementById("profile-form").addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -288,7 +285,7 @@ deleteBtn.addEventListener("click", async () => {
   // Until bios are set up in the database, the bio box is left out
   if (error) {
     ({ data: row, error } = await load(columns));
-    if (!error) document.querySelectorAll("#bio, label[for=bio], #bio-count").forEach((n) => (n.closest(".field-hint") || n).remove());
+    if (!error) document.querySelectorAll("#bio, label[for=bio], #bio + .limit-count, #bio-hint").forEach((n) => n.remove());
   }
   if (error) { say("profile-message", "Couldn't load your profile: " + error.message, false); return; }
   profile = row;
@@ -297,7 +294,7 @@ deleteBtn.addEventListener("click", async () => {
   buildRingPicker();
   buildBiomePicker();
   document.getElementById("username").value = profile.username;
-  if (document.getElementById("bio")) { bioInput.value = profile.bio || ""; countBio(); }
+  if (document.getElementById("bio")) { bioInput.value = profile.bio || ""; UI.refreshLimits(); }
   buildChoices("skin-type", "skin-type", PROFILES.SKIN_TYPES, "radio", profile.skin_type);
   buildChoices("skin-concerns", "skin-concerns", PROFILES.SKIN_CONCERNS, "checkbox", profile.skin_concerns);
   buildChoices("hair-type", "hair-type", PROFILES.HAIR_TYPES, "radio", profile.hair_type);
