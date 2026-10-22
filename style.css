@@ -6941,3 +6941,41 @@ textarea.is-over {
 .modmail-row .post-category-tag {
   margin: 0;
 }
+
+/* A conversation's subject, above its messages */
+.modmail-thread-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-heading);
+  font-size: 1.45rem;
+  font-weight: 600;
+  margin: 0.25rem 0 0.35rem;
+  overflow-wrap: anywhere;
+}
+
+.modmail-thread-title .post-category-tag {
+  margin: 0;
+  font-family: var(--font-body);
+  font-weight: 400;
+}
+
+/* A conversation's subject, above its messages */
+.modmail-thread-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-heading);
+  font-size: 1.45rem;
+  font-weight: 600;
+  margin: 0.25rem 0 0.35rem;
+  overflow-wrap: anywhere;
+}
+
+.modmail-thread-title .post-category-tag {
+  margin: 0;
+  font-family: var(--font-body);
+  font-weight: 400;
+}
