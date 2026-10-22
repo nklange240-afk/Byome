@@ -201,6 +201,17 @@ const USERNAME_PROBLEMS = {
   not_allowed: "That username isn't allowed. Please choose a different one.",
 };
 
+const BIO_PROBLEMS = {
+  too_long: "Bios can be up to 160 characters.",
+  no_links: "Links aren't allowed in bios. Please take it out and try again.",
+  not_allowed: "Your bio includes words that aren't allowed. Please change it and try again.",
+};
+
+const bioInput = document.getElementById("bio");
+const bioCount = document.getElementById("bio-count");
+function countBio() { bioCount.textContent = bioInput.value.length + " / 160"; }
+bioInput.addEventListener("input", countBio);
+
 document.getElementById("profile-form").addEventListener("submit", async (event) => {
   event.preventDefault();
   const form = event.target;
@@ -218,6 +229,14 @@ document.getElementById("profile-form").addEventListener("submit", async (event)
   });
   if (error) { say("profile-message", error.message, false); return; }
   if (result !== "ok") { say("profile-message", USERNAME_PROBLEMS[result] || "Couldn't save.", false); return; }
+  // The bio is saved on its own (database/2026-11-16-starter-checklist.sql)
+  const bio = bioInput.value.trim();
+  if (bio !== (profile.bio || "")) {
+    const { data: bioResult, error: bioError } = await supabaseClient.rpc("set_my_bio", { p_bio: bio });
+    if (bioError) { say("profile-message", "Couldn't save your bio: " + bioError.message, false); return; }
+    if (bioResult !== "ok") { say("profile-message", BIO_PROBLEMS[bioResult] || "Couldn't save your bio.", false); return; }
+    profile.bio = bio;
+  }
   profile.username = username;
   const menuName = document.getElementById("header-username");
   if (menuName) menuName.textContent = username;
@@ -263,10 +282,14 @@ deleteBtn.addEventListener("click", async () => {
   if (!data.session) { window.location.href = "login.html"; return; }
   me = data.session.user.id;
 
-  const { data: row, error } = await supabaseClient
-    .from("profiles")
-    .select("username, avatar_path, avatar_ring, skin_type, skin_concerns, hair_type, hair_texture, profile_biome, show_biome_symbol")
-    .eq("id", me).single();
+  const load = (cols) => supabaseClient.from("profiles").select(cols).eq("id", me).single();
+  const columns = "username, avatar_path, avatar_ring, skin_type, skin_concerns, hair_type, hair_texture, profile_biome, show_biome_symbol";
+  let { data: row, error } = await load(columns + ", bio");
+  // Until bios are set up in the database, the bio box is left out
+  if (error) {
+    ({ data: row, error } = await load(columns));
+    if (!error) document.querySelectorAll("#bio, label[for=bio], #bio-count").forEach((n) => (n.closest(".field-hint") || n).remove());
+  }
   if (error) { say("profile-message", "Couldn't load your profile: " + error.message, false); return; }
   profile = row;
 
@@ -274,6 +297,7 @@ deleteBtn.addEventListener("click", async () => {
   buildRingPicker();
   buildBiomePicker();
   document.getElementById("username").value = profile.username;
+  if (document.getElementById("bio")) { bioInput.value = profile.bio || ""; countBio(); }
   buildChoices("skin-type", "skin-type", PROFILES.SKIN_TYPES, "radio", profile.skin_type);
   buildChoices("skin-concerns", "skin-concerns", PROFILES.SKIN_CONCERNS, "checkbox", profile.skin_concerns);
   buildChoices("hair-type", "hair-type", PROFILES.HAIR_TYPES, "radio", profile.hair_type);

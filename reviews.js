@@ -108,6 +108,8 @@ function setWriting(open) {
   if (open) document.getElementById("review-brand").focus();
 }
 writeToggle.addEventListener("click", () => setWriting(form.hidden));
+// reviews.html?write=1 (from the starter checklist) opens the form
+if (new URLSearchParams(window.location.search).get("write") === "1") setWriting(true);
 
 // ---------- Search ----------
 // Type a product or brand; the list shows reviews of every matching

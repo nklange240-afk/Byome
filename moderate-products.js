@@ -67,6 +67,7 @@ let logShown = 0;
 const LOG_WORDS = {
   approve: "approved", remove: "removed", keep: "kept (after a report)", reject: "rejected",
   edit: "edited", remove_avatar: "removed the profile picture of", reset_username: "reset the username of",
+  remove_bio: "removed the bio of",
   standout: "marked as standout",
 };
 const LOG_TYPES = {
@@ -97,7 +98,7 @@ async function loadLog(more) {
     const verb = LOG_WORDS[row.action] || row.action;
     const kind = LOG_TYPES[row.target_type] || row.target_type;
     let sentence = " " + verb + " ";
-    if (row.target_type === "profile" && (row.action === "remove_avatar" || row.action === "reset_username")) {
+    if (row.target_type === "profile" && ["remove_avatar", "reset_username", "remove_bio"].indexOf(row.action) !== -1) {
       sentence += row.note ? row.note : "a member";
     } else {
       sentence += (row.owner ? row.owner.username + "\u2019s " : "a ") + kind;
@@ -572,15 +573,19 @@ const REASON_LABELS = {
 };
 
 async function loadReports() {
-  const { data, error } = await supabaseClient
+  const load = (profileColumns) => supabaseClient
     .from("content_reports")
     .select("id, kind, reason, details, created_at, reporter:profiles!reporter_id(username), " +
       "post:posts!post_id(id, title, body, author:profiles!user_id(username), polls(poll_options(label, position))), " +
       "comment:comments!comment_id(id, body, author:profiles!user_id(username), post:posts!post_id(title)), " +
       "review:reviews!review_id(id, title, body, author:profiles!user_id(username), product:products!product_id(brand, name)), " +
-      "profile:profiles!profile_id(id, username, avatar_path, avatar_ring, profile_biome, show_biome_symbol, is_moderator, badge)")
+      "profile:profiles!profile_id(" + profileColumns + ")")
     .is("resolved_at", null)
     .order("created_at", { ascending: true });
+  const profileColumns = "id, username, avatar_path, avatar_ring, profile_biome, show_biome_symbol, is_moderator, badge";
+  // (bios come from database/2026-11-16-starter-checklist.sql)
+  let { data, error } = await load(profileColumns + ", bio");
+  if (error) ({ data, error } = await load(profileColumns));
 
   reportsEl.innerHTML = "";
   if (error) {
@@ -623,6 +628,11 @@ function buildReportedItem(group) {
   article.appendChild(meta);
   // A reported profile: show the picture big enough to judge
   if (isProfile) article.appendChild(PROFILES.avatar(c, "xl"));
+  if (isProfile && c.bio) {
+    const bio = el("p", "post-body profile-bio");
+    bio.append(el("strong", null, "Bio: "), document.createTextNode(c.bio));
+    article.appendChild(bio);
+  }
 
   if (group.kind === "comment" && c.post) article.appendChild(el("p", "feed-empty", "On the post \u201c" + c.post.title + "\u201d"));
   if (group.kind === "review" && c.product) article.appendChild(el("p", "feed-empty", "Review of " + c.product.brand + " \u2014 " + c.product.name));
@@ -672,8 +682,8 @@ function buildReportedItem(group) {
   actions.appendChild(keep);
 
   if (isProfile) {
-    // Profiles aren't removed: the picture can be taken down, or the
-    // username reset (the member is told to choose a new one)
+    // Profiles aren't removed: the picture or bio can be taken down, or
+    // the username reset (the member is told to choose a new one)
     async function fixProfile(action, question) {
       if (!confirm(question)) return;
       actions.querySelectorAll("button").forEach((b) => { b.disabled = true; });
@@ -692,6 +702,12 @@ function buildReportedItem(group) {
       pic.type = "button";
       pic.addEventListener("click", () => fixProfile("remove_avatar", "Remove " + c.username + "'s profile picture? They'll be told why."));
       actions.appendChild(pic);
+    }
+    if (c.bio) {
+      const bioBtn = el("button", "action-btn mod-btn is-bad", "Remove bio");
+      bioBtn.type = "button";
+      bioBtn.addEventListener("click", () => fixProfile("remove_bio", "Remove " + c.username + "'s bio? They'll be told why."));
+      actions.appendChild(bioBtn);
     }
     const rename = el("button", "action-btn mod-btn is-bad", "Reset username");
     rename.type = "button";

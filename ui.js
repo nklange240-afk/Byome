@@ -389,14 +389,29 @@ const UI = (function () {
     const userId = data.session.user.id;
     const since = new Date(Date.now() - RECENT_DAYS * 86400000).toISOString();
 
-    const load = (columns) => supabaseClient.from("user_achievements").select(columns)
-      .eq("user_id", userId).gte("earned_at", since).order("earned_at");
+    // The account remembers which pop-ups were shown (celebrated_at), so
+    // each shows once on any device; this device also remembers, in case
+    // that isn't set up yet (database/2026-11-16-starter-checklist.sql)
+    const load = (columns, onAccount) => {
+      let q = supabaseClient.from("user_achievements").select(columns)
+        .eq("user_id", userId).gte("earned_at", since).order("earned_at");
+      if (onAccount) q = q.is("celebrated_at", null);
+      return q;
+    };
     const base = "achievement_key, earned_at, achievements!achievement_key(name, description, biome_items!reward_item(key, kind, name, image, rarity, over_pot)";
     // (event achievements come from database/2026-10-29-events-halloween.sql)
-    let { data: rows, error } = await load(base + ", event_points, events!event_key(name))");
-    if (error) ({ data: rows, error } = await load(base + ")"));
-    if (error || !rows) return;
+    let onAccount = true;
+    let { data: rows, error } = await load(base + ", event_points, events!event_key(name))", true);
+    if (error) {
+      onAccount = false;
+      ({ data: rows, error } = await load(base + ", event_points, events!event_key(name))", false));
+    }
+    if (error) ({ data: rows, error } = await load(base + ")", false));
+    if (error || !rows || !rows.length) return;
 
+    // Everything not yet marked on the account gets marked now, including
+    // ones this device already showed before the account remembered
+    if (onAccount) supabaseClient.rpc("mark_achievements_celebrated", { p_keys: rows.map((r) => r.achievement_key) }).then(() => {}, () => {});
     const seen = readSeen(userId);
     const fresh = rows.filter((r) => seen.indexOf(r.achievement_key) === -1);
     if (!fresh.length) return;

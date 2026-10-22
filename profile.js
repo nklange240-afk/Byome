@@ -466,6 +466,8 @@ async function showBiome(profileId, isMe) {
 
   // profile.html?shelf=edit (from "Put it on my shelf") opens the editor
   let editing = isMe && new URLSearchParams(window.location.search).get("shelf") === "edit";
+  // Opening "Edit my shelf" ticks "Find your shelf" on the starter checklist
+  const markShelfStep = () => supabaseClient.rpc("mark_starter_step", { p_step: "shelf" }).then(() => {}, () => {});
   let selected = null;
   let message = "";
 
@@ -512,7 +514,7 @@ async function showBiome(profileId, isMe) {
     const actions = el("div", "biome-waiting-actions");
     const go = el("button", "btn btn-solid", list.length === 1 ? "Put it on my shelf" : "Put them on my shelf");
     go.type = "button";
-    go.addEventListener("click", () => { editing = true; selected = null; message = ""; render(); arrangeBtn.focus(); });
+    go.addEventListener("click", () => { editing = true; markShelfStep(); selected = null; message = ""; render(); arrangeBtn.focus(); });
     const hide = el("button", "btn btn-ghost", "Hide");
     hide.type = "button";
     hide.addEventListener("click", () => { try { localStorage.setItem(hideKey, waitingId(list)); } catch (e) { /* fine */ } renderWaiting(); });
@@ -730,10 +732,12 @@ async function showBiome(profileId, isMe) {
     renderWaiting();
   }
 
+  if (editing) markShelfStep();
   if (isMe) {
     arrangeBtn.hidden = false;
     arrangeBtn.addEventListener("click", () => {
       editing = !editing;
+      if (editing) markShelfStep();
       selected = null;
       message = "";
       render();
@@ -892,10 +896,14 @@ async function showAchievements(profileId) {
   const reviewsEl = document.getElementById("profile-reviews");
   const postsEl = document.getElementById("profile-posts");
 
-  let query = supabaseClient.from("profiles")
-    .select("id, username, created_at, avatar_path, avatar_ring, skin_type, skin_concerns, hair_type, hair_texture, is_moderator, badge, profile_biome, show_biome_symbol");
-  query = wanted ? query.eq("username", wanted) : query.eq("id", me);
-  const { data: profile } = await query.maybeSingle();
+  const columns = "id, username, created_at, avatar_path, avatar_ring, skin_type, skin_concerns, hair_type, hair_texture, is_moderator, badge, profile_biome, show_biome_symbol";
+  const find = (cols) => {
+    const q = supabaseClient.from("profiles").select(cols);
+    return (wanted ? q.eq("username", wanted) : q.eq("id", me)).maybeSingle();
+  };
+  // (bios come from database/2026-11-16-starter-checklist.sql)
+  let { data: profile, error: profileError } = await find(columns + ", bio");
+  if (profileError) ({ data: profile } = await find(columns));
 
   if (!profile) {
     UI.setBiome("forest");
@@ -918,6 +926,11 @@ async function showAchievements(profileId) {
   if (badge) nameEl.appendChild(badge);
   document.getElementById("profile-avatar").replaceChildren(PROFILES.avatar(profile, "large"));
   showTraits(profile);
+  const bioEl = document.getElementById("profile-bio");
+  if (profile.bio && !deleted) {
+    bioEl.textContent = profile.bio;
+    bioEl.hidden = false;
+  }
 
   // Your own profile: Edit profile. Someone else's: Report profile.
   const actionsEl = document.getElementById("profile-head-actions");
