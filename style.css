@@ -6695,3 +6695,249 @@ a.ad-house > img {
   font-weight: 400;
   opacity: 0.75;
 }
+
+/* =========================================================
+   TEXT LIMITS (ui.js): going over shows how much to trim
+   ========================================================= */
+textarea.is-over {
+  border-color: #E07A5F !important;
+  box-shadow: 0 0 0 1px #E07A5F;
+}
+
+.limit-note {
+  margin: 0.35rem 0 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #E07A5F;
+}
+
+.biome-meadow .limit-note,
+.biome-desert .limit-note {
+  color: var(--red-text);
+}
+
+/* =========================================================
+   MOD MAIL
+   ========================================================= */
+.modmail-intro {
+  margin: 0.25rem 0 1rem;
+  max-width: 62ch;
+  opacity: 0.9;
+}
+
+.modmail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.modmail-tabs {
+  margin-bottom: 1rem;
+}
+
+.modmail-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.modmail-row {
+  display: block;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--moss);
+  border-radius: 12px;
+  background-color: var(--forest-mid);
+  color: var(--cream);
+  text-decoration: none;
+}
+
+.modmail-row:hover,
+.modmail-row:focus-visible {
+  border-color: var(--gold);
+}
+
+.modmail-row.is-closed {
+  opacity: 0.75;
+}
+
+.modmail-row-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.modmail-subject {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.modmail-meta {
+  margin: 0.3rem 0;
+  font-size: 0.88rem;
+  opacity: 0.85;
+}
+
+.modmail-state {
+  display: inline-block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.1rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid var(--moss);
+}
+
+.modmail-state.is-waiting {
+  border-color: var(--gold);
+  color: var(--gold-text, var(--gold));
+}
+
+.modmail-state.is-replied {
+  background-color: var(--gold);
+  border-color: var(--gold);
+  color: var(--forest-dark);
+}
+
+.modmail-form,
+.modmail-reply {
+  display: grid;
+  gap: 0.4rem;
+  max-width: 640px;
+  margin-top: 1rem;
+}
+
+.modmail-body {
+  width: 100%;
+  resize: vertical;
+  font: inherit;
+  line-height: 1.5;
+}
+
+.modmail-send-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.modmail-back {
+  display: inline-block;
+  margin-bottom: 0.75rem;
+}
+
+.modmail-sent {
+  padding: 0.7rem 0.9rem;
+  border-radius: 10px;
+  border: 1px solid var(--gold);
+  margin: 0 0 0.75rem;
+}
+
+.modmail-messages {
+  display: grid;
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+
+.modmail-message {
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  border: 1px solid var(--moss);
+  background-color: var(--forest-mid);
+  max-width: 560px;
+}
+
+/* The moderators' replies stand out, on the other side */
+.modmail-message.is-mods {
+  justify-self: end;
+  border-color: var(--gold);
+}
+
+.modmail-who {
+  font-size: 0.85rem;
+  opacity: 0.85;
+  margin-bottom: 0.25rem;
+}
+
+.modmail-text {
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+/* =========================================================
+   BLOCKING (profile)
+   ========================================================= */
+.block-note {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
+  margin: 0.75rem 0;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--moss);
+  border-radius: 12px;
+  background-color: var(--forest-mid);
+}
+
+.block-note p {
+  flex: 1 1 260px;
+  margin: 0;
+}
+
+.block-dialog textarea {
+  width: 100%;
+  margin: 0.25rem 0 0.5rem;
+  font: inherit;
+  resize: vertical;
+}
+
+.block-dialog .field-label {
+  display: block;
+  margin-top: 0.75rem;
+  text-align: left;
+}
+
+/* =========================================================
+   MODERATOR GUIDE (Moderate page)
+   ========================================================= */
+.mod-guide {
+  margin: 0.5rem 0 1.25rem;
+  border: 1px solid var(--gold);
+  border-radius: 12px;
+  background-color: var(--forest-mid);
+}
+
+.mod-guide summary {
+  cursor: pointer;
+  padding: 0.85rem 1rem;
+  font-weight: 600;
+}
+
+.mod-guide-body {
+  padding: 0 1.1rem 1rem;
+}
+
+.mod-guide-body h3 {
+  font-family: var(--font-heading);
+  font-size: 1.05rem;
+  margin: 1rem 0 0.35rem;
+}
+
+.mod-guide-body ul,
+.mod-guide-body ol {
+  padding-left: 1.25rem;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.mod-mail-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.modmail-row .post-category-tag {
+  margin: 0;
+}

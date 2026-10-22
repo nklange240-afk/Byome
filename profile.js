@@ -943,6 +943,7 @@ async function showAchievements(profileId) {
   } else if (!PROFILES.isDeleted(profile)) {
     await REPORTS.loadMine(me);
     actionsEl.appendChild(REPORTS.button("profile", profile.id));
+    setUpBlocking(profile, actionsEl);
   }
 
   if (PROFILES.isDeleted(profile)) {
@@ -1123,4 +1124,77 @@ async function loadContent(profile, isMe) {
       : el("p", "feed-empty", "No posts yet."));
   }
   else postsRes.data.forEach((p) => postsEl.appendChild(buildPostCard(p, isMe, reload)));
+}
+
+// ---------- Blocking ----------
+// On someone else's profile: Block (with an optional note to the
+// moderators), or, once blocked, a note saying so and Unblock. Blocked
+// members' posts, comments and reviews are hidden by the database
+// (database/2026-11-17-blocks-modmail.sql), both ways.
+async function setUpBlocking(profile, actionsEl) {
+  const { data: rows, error } = await supabaseClient.from("user_blocks").select("blocked_id").eq("blocked_id", profile.id);
+  if (error) return; // blocking isn't set up yet
+  const blocked = rows.length > 0;
+  const name = PROFILES.displayName(profile);
+
+  if (blocked) {
+    const note = el("div", "block-note");
+    note.setAttribute("role", "status");
+    note.appendChild(el("p", null, "You've blocked " + name + ". You won't see each other's posts, comments or reviews, they can't comment on yours, and you won't get notifications from them."));
+    const unblock = el("button", "btn btn-ghost", "Unblock");
+    unblock.type = "button";
+    unblock.addEventListener("click", async () => {
+      unblock.disabled = true;
+      const { error: err } = await supabaseClient.rpc("unblock_member", { p_user: profile.id });
+      if (err) { unblock.disabled = false; alert("Couldn't unblock: " + err.message); return; }
+      window.location.reload();
+    });
+    note.appendChild(unblock);
+    document.getElementById("profile-traits").before(note);
+    return;
+  }
+
+  const btn = el("button", "btn btn-ghost", "Block");
+  btn.type = "button";
+  btn.setAttribute("aria-haspopup", "dialog");
+  btn.addEventListener("click", () => openBlockDialog(profile, name));
+  actionsEl.appendChild(btn);
+}
+
+function openBlockDialog(profile, name) {
+  const dialog = el("dialog", "celebrate block-dialog");
+  dialog.setAttribute("aria-labelledby", "block-heading");
+  const h = el("h2", null, "Block " + name + "?");
+  h.id = "block-heading";
+  dialog.append(h, el("p", "celebrate-text",
+    "You won't see each other's posts, comments or reviews, they won't be able to comment on yours, and you won't get notifications from them. They aren't told. You can unblock them any time from their profile."));
+
+  const label = el("label", "field-label", "Want to tell the moderators why? (optional)");
+  const note = el("textarea", "text-input");
+  note.id = "block-note";
+  note.rows = 3;
+  note.maxLength = 2000;
+  note.placeholder = "Only the moderators see this. If someone is bothering you, a few words help us look into it.";
+  label.htmlFor = note.id;
+  dialog.append(label, note);
+
+  const message = el("p", "auth-message");
+  message.setAttribute("aria-live", "polite");
+  const actions = el("div", "celebrate-actions");
+  const go = el("button", "btn btn-solid", "Block");
+  go.type = "button";
+  const cancel = el("button", "btn btn-ghost", "Cancel");
+  cancel.type = "button";
+  cancel.addEventListener("click", () => dialog.close());
+  go.addEventListener("click", async () => {
+    go.disabled = true;
+    const { error } = await supabaseClient.rpc("block_member", { p_user: profile.id, p_note: note.value.trim() || null });
+    if (error) { go.disabled = false; message.textContent = "Couldn't block: " + error.message; message.style.color = "#E07A5F"; return; }
+    window.location.reload();
+  });
+  actions.append(go, cancel);
+  dialog.append(message, actions);
+  dialog.addEventListener("close", () => dialog.remove());
+  document.body.appendChild(dialog);
+  dialog.showModal();
 }

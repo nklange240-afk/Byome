@@ -8,6 +8,12 @@
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-badge-32.png" />
   <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2" />
   <meta name="theme-color" content="#24402F" />
+  <!-- Saving Byome to a phone's home screen: its own icon, opens full screen -->
+  <link rel="manifest" href="manifest.webmanifest" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Byome" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="description" content="Honest beauty reviews from the people actually using the products, plus a community and a little shelf of plants to grow." />
   <meta property="og:site_name" content="Byome" />
   <meta property="og:title" content="Byome — honest beauty reviews, grown together" />
@@ -18,8 +24,8 @@
   <meta name="twitter:card" content="summary_large_image" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=136" />
-  <script src="a11y.js?v=136"></script>
+  <link rel="stylesheet" href="style.css?v=137" />
+  <script src="a11y.js?v=137"></script>
 </head>
 <body>
   <header class="site-header">
@@ -33,52 +39,87 @@
   </header>
   <main class="feed-page legal-page">
     <h1>Privacy policy</h1>
-    <p class="legal-updated">Draft · last updated October 2026</p>
-    <p>We collect as little as we need to run Byome, and we don't sell your information.</p>
+    <p class="legal-updated">Last updated October 22, 2026</p>
+    <p>This policy explains what information Byome ("we", "us") collects when you use byome.xyz, why, who can see it, and the choices you have. We collect as little as we need to run Byome, and <strong>we don't sell your personal information</strong>.</p>
 
-    <h2>What we store</h2>
+    <h2>What we collect</h2>
     <ul>
-      <li><strong>Your account:</strong> email address, username, password (stored scrambled, so nobody can read it), and when you confirmed you're 18 or older.</li>
-      <li><strong>Your profile, if you add them:</strong> a profile picture, ring color, and skin and hair details. These are optional and shown on your profile.</li>
-      <li><strong>What you do on the site:</strong> your reviews, posts, comments, likes, reports, points, achievements and biome items.</li>
-      <li><strong>Invites:</strong> your invite code, who invited you (if anyone) and who you've invited. So the same email address can't be invited twice, we also keep a scrambled one-way fingerprint of each email address used to sign up. It can't be turned back into your email, and it stays even if you delete your account.</li>
-      <li><strong>On your device:</strong> your browser remembers that you're logged in, and which achievement pop-ups you've already seen.</li>
+      <li><strong>Your account:</strong> email address, username, password (stored scrambled, so nobody, including us, can read it), and when you confirmed you're 18 or older and agreed to our terms.</li>
+      <li><strong>Your profile, if you add them:</strong> a profile picture, ring color, bio, skin and hair details, your chosen biome, and your shelf.</li>
+      <li><strong>What you post and do:</strong> reviews and review updates, posts, polls and votes, comments, "helpful" and likes, product suggestions, reports, points, achievements, shop purchases and shop visits (by the hour, for the Window Shopper achievement), starter checklist progress, and which achievement pop-ups you've seen.</li>
+      <li><strong>Blocks:</strong> who you've blocked. This is private: the member you block isn't told.</li>
+      <li><strong>Mod mail and feedback:</strong> messages you send the moderators, notes you add when blocking someone, and, for feedback, which Byome page you sent it from.</li>
+      <li><strong>Invites:</strong> your invite code, who invited you (if anyone) and who you've invited. So the same email can't be invited twice, we keep a scrambled one-way fingerprint of each email used to sign up. It can't be turned back into your email, and it stays even if you delete your account.</li>
+      <li><strong>Error reports:</strong> if something breaks on a page, your browser quietly sends us the error message, the page, and your browser and device type (and your account, if you're logged in), so we can fix it. These are deleted after 30 days.</li>
+      <li><strong>Technical information:</strong> like most websites, our hosting and database providers automatically record basic technical details such as IP addresses and request times, for security, to prevent abuse, and to keep the site running.</li>
+      <li><strong>On your device:</strong> your browser stores that you're logged in, your accessibility settings, and a few small preferences (like reminders you've hidden). This isn't sent to advertisers.</li>
+    </ul>
+
+    <h2>How we use it</h2>
+    <ul>
+      <li>To run Byome: your account, profile, posts, points, shelf and notifications.</li>
+      <li>To keep Byome safe: moderation, automod, reports, blocking, speed limits and preventing fake accounts.</li>
+      <li>To answer you: mod mail, feedback and emails you send us.</li>
+      <li>To fix and improve the site: error reports and feedback.</li>
+      <li>To send account emails: confirming your email and resetting your password. We don't send marketing emails.</li>
     </ul>
 
     <h2>Byome is for adults</h2>
-    <p>You need to be 18 or older to make an account, and we keep a record that you confirmed this when you signed up. We don't knowingly collect information from anyone under 18; if we learn we have, we'll delete the account and its information.</p>
+    <p>You need to be 18 or older to make an account, and we keep a record that you confirmed this when you signed up. We don't knowingly collect information from anyone under 18. If we learn we have, we'll delete the account and its information. If you believe a child is using Byome, please tell us at <a class="inline-link" href="mailto:hello@byome.xyz">hello@byome.xyz</a>.</p>
 
     <h2>Who can see it</h2>
-    <p>Your username, profile picture, profile details, reviews, posts, comments, shelf and achievements are public to other members. Your email address, points history, invites and reports are private (the friends you invite can see that you invited them when they sign up). Moderators can see reports and content waiting for review.</p>
+    <ul>
+      <li><strong>Other members</strong> can see your username, profile picture, bio, profile details, reviews, posts, comments, shelf and achievements.</li>
+      <li><strong>Private to you:</strong> your email address, points history, invites, blocks, reports you've made, and your mod mail. (Friends you invite can see that you invited them when they sign up.)</li>
+      <li><strong>Moderators</strong> can see reports, content waiting for review, the moderation log, and all mod mail and feedback, so they can look after the community. They're asked to keep it confidential.</li>
+      <li><strong>The site owner</strong> can see the database, including error reports, to run and fix Byome.</li>
+      <li>We may share information if the law requires it, to protect someone's safety, or to investigate fraud or abuse. If Byome is ever transferred to a new owner, your information would move with it, under this policy.</li>
+    </ul>
 
     <h2>Services we use</h2>
+    <p>These companies help run Byome and handle information only to provide their service:</p>
     <ul>
-      <li><strong>Supabase</strong> stores the site's data and handles logins.</li>
+      <li><strong>Supabase</strong> stores the site's data, profile pictures and handles logins.</li>
       <li><strong>Resend</strong> sends our emails (account confirmation and password resets).</li>
       <li><strong>GitHub Pages</strong> hosts the website.</li>
       <li><strong>Google AdSense</strong> shows the ads in the Byome Shop (see below).</li>
-      <li><strong>Google Fonts</strong> and <strong>jsDelivr</strong> provide the fonts and a code library, so your browser connects to them when pages load.</li>
+      <li><strong>Google Fonts and jsDelivr</strong> provide fonts and a code library, so your browser connects to them when pages load.</li>
     </ul>
+    <p>These services may store information in the United States and other countries.</p>
 
     <h2>Ads in the Byome Shop</h2>
-    <p>The Byome Shop shows ads from <strong>Google AdSense</strong>, inside the sign labeled "Advertisement." Ads appear only in the shop, never on Reviews, in the Community or anywhere else on Byome.</p>
+    <p>The Byome Shop shows ads from Google AdSense, inside the sign labeled "Advertisement." Ads appear only in the shop, never on Reviews, in the Community or anywhere else on Byome.</p>
     <p>On the shop page only, Google may use cookies and similar technology to show ads, measure them, and limit how often you see the same one. These ads can be personalized based on your visits to other websites. You can read <a class="inline-link" href="https://policies.google.com/technologies/partner-sites" target="_blank" rel="noopener">how Google uses information from sites that use its services</a>, and you can turn off personalized ads in <a class="inline-link" href="https://myadcenter.google.com/" target="_blank" rel="noopener">Google's My Ad Center</a>. Where the law requires it, you'll be asked for your consent first, and you can change your choice at any time.</p>
     <p>We don't share your Byome account, email, reviews or profile with advertisers.</p>
 
-    <h2>Deleting your account</h2>
-    <p>You can delete your account any time from <a class="inline-link" href="edit-profile.html">Edit profile</a>. Your email, profile picture and profile details are removed. You choose whether your reviews, posts and comments are deleted too, or stay up as "Deleted member".</p>
+    <h2>How long we keep it</h2>
+    <ul>
+      <li>We keep your account information while your account is open.</li>
+      <li>Error reports are deleted after 30 days.</li>
+      <li>When you delete your account, your email, login, profile picture, bio, profile details, points, achievements, shelf and notifications are removed. You choose whether your reviews, posts and comments are deleted too, or stay up as "Deleted member".</li>
+      <li>Some records may stay for a while afterwards: copies in backups, the email fingerprint used for invites, moderation records, and mod mail (shown as from "Deleted member"), to keep Byome safe and fair.</li>
+    </ul>
+
+    <h2>Your choices and rights</h2>
+    <ul>
+      <li>You can see and change your profile any time on <a class="inline-link" href="edit-profile.html">Edit profile</a>, and delete your account there.</li>
+      <li>You can ask us for a copy of your information, or to correct or delete it, by emailing <a class="inline-link" href="mailto:hello@byome.xyz">hello@byome.xyz</a>. Depending on where you live, you may have other rights over your information; we'll honor them as the law requires.</li>
+      <li>You can turn off personalized ads in Google's My Ad Center, and block or clear cookies in your browser.</li>
+    </ul>
+
+    <h2>Keeping it safe</h2>
+    <p>We use reasonable measures to protect your information: passwords are scrambled, connections are encrypted, and the database only lets each member read and change what they're allowed to. No website can be completely secure, though, so we can't guarantee it. Please use a strong password you don't use anywhere else.</p>
 
     <h2>Changes</h2>
-    <p>If we change how we handle your information, we'll update this page and the date at the top.</p>
+    <p>If we change how we handle your information, we'll update this page and the date at the top, and let members know on the site for important changes.</p>
 
     <h2>Contact</h2>
     <p>Questions about your information or this policy? Email us at <a class="inline-link" href="mailto:hello@byome.xyz">hello@byome.xyz</a>.</p>
-
     <p>See also our <a class="inline-link" href="terms.html">terms of use</a>.</p>
   </main>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase-client.js?v=136"></script>
-  <script src="nav-menu.js?v=136"></script>
-  <script src="ui.js?v=136"></script>
+  <script src="supabase-client.js?v=137"></script>
+  <script src="nav-menu.js?v=137"></script>
+  <script src="ui.js?v=137"></script>
 </body>
 </html>
