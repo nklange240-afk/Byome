@@ -3353,9 +3353,7 @@ html.near-bottom {
   margin: 0.25rem 0 0.5rem;
 }
 
-/* Fully bright on the golden desert and pale tundra, so it stays easy
-   to read */
-.biome-desert .profile-meta,
+/* Fully bright on the pale tundra, so it stays easy to read */
 .biome-tundra .profile-meta {
   opacity: 1;
 }
@@ -3855,13 +3853,76 @@ html.a11y-contrast .biome-meadow {
   --moss: rgba(34, 56, 42, 0.6);
 }
 
-/* Desert: golden sand; the cards are a little darker, like shade */
+/* Desert: the second light biome. Morning sand (cream warming to honey;
+   ui.js shades the page), with dark brown text, warm white cards and
+   amber accents */
 .biome-desert {
-  --forest-dark: #4A3116;
-  --forest-mid: #5C3E1C;
-  --moss: #B98A4A;
-  --leaf: #F2C66D;
+  --cream: #3E2A14;            /* text: deep brown */
+  --forest-dark: #FFFBF3;      /* text on buttons, field backgrounds */
+  --forest-mid: #FFFAF1;       /* cards, menus and pop-ups */
+  --moss: rgba(74, 49, 22, 0.26); /* borders */
+  --gold: #7A4A12;             /* accents: dark amber (readable on the deepest sand) */
+  --leaf: #4D6B2C;             /* cactus green */
+  --gold-text: #7A4A12;
+  --leaf-text: #4D6B2C;
+  --blue-text: #1B4F78;
+  --red-text: #7F2E1E;
+  --event-text: #A04812;
+  color: var(--cream);
 }
+
+.biome-desert .btn-solid,
+.biome-desert .btn-solid:hover {
+  background: #6B4420;
+  border-color: #6B4420;
+  color: #FFFBF3;
+}
+
+.biome-desert .btn-ghost {
+  color: #3E2A14;
+  border-color: rgba(74, 49, 22, 0.45);
+}
+
+.biome-desert .member-badge.is-founder {
+  background: #6B4420;
+  color: #FFFBF3;
+}
+
+.biome-desert .member-badge.is-mod {
+  background: transparent;
+  border-color: #7A4A12;
+  color: #7A4A12;
+}
+
+.biome-desert .hamburger-btn span {
+  background: #3E2A14;
+}
+
+.biome-desert :is(.post-meta time, .profile-meta, .action-btn, .points-label, .edited-tag, .entry-meta,
+  .points-note, .profile-counts, .char-count) {
+  opacity: 0.92;
+}
+
+/* The footer: deep desert brown */
+body.biome-desert .site-footer {
+  --cream: #F6EEE4;
+  opacity: 1;
+  background-color: #4A3116;
+  color: #F6EEE4;
+}
+
+.biome-desert .preview-line {
+  background-color: rgba(74, 49, 22, 0.25);
+}
+
+html.a11y-contrast .biome-desert {
+  --moss: rgba(74, 49, 22, 0.6);
+}
+
+/* Glints of sunlight on the sand: warm gold, so they show on the light page */
+.biome-desert .p-glint { --glint: #E3B04B; }
+.biome-desert .p-glint[style*="--hue: 1"] { --glint: #F2C66D; }
+.biome-desert .p-glint[style*="--hue: 2"] { --glint: #D59A3A; }
 
 .biome-tundra {
   --forest-dark: #22303D;
@@ -3898,11 +3959,6 @@ html.a11y-contrast .biome-meadow {
   transition: background-color 1.2s linear;
 }
 
-/* The desert sun: a warm golden glow in the top corner */
-.biome-desert {
-  background-image: radial-gradient(circle at 92% 4%, rgba(255, 214, 130, 0.38), rgba(255, 196, 110, 0.12) 22%, transparent 45%);
-  background-attachment: fixed;
-}
 
 /* Page content sits above the particles */
 .biome-page .site-header {
@@ -3947,6 +4003,14 @@ body > .biome-overlay {
     rgba(0, 0, 0, 0.45) calc(50% + 290px), #000 calc(50% + 440px));
   mask-image: linear-gradient(to right, #000 calc(50% - 440px), rgba(0, 0, 0, 0.45) calc(50% - 290px),
     rgba(0, 0, 0, 0.45) calc(50% + 290px), #000 calc(50% + 440px));
+}
+
+/* A pattern across the whole page (the desert's dunes): no fade behind
+   the posts (it's faint already), and it repeats sideways too */
+body > .biome-overlay.is-full {
+  background-repeat: repeat;
+  -webkit-mask-image: none;
+  mask-image: none;
 }
 
 /* Far-off layers (the ocean's fish) are drawn smaller, so they feel
@@ -4026,6 +4090,19 @@ body.biome-meadow > .biome-overlay {
       rgba(0, 0, 0, 0.45) calc(100% - 56px), #000 calc(100% - 16px));
     mask-image: linear-gradient(to right, #000 16px, rgba(0, 0, 0, 0.45) 56px,
       rgba(0, 0, 0, 0.45) calc(100% - 56px), #000 calc(100% - 16px));
+  }
+
+  /* The dunes: one copy across the screen, no edge arrangement */
+  body > .biome-overlay.is-full {
+    background-image: var(--ov-img);
+    background-size: 1000px auto;
+    background-position: center var(--ov-y, 0px);
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+
+  body > .biome-overlay.is-full::before {
+    content: none;
   }
 
   body > .biome-overlay.is-far {
@@ -4566,13 +4643,6 @@ body.biome-meadow > .biome-overlay {
   height: 75%;
 }
 
-/* The desert sun */
-.biome-preview.biome-desert::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at 92% 4%, rgba(255, 214, 130, 0.42), rgba(255, 196, 110, 0.12) 25%, transparent 50%);
-}
 
 .preview-page {
   position: relative;

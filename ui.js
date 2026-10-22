@@ -534,7 +534,9 @@ const UI = (function () {
   //   overlays: several layers of art instead, back to front, each with
   //     its own speed (0.5 = half the page's speed; slower feels farther
   //     away) and strength (opacity); far: drawn smaller; sparse: a few
-  //     small things (like insects) that phones show without a faint copy
+  //     small things (like insects) that phones show without a faint copy;
+  //     full: a pattern across the whole page (like the desert's dunes),
+  //     not just down the sides; offsetY: shifted down this many pixels
   //   stops: more than two colors to pass through, top to bottom
   //   light: a light biome (dark text), which uses the dark green logo
   //   shadeFrom: when set, the colors follow how far down the page you are
@@ -557,10 +559,19 @@ const UI = (function () {
               shadeFrom: 0, light: true,
               // its preview tile hints at spring green and petals
               preview: { top: [238, 248, 221], deep: [159, 203, 126], dots: "petal" } },
-    desert: { name: "Desert", symbol: "☀️", top: [128, 90, 30], deep: [58, 36, 38], particles: [["glint", 34]],
-              shadeFrom: 0.65, // golden most of the way; dusk only near the bottom
-              // its preview tile is brighter, like sand in the sun
-              preview: { top: [184, 132, 54], deep: [128, 90, 30] } },
+    // Desert is light too (dark brown text; its colors are in style.css):
+    // morning sand, cream at the top warming to honey by the bottom, with
+    // two faint layers of dunes across the whole page and hand-drawn cacti
+    // down both sides
+    desert: { name: "Desert", symbol: "☀️", top: [255, 249, 238], deep: [235, 203, 152],
+              stops: [[255, 249, 238], [246, 230, 200], [235, 203, 152]], shadeFrom: 0, light: true,
+              particles: [["glint", 24]],
+              overlays: [
+                { image: "biome-assets/overlay-desert-dunes.webp", speed: 0.5, opacity: 0.08, full: true, offsetY: 260 }, // faint dunes, behind
+                { image: "biome-assets/overlay-desert-dunes.webp", speed: 0.5, opacity: 0.15, full: true },
+                { image: "biome-assets/overlay-desert-cacti.webp", speed: 0.5, opacity: 1 },
+              ],
+              preview: { top: [255, 249, 238], deep: [235, 203, 152] } },
     tundra: { name: "Snowy tundra", symbol: "❄️", top: [84, 104, 124], deep: [14, 24, 42], particles: [["snow", 34]],
               throughContent: [["snow", 16]], // a little snow falls faintly over the posts too
               shadeFrom: 0.15 }, // pale dusty blue, deepening to dark blue by the bottom
@@ -594,11 +605,13 @@ const UI = (function () {
   }
 
   function makeOverlay(o) {
-    const overlay = el("div", "biome-overlay" + (o.far ? " is-far" : "") + (o.sparse ? " is-sparse" : ""));
+    const overlay = el("div", "biome-overlay" + (o.far ? " is-far" : "") + (o.sparse ? " is-sparse" : "") + (o.full ? " is-full" : ""));
     overlay.setAttribute("aria-hidden", "true");
     overlay.style.setProperty("--ov-img", "url(" + art(o.image) + ")");
     if (o.opacity !== undefined) overlay.style.setProperty("--ov-opacity", String(o.opacity));
     overlay._speed = o.speed;
+    overlay._offset = o.offsetY || 0;
+    overlay.style.setProperty("--ov-y", overlay._offset + "px");
     return overlay;
   }
 
@@ -821,7 +834,7 @@ const UI = (function () {
       document.body.style.setProperty("--shallow", clamp01((0.95 - bottom) * 2.86).toFixed(3));
       // The hand-drawn art drifts up slower than the page, so it feels further
       // back (the slower, the farther)
-      overlays.forEach((o) => o.style.setProperty("--ov-y", stillMotion() ? "0px" : Math.round(-window.scrollY * o._speed) + "px"));
+      overlays.forEach((o) => o.style.setProperty("--ov-y", (stillMotion() ? o._offset : Math.round(o._offset - window.scrollY * o._speed)) + "px"));
     }
     window.addEventListener("scroll", () => {
       if (!ticking) { ticking = true; requestAnimationFrame(shade); }
