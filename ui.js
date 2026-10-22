@@ -4,6 +4,31 @@
 //   - the pop-up that celebrates a new achievement or purchase
 //   - sparkles on rare items
 const UI = (function () {
+  // ---------- Error log ----------
+  // Errors in the page are quietly recorded (page, browser, message) so
+  // they can be fixed (database/2026-11-17-blocks-modmail.sql). A few per
+  // page at most; nothing personal beyond the account, if logged in.
+  const loggedErrors = [];
+  function logError(message, source, line, col) {
+    if (!message || loggedErrors.length >= 5 || loggedErrors.indexOf(message) !== -1) return;
+    if (/^Script error\.?$/.test(message)) return; // other sites' scripts: no details to see
+    loggedErrors.push(message);
+    if (typeof supabaseClient === "undefined") return;
+    supabaseClient.rpc("log_client_error", {
+      p_page: window.location.pathname + window.location.search,
+      p_message: String(message), p_source: source ? String(source) : null,
+      p_line: line || null, p_col: col || null, p_agent: navigator.userAgent,
+    }).then(() => {}, () => {});
+  }
+  window.addEventListener("error", (e) => {
+    if (e.target && e.target !== window) return; // a missing picture, not a script error
+    logError(e.message, e.filename, e.lineno, e.colno);
+  });
+  window.addEventListener("unhandledrejection", (e) => {
+    const r = e.reason;
+    logError(r && r.message ? r.message : String(r), r && r.stack ? String(r.stack).split("\n")[1] : null);
+  });
+
   // Shown in the footer as "Contact" once there's an inbox to send to,
   // e.g. "hello@byome.xyz". Left empty, the Contact link doesn't show.
   const CONTACT_EMAIL = "hello@byome.xyz";
@@ -37,6 +62,8 @@ const UI = (function () {
     links.setAttribute("aria-label", "About Byome");
     const items = [["index.html#about", "About"], ["terms.html", "Terms"], ["privacy.html", "Privacy"]];
     if (CONTACT_EMAIL) items.push(["mailto:" + CONTACT_EMAIL, "Contact"]);
+    // Feedback goes to the moderators' mod mail (modmail.html)
+    items.push(["modmail.html?new=feedback", "Send feedback"]);
     items.forEach(([href, text]) => {
       const a = el("a", null, text);
       a.href = href;
@@ -999,7 +1026,47 @@ const UI = (function () {
     });
   }
 
+  // ---------- Text limits ----------
+  // Browsers count each line break in a text box as two characters toward
+  // its maxlength, so long reviews with paragraphs stopped short of the
+  // limit, with no explanation. Instead, the limit is checked here (line
+  // breaks count once, as the database counts them): going over shows how
+  // many characters to trim, and the form won't send until it's fixed.
+  function limitTextarea(t) {
+    if (t.dataset.limit || !(t.maxLength > 0)) return;
+    const max = t.maxLength;
+    t.dataset.limit = String(max);
+    t.removeAttribute("maxlength");
+    const note = el("p", "limit-note");
+    note.setAttribute("aria-live", "polite");
+    note.hidden = true;
+    t.after(note);
+    const check = () => {
+      const over = t.value.length - max;
+      const text = over > 0 ? "That's " + over + " character" + (over === 1 ? "" : "s") + " over the " + max + "-character limit. Please trim it a little." : "";
+      t.setCustomValidity(text);
+      t.classList.toggle("is-over", over > 0);
+      note.textContent = text;
+      note.hidden = over <= 0;
+    };
+    t.addEventListener("input", check);
+    check();
+  }
+  function watchTextareas() {
+    document.querySelectorAll("textarea[maxlength]").forEach(limitTextarea);
+    new MutationObserver((changes) => {
+      changes.forEach((c) => c.addedNodes.forEach((n) => {
+        if (n.nodeType !== 1) return;
+        if (n.matches("textarea[maxlength]")) limitTextarea(n);
+        n.querySelectorAll && n.querySelectorAll("textarea[maxlength]").forEach(limitTextarea);
+      }));
+    }).observe(document.body, { childList: true, subtree: true });
+  }
+  // Text boxes whose maxLength is set after they're added to the page
+  document.addEventListener("focusin", (e) => { if (e.target.matches && e.target.matches("textarea[maxlength]")) limitTextarea(e.target); });
+
   document.addEventListener("DOMContentLoaded", () => {
+    watchTextareas();
     addPasswordToggles();
     buildFooter();
     calmBottomBounce();

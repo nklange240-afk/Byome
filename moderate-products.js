@@ -723,3 +723,22 @@ function buildReportedItem(group) {
   article.appendChild(actions);
   return article;
 }
+
+// ---------- Mod mail waiting ----------
+// (database/2026-11-17-blocks-modmail.sql; without it, the line is hidden)
+(async function () {
+  const line = document.getElementById("mod-mail-line");
+  const { data, error } = await supabaseClient.rpc("modmail_waiting");
+  if (error) { line.hidden = true; return; }
+  document.getElementById("mod-mail-waiting").textContent = data
+    ? data + (data === 1 ? " conversation is" : " conversations are") + " waiting for a reply."
+    : "Nothing waiting in mod mail.";
+})();
+
+// New moderators see the guide open the first time
+(function () {
+  const guide = document.getElementById("mod-guide");
+  try {
+    if (!localStorage.getItem("byome-mod-guide-seen")) { guide.open = true; localStorage.setItem("byome-mod-guide-seen", "1"); }
+  } catch (e) { /* fine either way */ }
+})();

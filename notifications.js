@@ -28,6 +28,8 @@ const ICONS = {
   comment: '<path d="M4 5h16v11H9l-5 4z"/>',
   // a flag: moderation
   moderation: '<path d="M6 21V4"/><path d="M6 4h11l-2 4 2 4H6"/>',
+  // an envelope: mod mail
+  mail: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 6.5L12 13l8.5-6.5"/>',
   // two friends: invites
   friend: '<circle cx="9" cy="8" r="3"/><circle cx="16.5" cy="9.5" r="2.5"/><path d="M3.5 19c.5-3.5 3-5.5 5.5-5.5s5 2 5.5 5.5"/><path d="M14 14.2c.8-.5 1.6-.7 2.5-.7 2 0 3.7 1.5 4 4.5"/>',
 };
@@ -36,7 +38,7 @@ const ICON_FOR = {
   post_like: "like", comment_like: "like", review_like: "like",
   comment: "comment", reply: "comment",
   moderation: "moderation", moderation_queue: "moderation",
-  referral: "friend",
+  referral: "friend", modmail: "mail",
 };
 
 // Moderation flags: green when it went your way (approved, your report was

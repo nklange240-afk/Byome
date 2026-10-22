@@ -2,7 +2,7 @@
 // same menu in the same order:
 //   Guests:  Reviews, Log in, Sign up
 //   Members: Community, Reviews, Suggest a product, Byome Shop |
-//            My profile, Notifications (unread count), Moderate (moderators) |
+//            My profile, Notifications (unread count), Mod mail, Moderate (moderators) |
 //            username, Log out
 (function () {
   const toggle = document.getElementById("menu-toggle");
@@ -71,6 +71,7 @@
     line();
     link("profile.html", "My profile");
     const notes = link("notifications.html", "Notifications");
+    const mail = link("modmail.html", "Mod mail");
     const modLink = link("moderate-products.html", "Moderate");
     modLink.hidden = true; // shown below for moderators
     line();
@@ -108,6 +109,9 @@
       // How many things are waiting for a moderator
       const { data: waiting } = await supabaseClient.rpc("moderation_counts");
       if (waiting) badge(modLink, waiting, "Moderate, waiting");
+      // Mod mail waiting for a reply (database/2026-11-17-blocks-modmail.sql)
+      const { data: mailWaiting } = await supabaseClient.rpc("modmail_waiting");
+      if (mailWaiting) badge(mail, mailWaiting, "Mod mail, waiting");
     }
   })();
 })();
