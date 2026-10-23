@@ -86,8 +86,10 @@ const writeToggle = document.getElementById("write-review-toggle");
 // fall or seasonal product"): only shown, and only sent, while an event is on
 const eventField = document.getElementById("event-review-field");
 UI.liveEvent().then((event) => {
-  if (!event) return;
-  document.getElementById("event-review-legend").textContent = event.name + " (optional)";
+  // (visitors who aren't logged in have no review form)
+  const legend = document.getElementById("event-review-legend");
+  if (!event || !legend) return;
+  legend.textContent = event.name + " (optional)";
   eventField.hidden = false;
 });
 function eventChoices() {
