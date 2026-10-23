@@ -13,6 +13,31 @@ const { createClient } = supabase;
 // Always ask for fresh data. Without this, pressing Back can show a saved
 // copy of a page's data (for example, notifications you've just read
 // still looking unread).
+//
+// Every request is also watched: if one takes more than 10 seconds, or
+// can't get through at all, ui.js shows a gentle "loading slowly" note
+// (usually a hiccup at Supabase, the service that stores Byome's data),
+// and hides it again once everything has arrived.
+const byomeNet = { pending: 0 };
+function watchedFetch(url, options) {
+  const watch = String(url).indexOf("/storage/") === -1; // big picture uploads can take a while
+  if (watch) byomeNet.pending++;
+  const slow = watch ? setTimeout(() => document.dispatchEvent(new CustomEvent("byome-slow")), 10000) : null;
+  const done = () => {
+    if (!watch) return;
+    clearTimeout(slow);
+    byomeNet.pending--;
+    if (byomeNet.pending === 0) document.dispatchEvent(new CustomEvent("byome-ok"));
+  };
+  return fetch(url, Object.assign({}, options, { cache: "no-store" })).then(
+    (res) => { done(); return res; },
+    (err) => {
+      done();
+      // (not when the page itself cancelled it, e.g. by leaving the page)
+      if (!(err && err.name === "AbortError")) document.dispatchEvent(new CustomEvent("byome-unreachable"));
+      throw err;
+    });
+}
 const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-  global: { fetch: (url, options) => fetch(url, Object.assign({}, options, { cache: "no-store" })) },
+  global: { fetch: watchedFetch },
 });
