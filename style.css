@@ -7076,3 +7076,25 @@ textarea.is-over {
 .net-note-close:focus-visible {
   opacity: 1;
 }
+
+/* "54 people found AliceB's reviews helpful" on a profile */
+.profile-helpful {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: -0.25rem 0 0.75rem;
+  font-weight: 600;
+  color: var(--cream);
+}
+
+/* just the leaf is green, so the words stay easy to read on every biome */
+.profile-helpful .leaf-icon {
+  width: 1.1rem;
+  height: 1.1rem;
+  flex: none;
+  color: var(--leaf-text, var(--leaf, #8FC27A));
+}
+
+.profile-helpful .leaf-body {
+  fill: currentColor;
+}
