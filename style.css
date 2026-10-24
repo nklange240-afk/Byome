@@ -7023,3 +7023,78 @@ textarea.is-over {
   color: var(--gold-text, var(--gold));
   font-weight: 600;
 }
+
+/* =========================================================
+   LOADING SLOWLY (ui.js): a small note at the bottom of the screen
+   ========================================================= */
+.net-note {
+  position: fixed;
+  left: 50%;
+  bottom: max(1rem, env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  z-index: 50;
+  width: min(560px, calc(100% - 2rem));
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem 0.9rem;
+  padding: 0.85rem 2.6rem 0.85rem 1rem;
+  border: 1px solid var(--gold);
+  border-radius: 14px;
+  background-color: var(--forest-mid);
+  color: var(--cream);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
+}
+
+.net-note-text {
+  flex: 1 1 260px;
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+.net-note .btn {
+  padding: 0.45rem 1rem;
+  font-size: 0.95rem;
+}
+
+.net-note-close {
+  position: absolute;
+  top: 0.35rem;
+  right: 0.5rem;
+  background: none;
+  border: none;
+  color: var(--cream);
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0.25rem 0.4rem;
+  opacity: 0.8;
+}
+
+.net-note-close:hover,
+.net-note-close:focus-visible {
+  opacity: 1;
+}
+
+/* "54 people found AliceB's reviews helpful" on a profile */
+.profile-helpful {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: -0.25rem 0 0.75rem;
+  font-weight: 600;
+  color: var(--cream);
+}
+
+/* just the leaf is green, so the words stay easy to read on every biome */
+.profile-helpful .leaf-icon {
+  width: 1.1rem;
+  height: 1.1rem;
+  flex: none;
+  color: var(--leaf-text, var(--leaf, #8FC27A));
+}
+
+.profile-helpful .leaf-body {
+  fill: currentColor;
+}

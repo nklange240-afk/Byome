@@ -956,6 +956,7 @@ async function showAchievements(profileId) {
       "Member since " + new Date(profile.created_at).toLocaleDateString(undefined, { month: "long", year: "numeric" });
   }
 
+  showHelpful(profile, isMe);
   if (isMe) showPoints(profile.id, profile.is_moderator);
   showBiome(profile.id, isMe);
   showAchievements(profile.id);
@@ -1199,4 +1200,18 @@ function openBlockDialog(profile, name) {
   dialog.addEventListener("close", () => dialog.remove());
   document.body.appendChild(dialog);
   dialog.showModal();
+}
+
+// ---------- "54 people found AliceB's reviews helpful" ----------
+// Different people, not votes: one person marking many reviews counts once
+// (database/2026-11-21-helpful-stats.sql; until it's run, nothing shows)
+async function showHelpful(profile, isMe) {
+  const { data, error } = await supabaseClient.rpc("member_helpful_stats", { p_user: profile.id });
+  if (error || !data || !data.people) return;
+  const line = document.getElementById("profile-helpful");
+  const people = data.people === 1 ? "1 person" : data.people.toLocaleString() + " people";
+  line.replaceChildren(leafIcon(), document.createTextNode(" " + people + " found " +
+    (isMe ? "your" : PROFILES.displayName(profile) + "\u2019s") + " reviews helpful"));
+  line.title = data.votes + (data.votes === 1 ? " helpful mark" : " helpful marks") + " in total";
+  line.hidden = false;
 }
