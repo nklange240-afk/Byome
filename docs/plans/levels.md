@@ -103,11 +103,11 @@ Physical drops or giveaways bring real-world rules that digital items don't:
 - **On posts, comments and reviews:** the icon only, next to the name. Tapping or hovering shows "Sprout · level 2".
 - **On profiles:** the icon and the level name, in a pill.
 - **Art files** (128 × 128 transparent PNG):
+  - `biome-assets/level-seed.png` (an almond-shaped seed)
   - `biome-assets/level-sprout.png`
   - `biome-assets/level-sapling.png`
   - `biome-assets/level-bloom.png`
   - `biome-assets/level-evergreen.png` (the tree; the pine branch could become an Evergreen shelf decoration)
-  - **`biome-assets/level-seed.png` is still to come.** The owner has drawn it, an almond-shaped seed; it just needs sending as a file.
 - **Level colours** (borders and name text): Seed warm brown, Sprout light green, Sapling green, Bloom pink, Evergreen teal with gold.
 
 ## Still to design before building
