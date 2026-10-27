@@ -111,6 +111,26 @@ Physical drops or giveaways bring real-world rules that digital items don't:
   - `biome-assets/level-evergreen.png` (the tree; the pine branch could become an Evergreen shelf decoration)
 - **Level colours** (borders and name text): Seed warm brown, Sprout light green, Sapling green, Bloom pink, Evergreen teal with gold.
 
+## Level-up pop-up (agreed design)
+- **When it appears:** the next time the member visits after levelling up. It uses the same pop-up style as achievements, and shows once per account (like achievement pop-ups).
+- **What it shows:** "Level up!", the member's new badge drawing large in a glowing cream circle (gold rim for Evergreen), a heading, a short thank-you, an "Unlocked" list, and the buttons "See my profile" and "Lovely!".
+- **Wording:**
+  - Sapling: "You've grown into a Sapling!" / "25 contributions to Byome: reviews, posts people loved and product suggestions. Thank you for helping our community grow."
+  - Evergreen: "You're an Evergreen!" / "The highest level on Byome. Thoughtful, trusted, and an important part of the Byome community." (owner's wording)
+  - Sprout and Bloom follow the same pattern.
+- **Sprout's pop-up** lists "your Sprout badge" until photos exist, then adds photo uploads.
+
+## "Next level" card (agreed design)
+- **On your own profile only** ("Only you can see this"), under the profile header.
+- **Sprout → Sapling:** a contributions bar ("18 of 25"), a breakdown (reviews, posts others enjoyed, approved product suggestions), and the note "Posts count once someone else likes, comments or votes on them."
+- **Sapling → Bloom:** a review bar ("64 of 100"), and the note that moderators take a look at 100.
+- **Waiting for the Bloom check:** "Your reviews are being looked at by our team. You'll get a notification as soon as you bloom!"
+- **Bloom → Evergreen:** a checklist, with progress bars for standouts and time as a member, and a tick for goals already met (for example "63 (goal: 50)").
+- **Evergreen:** no card; they've reached the top.
+
+## Badge art note
+The five drawings were centred on their 128 × 128 canvases (spacing only; the drawings themselves are unchanged), so they sit in the middle of their circles.
+
 ## Still to design before building
-- The level-up pop-up, and where progress shows (for example "12 of 25 contributions to Sapling" on your own profile).
+- Level-up gifts (in progress).
 - Which levels get the first exclusive drops and Community space.
