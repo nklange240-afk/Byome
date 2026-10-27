@@ -73,7 +73,29 @@ Banning a member from the site entirely stays a separate, more serious action.
 ## Already built (October 2026)
 - **Helpful stats** (`database/2026-11-21-helpful-stats.sql`): each profile shows "54 people found AliceB's reviews helpful". It counts different people, not votes, only live reviews, and never the member's own marks. It'll also appear in the Bloom list.
 
+## Perks
+Levels also act as a built-in trust filter: features that are harder to moderate can open only to members who've already shown they're here in good faith, which keeps spammers and pests out.
+
+- **Sprout:** photo uploads (see `photos.md`).
+- **Level-exclusive drops:**
+  - Byome Shop items (and eventually real beauty products) can require a minimum level.
+  - **Anyone at that level or higher** can get them. For example, an Evergreen can buy a Bloom-exclusive drop.
+  - Members below the level still see the item, locked, with a friendly "Unlocks at 🌸 Bloom" note.
+- **A level-only Community space:** a section only members at a given level or higher can see and post in (for example "Bloom & up"). It has the same moderation as the rest of the Community: automod, reports and blocking.
+- **Private messages (future idea),** locked to higher levels. This needs its own safety plan before building, like `photos.md`, covering:
+  - blocking also stopping messages
+  - a Report button on messages
+  - a daily message limit
+  - clear rules on when moderators can see messages (for example, only reported ones)
+  - a privacy policy update
+
+## Real beauty products (future)
+Physical drops or giveaways bring real-world rules that digital items don't:
+- **Giveaway law:** US giveaways have legal rules (usually "no purchase necessary", official rules, and state-specific requirements). Check with a lawyer, under the LLC, before the first one.
+- **Shipping:** collecting addresses needs a privacy policy update and careful, limited storage.
+- **Free products:** reviews of products given by brands must say so (already required by the Terms).
+
 ## Still to design before building
-- Perks for each level, beyond photos at Sprout. Ideas so far: level-only pots or plants in the shop, a level-up celebration with a shelf item, and something special at Evergreen.
 - The badge design, the level-up pop-up, and where progress shows (for example "12 of 25 contributions to Sapling" on your own profile).
 - Evergreen's final requirements.
+- Which levels get the first exclusive drops and Community space.
