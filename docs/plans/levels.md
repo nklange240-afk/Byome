@@ -10,7 +10,7 @@ Levels show how much a member has grown with Byome. They have to exist **before 
 | 2 | 🌱 Sprout | Account at least **3 days** old, and at least **1 published review** |
 | 3 | 🪴 Sapling | At least **25 contributions** (see below) |
 | 4 | 🌸 Bloom | At least **100 published reviews**, then **approved by a moderator** |
-| 5 | 🌳 Evergreen | Everything for Bloom, plus at least **25 standout reviews** |
+| 5 | 🌳 Evergreen | Everything for Bloom, plus at least **5 standout reviews**, at least **50 different people** have found their reviews helpful, and a member for at least **6 months** |
 
 There's no "Seedling" level, since it's too easy to confuse with Sprout.
 
@@ -46,8 +46,11 @@ Each of these counts as one contribution:
 - **While waiting,** the member sees "Bloom: your reviews are being looked at by our team 🌸".
 
 ## Evergreen
-- **Everything for Bloom, plus 25 standout reviews.** Standouts are given by moderators, so this is "moderator-recognised quality, sustained over time": a long road, on purpose, for the top level.
-- **May need more thought** before building (agreed with the owner).
+- **Everything for Bloom, plus:**
+  - at least **5 standout reviews** (moderator-recognised quality)
+  - at least **50 different people** have found their reviews helpful (the community's recognition, using the helpful stats already built)
+  - a member for at least **6 months** (it can't be rushed, which suits an evergreen)
+- **Why 6 months:** it gives the top level prestige from the start, since nobody can reach it before about spring 2027, and time to see how the earlier levels feel. Lowering it later is a one-line change; raising it after people have qualified would feel unfair.
 
 ## Rules
 - **Levels never go down on their own.**
@@ -95,7 +98,18 @@ Physical drops or giveaways bring real-world rules that digital items don't:
 - **Shipping:** collecting addresses needs a privacy policy update and careful, limited storage.
 - **Free products:** reviews of products given by brands must say so (already required by the Terms).
 
+## Badges (agreed)
+- **The owner's hand-drawn icons,** in small round tokens with **pale cream circles**, so the drawings stand out at about 20 px. Each token has a thin border in its level's colour, and Evergreen gets a soft gold rim and glow.
+- **On posts, comments and reviews:** the icon only, next to the name. Tapping or hovering shows "Sprout · level 2".
+- **On profiles:** the icon and the level name, in a pill.
+- **Art files** (128 × 128 transparent PNG):
+  - `biome-assets/level-sprout.png`
+  - `biome-assets/level-sapling.png`
+  - `biome-assets/level-bloom.png`
+  - `biome-assets/level-evergreen.png` (the tree; the pine branch could become an Evergreen shelf decoration)
+  - **`biome-assets/level-seed.png` is still to come.** The owner has drawn it, an almond-shaped seed; it just needs sending as a file.
+- **Level colours** (borders and name text): Seed warm brown, Sprout light green, Sapling green, Bloom pink, Evergreen teal with gold.
+
 ## Still to design before building
-- The badge design, the level-up pop-up, and where progress shows (for example "12 of 25 contributions to Sapling" on your own profile).
-- Evergreen's final requirements.
+- The level-up pop-up, and where progress shows (for example "12 of 25 contributions to Sapling" on your own profile).
 - Which levels get the first exclusive drops and Community space.
