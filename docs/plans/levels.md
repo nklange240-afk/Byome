@@ -100,7 +100,8 @@ Physical drops or giveaways bring real-world rules that digital items don't:
 
 ## Badges (agreed)
 - **The owner's hand-drawn icons,** in small round tokens with **pale cream circles**, so the drawings stand out at about 20 px. Each token has a thin border in its level's colour, and Evergreen gets a soft gold rim and glow.
-- **On posts, comments and reviews:** the icon only, next to the name. Tapping or hovering shows "Sprout · level 2".
+- **On posts and reviews:** the icon only, next to the name. Tapping or hovering shows "Sprout · level 2".
+- **Not on comments,** to keep comment threads calm and uncluttered (owner's decision).
 - **On profiles:** the icon and the level name, in a pill.
 - **Art files** (128 × 128 transparent PNG):
   - `biome-assets/level-seed.png` (an almond-shaped seed)
