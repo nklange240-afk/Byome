@@ -5,6 +5,7 @@ byome's database lives in Supabase. These files are a backup and a history of ch
 - `schema-export-YYYY-MM-DD.csv`: a snapshot of every table, security rule, function and trigger.
   To make a new one, run `export-schema-query.sql` in the Supabase SQL Editor and export the result as CSV.
 - `YYYY-MM-DD-*.sql`: changes that were run in the SQL Editor, oldest first.
+- `BACKUPS.md`: how to make your own weekly backup of all of Byome's content (the free plan doesn't keep backups).
   (The export taken on 2026-10-02 is from *before* `2026-10-02-security-fix.sql` was run.)
 
 ## Change log
@@ -72,3 +73,4 @@ byome's database lives in Supabase. These files are a backup and a history of ch
 - `2026-11-18-mod-variation-credit.sql`: moderators get credit for variations they add. When a product is approved, the member earns variation points only for the variations they entered (a moderator fixing their typo still counts as theirs); real variations a moderator added, for example replacing "28 variations" with the actual shade names, earn that moderator the same points instead (up to 10 per product). Fix a product approved before this with `select public.fix_variation_credit('Product name', 'moderator-username', how_many_added, how_many_the_member_keeps);`. Change the moderators' amount with `update point_rules set biome_points = 10, threshold = 30 where action = 'mod_variations';`.
 - `2026-11-19-longer-posts.sql`: Community posts can be up to 2000 characters (was 1000), the same as reviews. **Run before publishing** the site update that came with it.
 - `2026-11-20-minimum-length.sql`: a minimum length for new Community posts (10 characters; poll posts are exempt, as their details are optional) and reviews (20 characters), so there's always something useful to read. Existing shorter ones stay as they are. **Run before publishing** the site update that came with it.
+- `2026-11-21-helpful-stats.sql`: how helpful a member's reviews have been: "54 people found AliceB's reviews helpful" on profiles (different people, not votes; live reviews only; never their own marks). Until it's run, the line simply doesn't show.

@@ -1026,6 +1026,40 @@ const UI = (function () {
     });
   }
 
+  // ---------- Loading slowly ----------
+  // supabase-client.js says when a request takes more than 10 seconds
+  // ("byome-slow") or can't get through ("byome-unreachable"); a small note
+  // explains, and it goes away by itself once everything has arrived.
+  let netNote = null;
+  let netDismissed = false;
+  function showNetNote(unreachable) {
+    if (netDismissed || !document.body) return;
+    if (!netNote) {
+      netNote = el("div", "net-note");
+      netNote.setAttribute("role", "status");
+      const text = el("p", "net-note-text");
+      const retry = el("button", "btn btn-solid", "Try again");
+      retry.type = "button";
+      retry.addEventListener("click", () => window.location.reload());
+      const close = el("button", "net-note-close", "\u00d7");
+      close.type = "button";
+      close.setAttribute("aria-label", "Dismiss");
+      close.addEventListener("click", () => { netDismissed = true; netNote.remove(); netNote = null; });
+      netNote.append(text, retry, close);
+      document.body.appendChild(netNote);
+    }
+    // (a request that failed outright stays up until dismissed or retried)
+    if (unreachable) netNote.dataset.stuck = "1";
+    netNote.querySelector(".net-note-text").textContent = unreachable || netNote.dataset.stuck
+      ? "We're having trouble reaching Byome right now. Check your connection, or try again in a few minutes."
+      : "Byome is loading slowly right now. It's usually a hiccup with the service that stores our posts and reviews. Hang tight, or try again in a few minutes.";
+  }
+  document.addEventListener("byome-slow", () => showNetNote(false));
+  document.addEventListener("byome-unreachable", () => showNetNote(true));
+  document.addEventListener("byome-ok", () => {
+    if (netNote && !netNote.dataset.stuck) { netNote.remove(); netNote = null; }
+  });
+
   // ---------- Text limits ----------
   // Every text box with a limit gets a counter underneath ("120 / 2000").
   // Browsers count each line break as two characters toward maxlength, so
