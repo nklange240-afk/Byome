@@ -29,21 +29,36 @@ const KIND_LABELS = { message: "Message", block: "Block", feedback: "Feedback" }
 
 // Automod words in mod mail aren't held, just hidden until someone chooses
 // to read them (database/2026-11-25-modmail-automod.sql).
-// {offensive,strong} -> "may contain offensive and strong language"
+// What each kind means, since the names alone are easy to mix up
+const FLAG_MEANINGS = {
+  strong: "swearing",
+  explicit: "sexual words",
+  offensive: "slurs or hateful words",
+  harmful: "threats, self-harm or abuse",
+};
+
+// {offensive,strong} -> "may contain offensive and strong language
+// (slurs or hateful words; swearing)"
 function flagPhrase(flags) {
   if (!flags || !flags.length) return "";
   const list = flags.length === 1 ? flags[0] : flags.slice(0, -1).join(", ") + " and " + flags[flags.length - 1];
-  return "may contain " + list + " language";
+  return "may contain " + list + " language (" + flags.map((f) => FLAG_MEANINGS[f] || f).join("; ") + ")";
 }
 
-// A note in place of `content`, with a button to show it
-function hiddenBehind(content, what, flags, buttonText) {
+// A note in place of `content`, with a button to show it. Moderators are
+// reminded they can leave it for someone else.
+function hiddenBehind(content, what, flags, buttonText, forMods) {
   const wrap = el("div", "flagged-hidden");
   const note = el("p", "flagged-note", what + " " + flagPhrase(flags) + ".");
+  wrap.appendChild(note);
+  if (forMods) {
+    wrap.appendChild(el("p", "flagged-kind",
+      "If you'd rather not see it right now, that's completely okay. Leave it for another moderator."));
+  }
   const show = el("button", "btn btn-ghost flagged-show", buttonText);
   show.type = "button";
   show.addEventListener("click", () => { wrap.replaceWith(content); });
-  wrap.append(note, show);
+  wrap.appendChild(show);
   return wrap;
 }
 
@@ -299,7 +314,7 @@ async function showThread(id) {
   const title = el("h2", "modmail-thread-title");
   const subjectText = el("span", null, t.subject);
   title.append(el("span", "post-category-tag", KIND_LABELS[t.kind] || t.kind),
-    hideSubject ? hiddenBehind(subjectText, "The subject", t.subject_flags, "Show subject") : subjectText);
+    hideSubject ? hiddenBehind(subjectText, "The subject", t.subject_flags, "Show subject", t.as_mod) : subjectText);
   box.appendChild(title);
   if (params.get("sent") === "1") {
     box.appendChild(el("p", "modmail-sent", t.kind === "feedback"
@@ -326,7 +341,7 @@ async function showThread(id) {
     who.append(document.createTextNode(" · "), UI.timeTag(m.created_at));
     const text = el("p", "modmail-text", m.body);
     msg.append(who, !m.mine && m.flags && m.flags.length
-      ? hiddenBehind(text, "This message", m.flags, "Show message") : text);
+      ? hiddenBehind(text, "This message", m.flags, "Show message", t.as_mod) : text);
     list.appendChild(msg);
   });
   box.appendChild(list);

@@ -7338,9 +7338,17 @@ textarea.is-over {
 }
 
 .flagged-note {
+  flex-basis: 100%;
   margin: 0;
   font-style: italic;
   opacity: 0.85;
+}
+
+.flagged-kind {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: 0.88rem;
+  opacity: 0.8;
 }
 
 .flagged-show {
