@@ -25,6 +25,7 @@
     });
 
   showStarterChecklist();
+  if (typeof DAILY !== "undefined") DAILY.card(document.querySelector(".hero-text"), document.getElementById("hero-actions"));
 })();
 
 // ---------- Starter checklist ----------
