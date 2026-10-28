@@ -14,10 +14,11 @@
 --    1.5%  50 points              0.5%  an heirloom daily-surprise exclusive
 -- (until exclusives exist, those two give 50 and 150 points instead)
 --
--- EVENT CALENDARS: while an event is on, each day's surprise also adds a
--- stamp to the event's calendar (days don't need to be in a row). Stamps 2,
--- 4 and 6 give 15 bonus Byome points; stamp 7 gives the event's calendar
--- item (events.calendar_item), or 75 points if it has none.
+-- EVENT CALENDARS: during an event that has one (events.calendar = true),
+-- each day's surprise also adds a stamp to the event's calendar (days don't
+-- need to be in a row). Stamps 2, 4 and 6 give 15 bonus Byome points; stamp
+-- 7 gives the event's calendar item (events.calendar_item), or 75 points if
+-- it has none. The first calendar is planned for the Christmas event.
 --
 -- FIRST REVIEW OF THE DAY: 15 extra Byome points (25 in all) for each
 -- member's first published review each day.
@@ -25,8 +26,8 @@
 -- To add a daily-surprise exclusive once its art is ready:
 --   insert into biome_items (key, kind, size, name, description, rarity, image, daily_exclusive)
 --   values ('my-pot', 'pot', 'small', 'My pot', 'Only from the daily surprise.', 'rare', 'biome-assets/pot-my-pot.png', true);
--- To give an event a calendar item:
---   update events set calendar_item = 'item-key' where key = 'event-key';
+-- To give an event a calendar (and its stamp-7 item):
+--   update events set calendar = true, calendar_item = 'item-key' where key = 'event-key';
 --
 -- Run in the Supabase SQL Editor. Safe to run again. Paste the whole file
 -- with nothing highlighted. Run it before publishing the site update that
@@ -35,6 +36,7 @@
 
 -- Items only the daily surprise gives, and each event's calendar prize
 alter table public.biome_items add column if not exists daily_exclusive boolean not null default false;
+alter table public.events add column if not exists calendar boolean not null default false;
 alter table public.events add column if not exists calendar_item text references public.biome_items(key);
 
 -- Items from the daily surprise are marked as such
@@ -119,7 +121,7 @@ language sql stable security definer set search_path to public as $$
 $$;
 revoke execute on function public.daily_gift_json(daily_gifts) from public, anon, authenticated;
 
--- The event calendar for whichever event is on (null if none)
+-- The calendar of whichever event is on, if it has one (null if not)
 create or replace function public.daily_calendar(p_user uuid) returns jsonb
 language sql stable security definer set search_path to public as $$
   select jsonb_build_object(
@@ -129,7 +131,7 @@ language sql stable security definer set search_path to public as $$
                                        'size', i.size, 'rarity', i.rarity, 'over_pot', i.over_pot)
              from biome_items i where i.key = e.calendar_item))
   from events e
-  where now() >= e.starts_at and now() < e.ends_at
+  where e.calendar and now() >= e.starts_at and now() < e.ends_at
   order by e.starts_at desc limit 1
 $$;
 revoke execute on function public.daily_calendar(uuid) from public, anon, authenticated;
@@ -200,7 +202,7 @@ begin
   end if;
 
   -- The event calendar
-  select * into ev from events where now() >= starts_at and now() < ends_at order by starts_at desc limit 1;
+  select * into ev from events where calendar and now() >= starts_at and now() < ends_at order by starts_at desc limit 1;
   if found then
     g.event_key := ev.key;
     stamp := (select count(*) from daily_gifts where user_id = me and event_key = ev.key) + 1;
