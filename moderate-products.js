@@ -68,7 +68,7 @@ const LOG_WORDS = {
   approve: "approved", remove: "removed", keep: "kept (after a report)", reject: "rejected",
   edit: "edited", remove_avatar: "removed the profile picture of", reset_username: "reset the username of",
   remove_bio: "removed the bio of",
-  standout: "marked as standout",
+  standout: "marked as standout", merge: "merged",
 };
 const LOG_TYPES = {
   post: "post", comment: "comment", review: "review", review_update: "review update",
@@ -121,7 +121,7 @@ async function loadLog(more) {
 }
 
 async function loadQueue() {
-  const [{ data: products, error }, { data: everything }] = await Promise.all([
+  const [{ data: products, error }, { data: everything }, { data: waiting }] = await Promise.all([
     supabaseClient
       .from("products")
       .select("id, name, brand, category, subcategory, photo_url, variations, created_at, profiles!suggested_by(username)")
@@ -129,7 +129,11 @@ async function loadQueue() {
       .order("created_at", { ascending: true }),
     // Every live or waiting product, to spot repeat suggestions
     supabaseClient.from("products").select("id, name, brand, status, created_at").neq("status", "rejected"),
+    // Reviews written along with a suggestion (database/2026-11-22-review-new-products.sql;
+    // before that's run this just finds none)
+    supabaseClient.from("reviews").select("id, product_id, rating, title, body, variation").eq("awaiting_product", true),
   ]);
+  listedProducts = (everything || []).filter((o) => o.status === "approved");
 
   queueEl.innerHTML = "";
 
@@ -147,12 +151,129 @@ async function loadQueue() {
   // so the first of two repeat suggestions isn't the one marked duplicate
   products.forEach((p) => {
     const earlier = (everything || []).filter((o) => o.status === "approved" || new Date(o.created_at) < new Date(p.created_at));
-    queueEl.appendChild(buildQueueItem(p, PRODUCT_MATCH.similar(p, earlier)));
+    queueEl.appendChild(buildQueueItem(p, PRODUCT_MATCH.similar(p, earlier),
+      (waiting || []).filter((r) => r.product_id === p.id)));
   });
 }
 
+let listedProducts = []; // approved products, for "Merge into a listed product"
+
+// One line above the queue saying what the last merge did
+function showQueueNote(text, isError) {
+  let note = document.getElementById("queue-note");
+  if (!note) {
+    note = el("p", "auth-message");
+    note.id = "queue-note";
+    note.setAttribute("aria-live", "polite");
+    queueEl.parentNode.insertBefore(note, queueEl);
+  }
+  note.textContent = text;
+  note.style.color = isError ? "#E07A5F" : "var(--gold)";
+}
+
+// The review a member wrote along with their suggestion
+function buildWaitingReview(r) {
+  const box = el("div", "waiting-review");
+  box.appendChild(el("p", "similar-title", "Comes with a review"));
+  const leaves = "\u{1F343}".repeat(r.rating) + " " + r.rating + " of 5 leaves" + (r.variation ? " \u00b7 " + r.variation : "");
+  box.appendChild(el("p", "waiting-review-rating", leaves));
+  box.appendChild(el("p", "waiting-review-title", r.title));
+  box.appendChild(el("p", "post-body", r.body));
+  box.appendChild(el("p", "field-hint", "Approving or merging puts it live (unless automod would hold its words). Rejecting returns it to the member, so their words aren't lost."));
+  return box;
+}
+
+// Merging a repeat suggestion into the product that's already listed: its
+// review moves there and goes live, and new variations can be added to it.
+function buildMergeForm(product, presetTarget, onSaved, onCancel) {
+  const form = el("form", "edit-form merge-form");
+  let target = presetTarget || null;
+
+  const label = el("label", "field-label", "Which listed product is it?");
+  const search = el("input");
+  search.type = "text";
+  search.id = "merge-search-" + product.id;
+  label.htmlFor = search.id;
+  search.autocomplete = "off";
+  search.placeholder = "Search by brand or name...";
+  search.value = presetTarget ? presetTarget.brand + " " + presetTarget.name : product.brand + " " + product.name;
+  const results = el("ul", "merge-results");
+  const chosen = el("p", "merge-chosen");
+
+  function words(t) {
+    return t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().split(/\s+/).filter(Boolean);
+  }
+  function paintChosen() {
+    chosen.textContent = target ? "Merging into: " + target.brand + " \u2014 " + target.name : "Choose a product from the list.";
+    confirmBtn.disabled = !target;
+  }
+  function render() {
+    const q = words(search.value);
+    // best matches first: the suggestion's look-alikes, then plain word matches
+    const alike = PRODUCT_MATCH.similar({ brand: product.brand, name: search.value }, listedProducts).map((m) => m.product);
+    const plain = listedProducts.filter((p) => {
+      const text = words(p.brand + " " + p.name).join(" ");
+      return q.length && q.every((w) => text.includes(w));
+    });
+    const shown = alike.concat(plain.filter((p) => alike.indexOf(p) === -1)).slice(0, 6);
+    results.replaceChildren();
+    if (!shown.length) results.appendChild(el("li", "feed-empty", "No listed product matches that."));
+    shown.forEach((p) => {
+      const li = el("li");
+      const pick = el("button", "link-btn", p.brand + " \u2014 " + p.name);
+      pick.type = "button";
+      pick.addEventListener("click", () => { target = p; paintChosen(); });
+      li.appendChild(pick);
+      results.appendChild(li);
+    });
+  }
+  search.addEventListener("input", render);
+
+  const addRow = el("label", "check-row");
+  const addBox = el("input");
+  addBox.type = "checkbox";
+  addBox.checked = true;
+  const realVariations = (product.variations || []).filter((v) => !PRODUCT_MATCH.looksLikeSize(v));
+  addRow.append(addBox, " Also add its variations to the listed product, if they're new (" + realVariations.join(", ") + ")");
+  addRow.hidden = realVariations.length === 0;
+
+  const message = el("p", "auth-message");
+  message.setAttribute("aria-live", "polite");
+  const buttons = el("div", "edit-buttons");
+  const confirmBtn = el("button", "btn btn-solid", "Merge");
+  confirmBtn.type = "submit";
+  const cancel = el("button", "action-btn", "Cancel");
+  cancel.type = "button";
+  cancel.addEventListener("click", onCancel);
+  buttons.append(confirmBtn, cancel);
+  form.append(label, search, results, chosen, addRow,
+    el("p", "field-hint", "The suggestion is removed. Its review moves to the listed product and goes live (if the member had already reviewed that product, the new review is returned to them instead). They're told either way."),
+    buttons, message);
+  render();
+  paintChosen();
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (!target) return;
+    confirmBtn.disabled = true;
+    const { data, error } = await supabaseClient.rpc("merge_product_suggestion",
+      { p_product: product.id, p_into: target.id, p_add_variations: addBox.checked });
+    if (error) {
+      message.textContent = error.message.indexOf("merge_product_suggestion") !== -1
+        ? "Merging isn't set up yet: run database/2026-11-22-review-new-products.sql first."
+        : error.message;
+      message.style.color = "#E07A5F";
+      confirmBtn.disabled = false;
+      return;
+    }
+    showQueueNote(data);
+    onSaved();
+  });
+  return form;
+}
+
 // matches: products that look like this one (see product-match.js)
-function buildQueueItem(product, matches) {
+function buildQueueItem(product, matches, waitingReviews) {
   const article = el("article", "post");
 
   // Read-only view of the suggestion
@@ -201,6 +322,7 @@ function buildQueueItem(product, matches) {
 
   const suggestedBy = product.profiles ? product.profiles.username : "Unknown";
   view.appendChild(el("p", "feed-empty", "Suggested by " + suggestedBy));
+  (waitingReviews || []).forEach((r) => view.appendChild(buildWaitingReview(r)));
 
   article.appendChild(view);
 
@@ -244,7 +366,23 @@ function buildQueueItem(product, matches) {
   }
   rejectBtn.addEventListener("click", () => openRejectForm());
 
-  actions.append(approveBtn, editBtn, rejectBtn);
+  function openMergeForm(presetTarget) {
+    if (article.querySelector(".edit-form")) return;
+    view.hidden = true;
+    actions.hidden = true;
+    const form = buildMergeForm(product, presetTarget, loadQueue, () => {
+      form.remove();
+      view.hidden = false;
+      actions.hidden = false;
+    });
+    article.appendChild(form);
+    form.querySelector("input").focus();
+  }
+  const mergeBtn = el("button", "action-btn mod-btn", "Merge into a listed product");
+  mergeBtn.type = "button";
+  mergeBtn.addEventListener("click", () => openMergeForm());
+
+  actions.append(approveBtn, editBtn, rejectBtn, mergeBtn);
 
   // Possible repeat: show what it looks like, plus a one-click duplicate rejection
   if (matches && matches.length) {
@@ -259,13 +397,22 @@ function buildQueueItem(product, matches) {
     view.appendChild(box);
 
     const best = matches[0].product;
-    const dupBtn = el("button", "action-btn mod-btn is-bad", "Reject as duplicate");
-    dupBtn.type = "button";
-    dupBtn.addEventListener("click", () => openRejectForm(
-      best.status === "approved"
-        ? "Thanks! This product is already listed as \u201c" + best.brand + " \u2014 " + best.name + "\u201d, so you can review it there."
-        : "Thanks! Someone suggested this product just before you, so it's already on its way."));
-    actions.appendChild(dupBtn);
+    if (best.status === "approved") {
+      // A repeat of a listed product: merge it there (keeps any review)
+      const intoBtn = el("button", "action-btn mod-btn is-good", "Merge into " + best.brand + " \u2014 " + best.name);
+      intoBtn.type = "button";
+      intoBtn.addEventListener("click", () => openMergeForm(best));
+      actions.appendChild(intoBtn);
+    } else {
+      if (waitingReviews && waitingReviews.length) {
+        box.appendChild(el("p", "field-hint", "This one comes with a review, so approve the earlier suggestion first, then merge this one into it to keep the review."));
+      }
+      const dupBtn = el("button", "action-btn mod-btn is-bad", "Reject as duplicate");
+      dupBtn.type = "button";
+      dupBtn.addEventListener("click", () => openRejectForm(
+        "Thanks! Someone suggested this product just before you, so it's already on its way."));
+      actions.appendChild(dupBtn);
+    }
   }
   article.appendChild(actions);
 
@@ -416,7 +563,12 @@ async function loadHeld() {
   const [posts, comments, reviews, updates] = await Promise.all([
     held(supabaseClient.from("posts").select("id, title, body, held_at, profiles!user_id(username), polls(poll_options(label, position))")),
     held(supabaseClient.from("comments").select("id, body, held_at, profiles!user_id(username), posts!post_id(title)")),
-    held(supabaseClient.from("reviews").select("id, title, body, held_at, profiles!user_id(username), products!product_id(brand, name)")),
+    // (reviews waiting for their product show with the suggestion instead)
+    held(supabaseClient.from("reviews").select("id, title, body, held_at, profiles!user_id(username), products!product_id(brand, name)")
+      .eq("awaiting_product", false))
+      .then((res) => res.error && /awaiting_product/.test(res.error.message)
+        ? held(supabaseClient.from("reviews").select("id, title, body, held_at, profiles!user_id(username), products!product_id(brand, name)"))
+        : res),
     held(supabaseClient.from("review_updates").select("id, body, held_at, profiles!user_id(username), reviews!review_id(title)")),
   ]);
 

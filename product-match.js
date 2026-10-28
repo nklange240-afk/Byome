@@ -46,6 +46,11 @@ const PRODUCT_MATCH = (function () {
   function nameScore(a, b) {
     const x = new Set(words(a)), y = new Set(words(b));
     if (!x.size || !y.size) return 0;
+    // Spaces don't matter: "Cloudpaint" is "Cloud Paint"
+    const jx = Array.from(x).join(""), jy = Array.from(y).join("");
+    if (jx === jy) return 1;
+    const shorter = jx.length < jy.length ? jx : jy, longer = shorter === jx ? jy : jx;
+    if (shorter.length >= 8 && longer.includes(shorter)) return 0.9;
     let shared = 0;
     x.forEach((w) => { if (Array.from(y).some((v) => sameWord(w, v))) shared++; });
     // every word of the shorter name appears in the longer one

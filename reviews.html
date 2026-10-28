@@ -24,8 +24,8 @@
   <meta name="twitter:card" content="summary_large_image" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=140" />
-  <script src="a11y.js?v=140"></script>
+  <link rel="stylesheet" href="style.css?v=141" />
+  <script src="a11y.js?v=141"></script>
 </head>
 <body data-biome="forest">
   <header class="site-header">
@@ -58,6 +58,35 @@
         <label for="review-variation" class="field-label">Variation</label>
         <select id="review-variation"></select>
       </div>
+      <p id="new-product-line" class="new-product-line">Not on Byome yet? <button type="button" id="new-product-open" class="link-btn">Add it with your review</button></p>
+      <!-- A product that isn't listed yet: it goes to a moderator with the review (reviews.js) -->
+      <fieldset id="new-product-field" class="new-product-field" hidden>
+        <legend class="field-label">Add a new product</legend>
+        <p class="field-hint">A moderator checks new products, usually within a day. Your review goes live as soon as the product is approved.</p>
+        <label for="np-brand" class="field-label">Brand</label>
+        <input type="text" id="np-brand" maxlength="80" autocomplete="off" />
+        <label for="np-name" class="field-label">Product name</label>
+        <input type="text" id="np-name" maxlength="150" autocomplete="off" />
+        <div id="np-similar" class="similar-box" aria-live="polite" hidden></div>
+        <label for="np-category" class="field-label">Category</label>
+        <select id="np-category">
+          <option value="">Choose a category...</option>
+          <option value="Hair Care">Hair Care</option>
+          <option value="Body Care">Body Care</option>
+          <option value="Makeup">Makeup</option>
+          <option value="Skincare">Skincare</option>
+          <option value="Fragrance">Fragrance</option>
+          <option value="Nail Products">Nail Products</option>
+        </select>
+        <label for="np-subcategory" class="field-label">Subcategory</label>
+        <select id="np-subcategory" disabled>
+          <option value="">Choose a category first</option>
+        </select>
+        <label for="np-variation" class="field-label">Shade or scent you used (optional)</label>
+        <input type="text" id="np-variation" maxlength="100" autocomplete="off" placeholder="e.g. Rose" />
+        <p id="np-size-warning" class="field-hint field-warning" aria-live="polite" hidden></p>
+        <button type="button" id="new-product-close" class="link-btn">Choose a listed product instead</button>
+      </fieldset>
       <fieldset class="rating-field">
         <legend class="field-label">Rating</legend>
         <div id="rating-leaves" class="rating-leaves"></div>
@@ -94,7 +123,7 @@
     </form>
     <p id="review-message" class="auth-message" aria-live="polite"></p>
     <section id="product-summary" class="product-summary" hidden></section>
-    <p class="feed-empty" id="suggest-line">Can't find a product? <a href="suggest-product.html" class="inline-link">Suggest it</a>.</p>
+    <p class="feed-empty" id="suggest-line">Can't find a product? <button type="button" id="suggest-with-review" class="link-btn">Add it with your review</button>, or just <a href="suggest-product.html" class="inline-link">suggest it</a>.</p>
 
     <div class="review-search">
       <label for="review-search" class="visually-hidden">Search reviews by product or brand</label>
@@ -133,12 +162,13 @@
     </section>
   </main>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase-client.js?v=140"></script>
-  <script src="profile-fields.js?v=140"></script>
-  <script src="nav-menu.js?v=140"></script>
-  <script src="ui.js?v=140"></script>
-  <script src="edit-forms.js?v=140"></script>
-  <script src="report.js?v=140"></script>
-  <script src="reviews.js?v=140"></script>
+  <script src="supabase-client.js?v=141"></script>
+  <script src="profile-fields.js?v=141"></script>
+  <script src="nav-menu.js?v=141"></script>
+  <script src="ui.js?v=141"></script>
+  <script src="edit-forms.js?v=141"></script>
+  <script src="report.js?v=141"></script>
+  <script src="product-match.js?v=141"></script>
+  <script src="reviews.js?v=141"></script>
 </body>
 </html>

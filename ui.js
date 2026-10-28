@@ -179,9 +179,17 @@ const UI = (function () {
     ["other", "Something else"],
   ];
 
+  // Reasons the database gives on its own, for a review written along with
+  // a product suggestion (database/2026-11-22-review-new-products.sql).
+  // Not moderator choices, so they're kept out of the list above.
+  const RETURN_REASONS = {
+    product_not_approved: "The product wasn't added to Byome",
+    already_reviewed: "You'd already reviewed that product",
+  };
+
   function removalReasonLabel(key) {
     const found = REMOVAL_REASONS.find(([k]) => k === key);
-    return found ? found[1] : null;
+    return found ? found[1] : RETURN_REASONS[key] || null;
   }
 
   // ---------- Friendly dates ----------
