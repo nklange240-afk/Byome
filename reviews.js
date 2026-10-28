@@ -386,7 +386,7 @@ async function showProductPage() {
   document.getElementById("product-back").hidden = false;
 
   const [productRes, statsRes] = await Promise.all([
-    supabaseClient.from("products").select("id, name, brand, photo_url, category, subcategory")
+    supabaseClient.from("products").select("id, name, brand, photo_url, category, subcategory, variations")
       .eq("id", productParam).maybeSingle(),
     supabaseClient.from("reviews").select("rating, would_repurchase, holy_grail, profiles!user_id(skin_type)")
       .eq("product_id", productParam).is("held_at", null).limit(2000),
@@ -420,6 +420,25 @@ async function showProductPage() {
   }
   head.appendChild(who);
   summary.appendChild(head);
+
+  // Its shades or scents, and a way to suggest a new one (only for
+  // products that come in variations)
+  if (product.variations && product.variations.length) {
+    const shades = el("p", "product-variations");
+    shades.append(el("strong", null, "Comes in: "), document.createTextNode(product.variations.join(", ")));
+    summary.appendChild(shades);
+    if (currentUser) {
+      const add = el("button", "link-btn", "Missing one? Suggest a new shade or scent");
+      add.type = "button";
+      add.addEventListener("click", () => {
+        const form = UI.variationForm(product, () => { form.remove(); add.hidden = false; add.focus(); });
+        add.hidden = true;
+        add.after(form);
+        form.querySelector("input").focus();
+      });
+      summary.appendChild(add);
+    }
+  }
 
   const statsBox = el("div", "product-stats");
   summary.appendChild(statsBox);
@@ -531,7 +550,7 @@ async function init() {
     if (suggestLine) suggestLine.remove();
   }
 
-  await loadProducts();
+  await Promise.all([loadProducts(), loadMyPendingProducts()]);
   if (productParam) await showProductPage();
   loadReviews();
 }
@@ -545,7 +564,6 @@ async function loadProducts() {
   if (products.length === 0) {
     brandSearch.setBrands([]);
     showProductsForBrand("");
-    form.querySelector("button[type=submit]").disabled = true;
     return;
   }
 
@@ -637,9 +655,10 @@ function buildBrandSearch() {
     list.innerHTML = "";
     if (shown.length === 0) {
       const li = el("li", "combo-empty", "No brand matches that. ");
-      const link = el("a", "inline-link", "Suggest a product");
-      link.href = "suggest-product.html";
-      li.appendChild(link);
+      const add = el("button", "link-btn", "Add the product with your review");
+      add.type = "button";
+      add.addEventListener("click", () => { close(); setAddingProduct(true, input.value.trim()); });
+      li.appendChild(add);
       list.appendChild(li);
     }
     shown.forEach((b, i) => {
@@ -697,6 +716,11 @@ function buildBrandSearch() {
       input.disabled = list.length === 0;
       input.placeholder = list.length ? "Start typing a brand..." : "No approved products yet";
     },
+    // pick a brand by its name (from "Is it one of these?")
+    choose(label) {
+      const hit = brands.find((b) => b.key === brandKey(label));
+      if (hit) choose(hit);
+    },
   };
 }
 
@@ -712,6 +736,177 @@ productSelect.addEventListener("change", () => {
     variationField.hidden = true;
   }
   variationDropdown.refresh();
+});
+
+// ---------- Adding a product that isn't on Byome yet ----------
+// "Add it with your review" swaps the brand and product pickers for a few
+// product fields. On posting, the product goes to the moderators as a
+// suggestion and the review waits with it: it goes live as soon as the
+// product is approved (database/2026-11-22-review-new-products.sql).
+const newProductLine = document.getElementById("new-product-line");
+const newProductField = document.getElementById("new-product-field");
+const npBrand = document.getElementById("np-brand");
+const npName = document.getElementById("np-name");
+const npCategory = document.getElementById("np-category");
+const npSubcategory = document.getElementById("np-subcategory");
+const npVariation = document.getElementById("np-variation");
+const npSimilar = document.getElementById("np-similar");
+const npSizeWarning = document.getElementById("np-size-warning");
+const pickerParts = [document.getElementById("review-brand").parentNode,
+  document.querySelector('label[for="review-brand"]'), document.querySelector('label[for="review-product"]')];
+let addingProduct = false;
+let myPendingProducts = []; // your own suggestions still waiting, for the "already suggested" check
+let savedNewProductId = null; // if the product saved but the review didn't, posting again reuses it
+
+function setAddingProduct(on, brandText) {
+  addingProduct = on;
+  newProductField.hidden = !on;
+  newProductLine.hidden = on;
+  pickerParts.forEach((part) => { part.hidden = on; });
+  productSelect.closest(".dropdown").hidden = on;
+  productSelect.required = !on;
+  if (on) {
+    variationField.hidden = true;
+    if (brandText !== undefined) npBrand.value = brandText;
+    (npBrand.value ? npName : npBrand).focus();
+    showNewProductMatches();
+  } else {
+    productSelect.dispatchEvent(new Event("change", { bubbles: true }));
+  }
+}
+
+document.getElementById("new-product-open").addEventListener("click", () =>
+  setAddingProduct(true, document.getElementById("review-brand").value.trim()));
+document.getElementById("suggest-with-review").addEventListener("click", () => {
+  setWriting(true);
+  setAddingProduct(true, "");
+  form.scrollIntoView({ block: "start" });
+});
+document.getElementById("new-product-close").addEventListener("click", () => {
+  setAddingProduct(false);
+  document.getElementById("review-brand").focus();
+});
+
+npCategory.addEventListener("change", () => {
+  const options = SUBCATEGORIES[npCategory.value] || [];
+  npSubcategory.innerHTML = "";
+  npSubcategory.appendChild(option("", options.length ? "Choose a subcategory..." : "Choose a category first"));
+  options.forEach((label) => npSubcategory.appendChild(option(label, label)));
+  npSubcategory.disabled = options.length === 0;
+  npSubcategoryDropdown.refresh();
+});
+
+// "Is it one of these?" Products already on Byome that look like the one
+// being typed. Choosing one goes back to the normal pickers with it chosen.
+function newProductMatches() {
+  return PRODUCT_MATCH.similar({ brand: npBrand.value, name: npName.value },
+    products.map((p) => Object.assign({ status: "approved" }, p)).concat(myPendingProducts));
+}
+
+function showNewProductMatches() {
+  const matches = npName.value.trim() ? newProductMatches().slice(0, 3) : [];
+  npSimilar.replaceChildren();
+  npSimilar.hidden = matches.length === 0;
+  if (!matches.length) return;
+  npSimilar.appendChild(el("p", "similar-title",
+    matches.length === 1 ? "Is it this one? It's already on Byome:" : "Is it one of these? They're already on Byome:"));
+  const list = el("ul");
+  matches.forEach(({ product }) => {
+    const li = el("li");
+    const label = product.brand + " \u2014 " + product.name;
+    if (product.status === "approved") {
+      const pick = el("button", "link-btn similar-pick", label);
+      pick.type = "button";
+      pick.addEventListener("click", () => chooseListedProduct(product));
+      li.appendChild(pick);
+    } else {
+      li.textContent = label + " (you suggested this already; it's waiting for a moderator)";
+    }
+    list.appendChild(li);
+  });
+  npSimilar.appendChild(list);
+}
+
+function chooseListedProduct(product) {
+  setAddingProduct(false);
+  brandSearch.choose(product.brand);
+  productSelect.value = product.id;
+  productSelect.dispatchEvent(new Event("change", { bubbles: true }));
+  productDropdown.refresh();
+  messageEl.textContent = "Great, " + product.brand + " \u2014 " + product.name + " is chosen.";
+  messageEl.style.color = "var(--cream)";
+}
+
+let npTimer = null;
+[npBrand, npName].forEach((input) => input.addEventListener("input", () => {
+  savedNewProductId = null; // a different product now
+  clearTimeout(npTimer);
+  npTimer = setTimeout(showNewProductMatches, 250);
+}));
+
+// Sizes aren't variations (same note as the suggest page)
+npVariation.addEventListener("input", () => {
+  const isSize = PRODUCT_MATCH.looksLikeSize(npVariation.value.trim());
+  npSizeWarning.hidden = !isSize;
+  npSizeWarning.textContent = isSize
+    ? "\u201c" + npVariation.value.trim() + "\u201d looks like a size. Sizes aren't variations (reviews cover every size of a product), so please leave it out."
+    : "";
+});
+
+// Checks the product fields, then saves the product. Returns its id, or
+// null (with the reason shown) if it can't be saved.
+async function saveNewProduct() {
+  const brand = npBrand.value.trim();
+  const name = npName.value.trim();
+  const variation = npVariation.value.trim();
+  const problem = !brand ? "Please add the product's brand."
+    : !name ? "Please add the product's name."
+    : !npCategory.value ? "Please choose a category for the product."
+    : !npSubcategory.value ? "Please choose a subcategory for the product."
+    : PRODUCT_MATCH.looksLikeSize(variation) ? "Please leave the size out of the shade or scent box."
+    : "";
+  if (problem) { showFormError(problem); return null; }
+  if (savedNewProductId) return savedNewProductId;
+
+  // A near-certain match gets one last check
+  const best = newProductMatches()[0];
+  if (best && best.score === 1 &&
+      !confirm(best.product.brand + " \u2014 " + best.product.name + " looks like the same product. Add yours anyway?")) {
+    messageEl.textContent = "";
+    return null;
+  }
+
+  const id = crypto.randomUUID();
+  const { error } = await supabaseClient.from("products").insert({
+    id: id,
+    name: name,
+    brand: brand,
+    category: npCategory.value,
+    subcategory: npSubcategory.value,
+    variations: variation ? [variation] : [],
+    suggested_by: currentUser.id,
+  });
+  if (error) { showFormError(error.message); return null; }
+  savedNewProductId = id;
+  return id;
+}
+
+function showFormError(text) {
+  messageEl.textContent = text;
+  messageEl.style.color = "#E07A5F";
+}
+
+async function loadMyPendingProducts() {
+  if (!currentUser) return;
+  const { data } = await supabaseClient.from("products")
+    .select("id, name, brand, status").eq("status", "pending").eq("suggested_by", currentUser.id);
+  myPendingProducts = data || [];
+}
+
+form.addEventListener("reset", () => {
+  npSimilar.hidden = true;
+  npSizeWarning.hidden = true;
+  setTimeout(() => { npCategory.dispatchEvent(new Event("change")); npCategoryDropdown.refresh(); }, 0);
 });
 
 let latestReviewsRequest = 0;
@@ -1158,23 +1353,36 @@ form.addEventListener("submit", async (event) => {
   messageEl.textContent = "Posting...";
   messageEl.style.color = "var(--cream)";
 
+  const newProduct = addingProduct;
+  const productId = newProduct ? await saveNewProduct() : productSelect.value;
+  if (!productId) return;
+
   const { data: saved, error } = await supabaseClient.from("reviews").insert({
-    product_id: productSelect.value,
+    product_id: productId,
     user_id: currentUser.id,
     rating: Number(form.elements["rating"].value),
     title: titleInput.value.trim(),
     body: bodyInput.value.trim(),
-    variation: variationSelect.value || null,
+    variation: (newProduct ? npVariation.value.trim() : variationSelect.value) || null,
     ...extras.get(),
     ...eventChoices(),
   }).select("held_at").single();
 
   if (error) {
-    messageEl.textContent = error.message;
-    messageEl.style.color = "#E07A5F";
+    showFormError(newProduct
+      ? "Your product was sent to the moderators, but your review couldn't be posted: " + error.message +
+        " Your words are still here, so you can try again."
+      : error.message);
     return;
   }
-  if (saved && saved.held_at) {
+  if (newProduct) {
+    messageEl.textContent = "Thanks! A moderator will check the new product soon, usually within a day. " +
+      "Your review goes live as soon as it's approved, and we'll let you know.";
+    messageEl.style.color = "var(--gold)";
+    savedNewProductId = null;
+    setAddingProduct(false);
+    loadMyPendingProducts();
+  } else if (saved && saved.held_at) {
     messageEl.textContent = "Thanks! Your review is waiting for a quick check by a moderator before everyone can see it.";
     messageEl.style.color = "var(--gold)";
   } else {
@@ -1189,6 +1397,8 @@ form.addEventListener("submit", async (event) => {
 const brandSearch = buildBrandSearch();
 const productDropdown = enhanceSelect(productSelect);
 const variationDropdown = enhanceSelect(variationSelect);
+const npCategoryDropdown = enhanceSelect(npCategory);
+const npSubcategoryDropdown = enhanceSelect(npSubcategory);
 buildRatingWidget();
 const extras = buildExtras();
 init();

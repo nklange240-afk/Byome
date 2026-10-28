@@ -179,9 +179,71 @@ const UI = (function () {
     ["other", "Something else"],
   ];
 
+  // Reasons the database gives on its own, for a review written along with
+  // a product suggestion (database/2026-11-22-review-new-products.sql).
+  // Not moderator choices, so they're kept out of the list above.
+  const RETURN_REASONS = {
+    product_not_approved: "The product wasn't added to Byome",
+    already_reviewed: "You'd already reviewed that product",
+  };
+
   function removalReasonLabel(key) {
     const found = REMOVAL_REASONS.find(([k]) => k === key);
-    return found ? found[1] : null;
+    return found ? found[1] : RETURN_REASONS[key] || null;
+  }
+
+  // ---------- Suggesting a new variation of a listed product ----------
+  // A small form for a new shade or scent of `product` ({ id, brand, name }).
+  // A moderator checks it (database/2026-11-23-variation-suggestions.sql).
+  function variationForm(product, onCancel) {
+    const form = el("form", "variation-form");
+    const id = "new-variation-" + product.id;
+    const label = el("label", "field-label", "New shade or scent of " + product.brand + " \u2014 " + product.name);
+    label.htmlFor = id;
+    const input = el("input");
+    input.type = "text";
+    input.id = id;
+    input.maxLength = 100;
+    input.required = true;
+    input.autocomplete = "off";
+    input.placeholder = "e.g. Rosewood";
+    const warning = el("p", "field-hint field-warning");
+    warning.setAttribute("aria-live", "polite");
+    warning.hidden = true;
+    input.addEventListener("input", () => {
+      const isSize = typeof PRODUCT_MATCH !== "undefined" && PRODUCT_MATCH.looksLikeSize(input.value.trim());
+      warning.hidden = !isSize;
+      warning.textContent = isSize ? "That looks like a size. Sizes aren't variations (reviews cover every size of a product)." : "";
+    });
+    const buttons = el("div", "edit-buttons");
+    const send = el("button", "btn btn-solid", "Suggest it");
+    send.type = "submit";
+    buttons.appendChild(send);
+    if (onCancel) {
+      const cancel = el("button", "action-btn", "Cancel");
+      cancel.type = "button";
+      cancel.addEventListener("click", onCancel);
+      buttons.appendChild(cancel);
+    }
+    const message = el("p", "auth-message");
+    message.setAttribute("aria-live", "polite");
+    form.append(label, input, warning, buttons, message);
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      send.disabled = true;
+      const { data, error } = await supabaseClient.rpc("suggest_variation", { p_product: product.id, p_variation: input.value });
+      send.disabled = false;
+      if (error) {
+        message.textContent = /suggest_variation/.test(error.message) ? "Suggesting variations isn't switched on yet. Please try again soon." : error.message;
+        message.style.color = "#E07A5F";
+        return;
+      }
+      message.textContent = data;
+      message.style.color = "var(--gold)";
+      input.value = "";
+    });
+    return form;
   }
 
   // ---------- Friendly dates ----------
@@ -1128,5 +1190,5 @@ const UI = (function () {
     if (document.body.dataset.biome) setBiome(document.body.dataset.biome);
   });
 
-  return { liveEvent, eventBanner, centralTime, iconOrLabel, reviewIcons, openAccessibility, REMOVAL_REASONS, removalReasonLabel, friendlyDate, timeTag, emptyState, celebrate, checkAchievements, sparkles, itemArt, soilImage, sizeName, sizeBadge, setBiome, biomeSymbol, memberBadge, biomeSwatch, biomeLook, biomePreview, openBiomePreview, previewOnHover, previewButton, startModSession, refreshLimits };
+  return { liveEvent, eventBanner, centralTime, iconOrLabel, reviewIcons, openAccessibility, REMOVAL_REASONS, removalReasonLabel, friendlyDate, timeTag, emptyState, celebrate, checkAchievements, sparkles, itemArt, soilImage, sizeName, sizeBadge, setBiome, biomeSymbol, memberBadge, biomeSwatch, biomeLook, biomePreview, openBiomePreview, previewOnHover, previewButton, startModSession, refreshLimits, variationForm };
 })();

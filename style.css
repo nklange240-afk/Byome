@@ -7098,3 +7098,152 @@ textarea.is-over {
 .profile-helpful .leaf-body {
   fill: currentColor;
 }
+
+/* =========================================================
+   REVIEW FORM: ADDING A PRODUCT THAT ISN'T ON BYOME YET
+   ========================================================= */
+.new-product-line {
+  font-size: 0.9rem;
+  margin: 0.1rem 0 0.7rem;
+  opacity: 0.9;
+}
+
+.new-product-line .link-btn,
+.similar-pick {
+  padding: 0;
+  font-size: inherit;
+  text-align: left;
+}
+
+.new-product-field {
+  border: 1px dashed var(--moss);
+  border-radius: 8px;
+  padding: 0.5rem 0.9rem 0.9rem;
+  margin: 0 0 0.9rem;
+}
+
+.new-product-field legend {
+  padding: 0 0.3rem;
+  font-weight: 600;
+  opacity: 1;
+}
+
+.new-product-field > .field-hint {
+  margin: 0 0 0.4rem;
+}
+
+.new-product-field input[type="text"] {
+  width: 100%;
+  margin-bottom: 0.6rem;
+  background-color: var(--forest-dark);
+  border: 1px solid var(--moss);
+  border-radius: 6px;
+  padding: 0.6rem 0.8rem;
+  color: var(--cream);
+  font-family: var(--font-body);
+  font-size: 1rem;
+}
+
+.new-product-field input[type="text"]:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+/* Moderate page: the review that came with a suggestion, and merging */
+.waiting-review {
+  margin: 0.6rem 0 0.4rem;
+  padding: 0.6rem 0.8rem;
+  border-left: 3px solid var(--leaf);
+  background-color: rgba(127, 176, 105, 0.08);
+  border-radius: 0 6px 6px 0;
+}
+
+.waiting-review .similar-title {
+  color: var(--leaf);
+}
+
+.waiting-review-rating {
+  font-size: 0.9rem;
+}
+
+.waiting-review-title {
+  font-weight: 600;
+  margin: 0.2rem 0;
+}
+
+.merge-form input[type="text"] {
+  width: 100%;
+  background-color: var(--forest-dark);
+  border: 1px solid var(--moss);
+  border-radius: 6px;
+  padding: 0.6rem 0.8rem;
+  color: var(--cream);
+  font-family: var(--font-body);
+  font-size: 1rem;
+}
+
+.merge-results {
+  list-style: none;
+  margin: 0.4rem 0;
+  padding: 0;
+}
+
+.merge-results .link-btn {
+  padding: 0.2rem 0;
+  text-align: left;
+}
+
+.merge-chosen {
+  font-weight: 600;
+  margin: 0.3rem 0 0.5rem;
+}
+
+/* =========================================================
+   NEW SHADES AND SCENTS (product page, suggest page)
+   ========================================================= */
+.product-variations {
+  margin: 0.6rem 0 0.1rem;
+  font-size: 0.95rem;
+}
+
+.product-summary > .link-btn {
+  padding-top: 0.2rem;
+  margin-bottom: 0.6rem;
+}
+
+.variation-form {
+  margin: 0.4rem 0 0.8rem;
+}
+
+.variation-form input[type="text"] {
+  width: 100%;
+  background-color: var(--forest-dark);
+  border: 1px solid var(--moss);
+  border-radius: 6px;
+  padding: 0.6rem 0.8rem;
+  color: var(--cream);
+  font-family: var(--font-body);
+  font-size: 1rem;
+}
+
+.variation-entry {
+  margin: 0 0 1.2rem;
+  padding: 0.6rem 0.8rem;
+  border: 1px dashed var(--moss);
+  border-radius: 8px;
+  font-size: 0.95rem;
+}
+
+.variation-entry .link-btn {
+  padding: 0.2rem 0 0;
+  font-size: inherit;
+  text-align: left;
+}
+
+.variation-entry .stacked-form {
+  margin-top: 0.6rem;
+}
+
+.variation-form .edit-buttons {
+  margin-top: 0.6rem;
+}

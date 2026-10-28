@@ -968,7 +968,7 @@ async function showAchievements(profileId) {
 // ---------- Returned to you ----------
 // When a moderator removes a post or review, its author keeps a private
 // copy here. Revising and resubmitting posts it again, held for a
-// moderator before anyone else sees it; "Let it go" deletes the copy.
+// moderator before anyone else sees it; "Delete" removes the copy for good.
 async function showReturned(profile, isMe) {
   const box = document.getElementById("returned");
   const { data: items, error } = await supabaseClient.from("returned_content")
@@ -986,8 +986,8 @@ async function showReturned(profile, isMe) {
   box.replaceChildren();
   box.appendChild(el("h2", "section-title", "Returned to you"));
   box.appendChild(el("p", "returned-intro",
-    "A moderator removed these because they didn't follow the community guidelines. Only you can see them. " +
-    "You can revise one and resubmit it (a moderator will look it over before it goes up), or let it go."));
+    "Only you can see these, and each one says why it came back. " +
+    "You can revise a removed post or review and resubmit it (a moderator will look it over before it goes up), or delete it."));
   items.forEach((item) => box.appendChild(returnedCard(item, names, profile, isMe)));
   box.hidden = false;
 }
@@ -997,8 +997,11 @@ function returnedCard(item, names, profile, isMe) {
   const what = item.kind === "review"
     ? "Your review of " + (names[item.product_id] || "a product")
     : "Your post";
+  // A review that came with a product suggestion, returned by the database
+  // rather than removed by a moderator
+  const productReturn = item.reason === "product_not_approved" || item.reason === "already_reviewed";
   const head = el("p", "returned-what");
-  head.append(document.createTextNode(what + " \u00b7 removed "), UI.timeTag(item.removed_at));
+  head.append(document.createTextNode(what + (productReturn ? " \u00b7 returned " : " \u00b7 removed ")), UI.timeTag(item.removed_at));
   card.appendChild(head);
   // Why it was removed, and the moderator's note
   const reasonLabel = item.reason ? UI.removalReasonLabel(item.reason) : null;
@@ -1024,13 +1027,26 @@ function returnedCard(item, names, profile, isMe) {
   const actions = el("div", "post-actions");
   const revise = el("button", "btn btn-solid", "Revise and resubmit");
   revise.type = "button";
-  const letGo = el("button", "btn btn-ghost", "Let it go");
+  const letGo = el("button", "btn btn-ghost", "Delete");
   letGo.type = "button";
-  actions.append(revise, letGo);
+  if (productReturn) {
+    // Nothing to resubmit: the words are kept here to reuse
+    card.appendChild(el("p", "field-hint", item.reason === "already_reviewed"
+      ? "Your words are kept here, so you can add them as an update to the review you already wrote."
+      : "Your words are kept here, so you can reuse them if the product is added later."));
+    if (item.reason === "already_reviewed" && item.product_id) {
+      const go = el("a", "btn btn-solid", "Go to your review");
+      go.href = "reviews.html?product=" + encodeURIComponent(item.product_id);
+      actions.append(go);
+    }
+    actions.append(letGo);
+  } else {
+    actions.append(revise, letGo);
+  }
   card.append(actions, message);
 
   letGo.addEventListener("click", async () => {
-    if (!confirm("Let this go? It will be deleted for good.")) return;
+    if (!confirm("Delete this for good? You won't be able to get it back.")) return;
     const { error } = await supabaseClient.from("returned_content").delete().eq("id", item.id);
     if (error) { message.textContent = error.message; message.style.color = "#E07A5F"; return; }
     card.remove();

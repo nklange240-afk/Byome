@@ -10,7 +10,7 @@ Levels show how much a member has grown with Byome. They have to exist **before 
 | 2 | 🌱 Sprout | Account at least **3 days** old, and at least **1 published review** |
 | 3 | 🪴 Sapling | At least **25 contributions** (see below) |
 | 4 | 🌸 Bloom | At least **100 published reviews**, then **approved by a moderator** |
-| 5 | 🌳 Evergreen | Everything for Bloom, plus at least **25 standout reviews** |
+| 5 | 🌳 Evergreen | Everything for Bloom, plus at least **5 standout reviews**, at least **50 different people** have found their reviews helpful, and a member for at least **6 months** |
 
 There's no "Seedling" level, since it's too easy to confuse with Sprout.
 
@@ -46,21 +46,32 @@ Each of these counts as one contribution:
 - **While waiting,** the member sees "Bloom: your reviews are being looked at by our team 🌸".
 
 ## Evergreen
-- **Everything for Bloom, plus 25 standout reviews.** Standouts are given by moderators, so this is "moderator-recognised quality, sustained over time": a long road, on purpose, for the top level.
-- **May need more thought** before building (agreed with the owner).
+- **Everything for Bloom, plus:**
+  - at least **5 standout reviews** (moderator-recognised quality)
+  - at least **50 different people** have found their reviews helpful (the community's recognition, using the helpful stats already built)
+  - a member for at least **6 months** (it can't be rushed, which suits an evergreen)
+- **Why 6 months:** it gives the top level prestige from the start, since nobody can reach it before about spring 2027, and time to see how the earlier levels feel. Lowering it later is a one-line change; raising it after people have qualified would feel unfair.
 
 ## Rules
 - **Levels never go down on their own.**
 - **A moderator can demote someone** if they feel it's appropriate. It's logged, and the member is told kindly.
 - **Moderation isn't tied to levels,** so moderators never hesitate to moderate carefully and err on the side of caution. Content being held or removed doesn't take a level away.
-- **Active restrictions pause progress:** a restricted member doesn't level up until the restriction ends, but keeps their current level.
+- **Active restrictions pause progress:** a restricted member keeps their current level but can't level up while restricted. Once the restriction is lifted (or runs out), their next level-up waits for a moderator's approval instead of happening on its own.
 - **Level badges are public:** a small badge next to every username, seen by everyone.
 
 ## Restrictions (built alongside levels)
-Levels depend on "no active account restrictions", so restrictions are built with them. Moderators can restrict a member from:
+Levels depend on "no active account restrictions", so restrictions are built with them.
+
+**What counts (agreed):** any limit on what **one specific member** can do counts as a restriction. A site-wide limit (for example, the emergency pause on all photo uploads) never counts against anyone.
+
+Moderators can restrict a member from:
 - posting in the Community
 - commenting
+- writing reviews
+- suggesting products and variations
 - uploading photos (when photos exist)
+
+**After a restriction:** while any restriction is active, the member can't level up. When it ends, the member goes on a "Level-up needs approval" list for moderators. If they've met the next level's requirements, a moderator approves (or declines, with a reason) before the level-up happens. It's logged like other decisions.
 
 Each restriction has:
 - a **reason**, and the member is told why
@@ -73,7 +84,61 @@ Banning a member from the site entirely stays a separate, more serious action.
 ## Already built (October 2026)
 - **Helpful stats** (`database/2026-11-21-helpful-stats.sql`): each profile shows "54 people found AliceB's reviews helpful". It counts different people, not votes, only live reviews, and never the member's own marks. It'll also appear in the Bloom list.
 
+## Perks
+Levels also act as a built-in trust filter: features that are harder to moderate can open only to members who've already shown they're here in good faith, which keeps spammers and pests out.
+
+- **Sprout:** photo uploads (see `photos.md`).
+- **Level-exclusive drops:**
+  - Byome Shop items (and eventually real beauty products) can require a minimum level.
+  - **Anyone at that level or higher** can get them. For example, an Evergreen can buy a Bloom-exclusive drop.
+  - Members below the level still see the item, locked, with a friendly "Unlocks at 🌸 Bloom" note.
+- **A level-only Community space:** a section only members at a given level or higher can see and post in (for example "Bloom & up"). It has the same moderation as the rest of the Community: automod, reports and blocking.
+- **Private messages (future idea),** locked to higher levels. This needs its own safety plan before building, like `photos.md`, covering:
+  - blocking also stopping messages
+  - a Report button on messages
+  - a daily message limit
+  - clear rules on when moderators can see messages (for example, only reported ones)
+  - a privacy policy update
+
+## Real beauty products (future)
+Physical drops or giveaways bring real-world rules that digital items don't:
+- **Giveaway law:** US giveaways have legal rules (usually "no purchase necessary", official rules, and state-specific requirements). Check with a lawyer, under the LLC, before the first one.
+- **Shipping:** collecting addresses needs a privacy policy update and careful, limited storage.
+- **Free products:** reviews of products given by brands must say so (already required by the Terms).
+
+## Badges (agreed)
+- **The owner's hand-drawn icons,** in small round tokens with **pale cream circles**, so the drawings stand out at about 20 px. Each token has a thin border in its level's colour, and Evergreen gets a soft gold rim and glow.
+- **On posts and reviews:** the icon only, next to the name. Tapping or hovering shows "Sprout · level 2".
+- **Not on comments,** to keep comment threads calm and uncluttered (owner's decision).
+- **On profiles:** the icon and the level name, in a pill.
+- **Art files** (128 × 128 transparent PNG):
+  - `biome-assets/level-seed.png` (an almond-shaped seed)
+  - `biome-assets/level-sprout.png`
+  - `biome-assets/level-sapling.png`
+  - `biome-assets/level-bloom.png`
+  - `biome-assets/level-evergreen.png` (the tree; the pine branch could become an Evergreen shelf decoration)
+- **Level colours** (borders and name text): Seed warm brown, Sprout light green, Sapling green, Bloom pink, Evergreen teal with gold.
+
+## Level-up pop-up (agreed design)
+- **When it appears:** the next time the member visits after levelling up. It uses the same pop-up style as achievements, and shows once per account (like achievement pop-ups).
+- **What it shows:** "Level up!", the member's new badge drawing large in a glowing cream circle (gold rim for Evergreen), a heading, a short thank-you, an "Unlocked" list, and the buttons "See my profile" and "Lovely!".
+- **Wording:**
+  - Sapling: "You've grown into a Sapling!" / "25 contributions to Byome: reviews, posts people loved and product suggestions. Thank you for helping our community grow."
+  - Evergreen: "You're an Evergreen!" / "The highest level on Byome. Thoughtful, trusted, and an important part of the Byome community." (owner's wording)
+  - Sprout and Bloom follow the same pattern.
+- **Sprout's pop-up** lists "your Sprout badge" until photos exist, then adds photo uploads.
+
+## "Next level" card (agreed design)
+- **On your own profile only** ("Only you can see this"), under the profile header.
+- **Sprout → Sapling:** a contributions bar ("18 of 25"), a breakdown (reviews, posts others enjoyed, approved product suggestions), and the note "Posts count once someone else likes, comments or votes on them."
+- **Sapling → Bloom:** a review bar ("64 of 100"), and the note that moderators take a look at 100.
+- **Waiting for the Bloom check:** "Your reviews are being looked at by our team. You'll get a notification as soon as you bloom!"
+- **Bloom → Evergreen:** a checklist, with progress bars for standouts and time as a member, and a tick for goals already met (for example "63 (goal: 50)").
+- **Evergreen:** no card; they've reached the top.
+
+## Badge art note
+The five drawings were centred on their 128 × 128 canvases (spacing only; the drawings themselves are unchanged), so they sit in the middle of their circles.
+
 ## Still to design before building
-- Perks for each level, beyond photos at Sprout. Ideas so far: level-only pots or plants in the shop, a level-up celebration with a shelf item, and something special at Evergreen.
-- The badge design, the level-up pop-up, and where progress shows (for example "12 of 25 contributions to Sapling" on your own profile).
-- Evergreen's final requirements.
+- Level-up gifts (in progress).
+- Which levels get the first exclusive drops and Community space.
