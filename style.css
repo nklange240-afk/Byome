@@ -7711,3 +7711,229 @@ dialog.daily-dialog {
   font-size: 0.85rem;
   opacity: 0.8;
 }
+
+/* =========================================================
+   LEVELS (ui.js levelBadge, profile.js, Moderate page)
+   ========================================================= */
+.level-seed      { --level: #C49A6C; }
+.level-sprout    { --level: #A6D98A; }
+.level-sapling   { --level: #6FBF73; }
+.level-bloom     { --level: #F2A7C3; }
+.level-evergreen { --level: #7FD1B9; }
+
+.level-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  vertical-align: middle;
+}
+
+/* The drawing in a small pale cream circle with the level's colour round it */
+.level-token {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border: 1.5px solid var(--level);
+  border-radius: 50%;
+  background-color: #F6F0E2;
+}
+
+.level-token img {
+  width: 82%;
+  height: 82%;
+  object-fit: contain;
+}
+
+.level-evergreen .level-token {
+  border: 2px solid #E0B44A;
+  box-shadow: 0 0 0 1.5px var(--level), 0 0 6px rgba(224, 180, 74, 0.6);
+}
+
+/* With the name: a pill (profiles, the Moderate page) */
+.level-badge.has-name {
+  padding: 0.15rem 0.65rem 0.15rem 0.2rem;
+  border: 1px solid var(--level);
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.level-badge.has-name .level-token {
+  width: 24px;
+  height: 24px;
+}
+
+.level-name {
+  color: var(--cream);
+}
+
+.post-author-wrap .level-badge {
+  margin-left: 0.15rem;
+}
+
+/* The level-up pop-up's big badge */
+.level-up-art {
+  display: flex;
+  justify-content: center;
+  margin: 0.4rem 0 0.8rem;
+}
+
+.level-badge.is-large .level-token {
+  width: 128px;
+  height: 128px;
+  border-width: 4px;
+  box-shadow: 0 0 28px rgba(246, 240, 226, 0.45);
+}
+
+.level-up-art.level-evergreen .level-badge.is-large .level-token {
+  border-color: #E0B44A;
+  box-shadow: 0 0 0 3px var(--level), 0 0 32px rgba(224, 180, 74, 0.7);
+}
+
+.celebrate-list-title {
+  margin: 0 0 0.3rem;
+  color: var(--gold);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.celebrate-list {
+  margin: 0 auto 1.2rem;
+  padding: 0;
+  list-style: none;
+  font-size: 0.92rem;
+}
+
+.celebrate-list li + li {
+  margin-top: 0.25rem;
+}
+
+/* Profiles: the level pill, and "Change level" for moderators */
+.profile-level {
+  margin: 0.3rem 0 0.2rem;
+}
+
+.level-change {
+  margin-left: 0.6rem;
+  padding: 0;
+  font-size: 0.85rem;
+}
+
+/* Your own profile: what's next */
+.next-level {
+  margin: 0.8rem 0 1rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--moss);
+  border-radius: 12px;
+  background-color: var(--forest-mid);
+}
+
+.next-level-head {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.next-level-label {
+  font-family: var(--font-heading);
+  font-size: 1.1rem;
+}
+
+.next-level-private {
+  margin: 0.2rem 0 0.6rem;
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
+.next-level-bar-label {
+  margin: 0 0 0.3rem;
+  font-size: 0.92rem;
+}
+
+.next-level-track {
+  height: 10px;
+  border-radius: 999px;
+  background-color: var(--forest-dark);
+  overflow: hidden;
+}
+
+.next-level-fill {
+  height: 100%;
+  border-radius: 999px;
+  background-color: var(--leaf);
+}
+
+.next-level-breakdown,
+.next-level-note {
+  margin: 0.5rem 0 0;
+  font-size: 0.88rem;
+  opacity: 0.88;
+}
+
+.next-level-checks {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.92rem;
+}
+
+.next-level-checks li + li {
+  margin-top: 0.3rem;
+}
+
+.next-level-tick {
+  display: inline-block;
+  width: 1.1rem;
+  color: var(--leaf);
+  font-weight: 700;
+}
+
+.next-level-checks li:not(.is-done) .next-level-tick {
+  opacity: 0.6;
+}
+
+/* Moderate page: levels waiting */
+.level-item-meta {
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.level-arrow {
+  opacity: 0.7;
+}
+
+.level-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.4rem 1rem;
+  margin: 0.6rem 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.9rem;
+}
+
+.level-facts li {
+  display: flex;
+  flex-direction: column;
+}
+
+.level-fact-label {
+  font-size: 0.78rem;
+  opacity: 0.75;
+}
+
+.level-note {
+  margin: 0.4rem 0;
+  font-size: 0.88rem;
+  font-style: italic;
+  opacity: 0.85;
+}
+
+.level-demote-form select {
+  width: 100%;
+}

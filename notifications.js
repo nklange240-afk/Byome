@@ -38,7 +38,7 @@ const ICON_FOR = {
   post_like: "like", comment_like: "like", review_like: "like",
   comment: "comment", reply: "comment",
   moderation: "moderation", moderation_queue: "moderation",
-  referral: "friend", modmail: "mail",
+  referral: "friend", modmail: "mail", level: "achievement",
 };
 
 // Moderation flags: green when it went your way (approved, your report was

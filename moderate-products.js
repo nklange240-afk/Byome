@@ -53,6 +53,7 @@ async function init() {
   loadReports();
   loadQueue();
   loadVariations();
+  loadLevels();
   loadLog();
   // Refresh the log after any action on this page (they all reload a queue)
   document.querySelector("main").addEventListener("click", (e) => {
@@ -70,6 +71,7 @@ const LOG_WORDS = {
   edit: "edited", remove_avatar: "removed the profile picture of", reset_username: "reset the username of",
   remove_bio: "removed the bio of",
   standout: "marked as standout", merge: "merged",
+  level_up: "approved a level-up:", level_not_yet: "put a level-up on hold:", demote: "lowered a level:",
 };
 const LOG_TYPES = {
   post: "post", comment: "comment", review: "review", review_update: "review update",
@@ -99,7 +101,7 @@ async function loadLog(more) {
     const verb = LOG_WORDS[row.action] || row.action;
     const kind = LOG_TYPES[row.target_type] || row.target_type;
     let sentence = " " + verb + " ";
-    if (row.target_type === "profile" && ["remove_avatar", "reset_username", "remove_bio"].indexOf(row.action) !== -1) {
+    if (row.target_type === "profile" && ["remove_avatar", "reset_username", "remove_bio", "level_up", "level_not_yet", "demote"].indexOf(row.action) !== -1) {
       sentence += row.note ? row.note : "a member";
     } else {
       sentence += (row.owner ? row.owner.username + "\u2019s " : "a ") + kind;
@@ -417,6 +419,119 @@ function buildQueueItem(product, matches, waitingReviews) {
   }
   article.appendChild(actions);
 
+  return article;
+}
+
+// ---------- Levels waiting (database/2026-11-28-levels.sql) ----------
+// "Ready to Bloom": Saplings with 100 published reviews, for a quick read
+// through. "Level-up needs approval": members whose next level waits for a
+// moderator (after a demotion or a restriction).
+const levelQueueEl = document.getElementById("level-queue");
+
+async function loadLevels() {
+  const { data, error } = await supabaseClient.rpc("level_queue");
+  levelQueueEl.replaceChildren();
+  if (error) {
+    levelQueueEl.appendChild(el("p", "feed-empty", /level_queue/.test(error.message)
+      ? "Run database/2026-11-28-levels.sql to switch this on."
+      : "Couldn't load levels: " + error.message));
+    return;
+  }
+  if (!data.length) {
+    levelQueueEl.appendChild(el("p", "feed-empty", "No levels waiting."));
+    return;
+  }
+  data.forEach((q) => levelQueueEl.appendChild(buildLevelItem(q)));
+}
+
+function buildLevelItem(q) {
+  const s = q.stats;
+  const isBloom = q.kind === "bloom";
+  const article = el("article", "post level-item");
+  const title = el("h2", "post-title");
+  const who = el("a", null, q.username);
+  who.href = "profile.html?user=" + encodeURIComponent(q.username);
+  title.append(who);
+  article.appendChild(title);
+
+  const meta = el("div", "post-meta level-item-meta");
+  meta.append(UI.levelBadge(q.level, true), el("span", "level-arrow", "\u2192"), UI.levelBadge(q.target_level, true),
+    el("span", "post-category-tag", isBloom ? "Ready to Bloom" : "Level-up needs approval"));
+  article.appendChild(meta);
+
+  const facts = el("ul", "level-facts");
+  [
+    ["Published reviews", s.reviews],
+    ["Standout reviews", s.standouts],
+    ["Member for", s.days + (s.days === 1 ? " day" : " days")],
+    ["Found their reviews helpful", s.helpful + (s.helpful === 1 ? " person" : " people") + " (" + s.helpful_marks + " marks)"],
+  ].forEach(([k, v]) => {
+    const li = el("li");
+    li.append(el("span", "level-fact-label", k), el("strong", null, String(v)));
+    facts.appendChild(li);
+  });
+  article.appendChild(facts);
+
+  if (isBloom) {
+    const read = el("p", "field-hint");
+    const a = el("a", "inline-link", "Read their reviews");
+    a.href = "profile.html?user=" + encodeURIComponent(q.username);
+    a.target = "_blank";
+    read.append(a, document.createTextNode(" (a few at random). There's no minimum length: look for reviews that are genuine and useful."));
+    article.appendChild(read);
+  }
+  if (q.status === "not_yet") {
+    article.appendChild(el("p", "level-note", "Not yet (" + new Date(q.decided_at).toLocaleDateString() + "): " + q.note));
+  }
+
+  const message = el("p", "auth-message");
+  message.setAttribute("aria-live", "polite");
+  const actions = el("div", "post-actions");
+  const approve = el("button", "action-btn mod-btn is-good", isBloom ? "Approve to Bloom" : "Approve level-up");
+  approve.type = "button";
+  approve.addEventListener("click", async () => {
+    approve.disabled = true;
+    const { data, error } = await supabaseClient.rpc("decide_level", { p_user: q.user_id, p_kind: q.kind, p_approve: true });
+    if (error) { message.textContent = error.message; message.style.color = "#E07A5F"; approve.disabled = false; return; }
+    message.textContent = data;
+    message.style.color = "var(--gold)";
+    setTimeout(loadLevels, 1200);
+  });
+  const notYet = el("button", "action-btn mod-btn", "Not yet");
+  notYet.type = "button";
+  notYet.addEventListener("click", () => {
+    if (article.querySelector(".edit-form")) return;
+    actions.hidden = true;
+    const form = el("form", "edit-form");
+    const label = el("label", "field-label", isBloom
+      ? "A note for the team (the member doesn't see it)"
+      : "Why not yet? (the member sees this)");
+    const text = el("textarea");
+    text.id = "level-note-" + q.user_id + "-" + q.kind;
+    label.htmlFor = text.id;
+    text.rows = 2;
+    text.maxLength = 500;
+    text.required = true;
+    const buttons = el("div", "edit-buttons");
+    const save = el("button", "btn btn-solid", "Save");
+    save.type = "submit";
+    const cancel = el("button", "action-btn", "Cancel");
+    cancel.type = "button";
+    cancel.addEventListener("click", () => { form.remove(); actions.hidden = false; });
+    buttons.append(save, cancel);
+    form.append(label, text, buttons);
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      save.disabled = true;
+      const { error } = await supabaseClient.rpc("decide_level", { p_user: q.user_id, p_kind: q.kind, p_approve: false, p_note: text.value.trim() });
+      if (error) { message.textContent = error.message; message.style.color = "#E07A5F"; save.disabled = false; return; }
+      loadLevels();
+    });
+    article.insertBefore(form, message);
+    text.focus();
+  });
+  actions.append(approve, notYet);
+  article.append(actions, message);
   return article;
 }
 
