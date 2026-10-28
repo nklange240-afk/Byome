@@ -152,6 +152,7 @@ async function init() {
   isModerator = Boolean(me && me.is_moderator);
 
   UI.eventBanner(document.querySelector("main"), document.querySelector("main > h1"));
+  DAILY.card(document.querySelector("main"), document.querySelector("main > h1"));
   await setUpEvents();
   await REPORTS.loadMine(currentUser.id); // so flags you've used start red
   await loadPosts();

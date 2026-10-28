@@ -7362,3 +7362,352 @@ textarea.is-over {
   font-size: 1rem;
   font-weight: 400;
 }
+
+/* =========================================================
+   DAILY SURPRISE (daily.js)
+   ========================================================= */
+.daily-card {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  width: 100%;
+  margin: 0 0 1rem;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid var(--gold);
+  border-radius: 12px;
+  background-color: var(--forest-mid);
+  color: var(--cream);
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.daily-card:hover,
+.daily-card:focus-visible {
+  border-color: var(--gold-text);
+  box-shadow: 0 0 0 2px rgba(224, 168, 62, 0.35);
+}
+
+.daily-card-packet {
+  flex-shrink: 0;
+  width: 38px;
+  height: 50px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.3));
+}
+
+.daily-card-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.daily-card-text span {
+  opacity: 0.85;
+  font-size: 0.9rem;
+}
+
+dialog.daily-dialog {
+  width: min(380px, calc(100vw - 32px));
+  padding-top: 1.4rem;
+}
+
+/* Room for the heading, the prize and a one-line note, so the packets
+   don't move when the prize appears */
+.daily-head {
+  min-height: 6.6rem;
+}
+
+.daily-sub {
+  margin: 0;
+  opacity: 0.85;
+}
+
+.daily-amount {
+  margin: 0.15rem 0 0;
+  font-family: var(--font-heading);
+  font-size: 1.6rem;
+  color: var(--gold-text);
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.4s, transform 0.4s;
+}
+
+.daily-amount.is-on {
+  opacity: 1;
+  transform: none;
+}
+
+.daily-stage {
+  position: relative;
+  height: 220px;
+  margin: 0.4rem 0 0.6rem;
+}
+
+.daily-packets {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.daily-packet {
+  position: relative;
+  z-index: 1;
+  flex: 0 0 88px;
+  height: 118px;
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  background: var(--packet, #F2C66D);
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+  transform-origin: 50% 90%;
+  transition: opacity 0.4s, transform 0.2s;
+}
+
+/* The torn-strip top of a plain packet (drawn packets bring their own) */
+.daily-packet:not(.has-art)::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 16px;
+  border-radius: 8px 8px 0 0;
+  background: repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.12) 0 4px, transparent 4px 8px);
+}
+
+.daily-packet.has-art {
+  background: none;
+  box-shadow: none;
+}
+
+/* Drawn packets: a soft shadow that follows the packet's own outline */
+.daily-packet.has-art img {
+  filter: drop-shadow(0 4px 3px rgba(0, 0, 0, 0.35));
+}
+
+.daily-packet img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.daily-packet:not(:disabled):hover,
+.daily-packet:focus-visible {
+  transform: translateY(-4px);
+  outline: 3px solid var(--gold);
+  outline-offset: 3px;
+}
+
+.daily-packet:disabled {
+  cursor: default;
+}
+
+.daily-packet.is-dim {
+  opacity: 0.35;
+}
+
+.daily-packet.is-shaking {
+  animation: daily-shake 0.9s ease-in-out;
+}
+
+@keyframes daily-shake {
+  0% { transform: rotate(0); }
+  10% { transform: rotate(-14deg) translateY(-6px); }
+  22% { transform: rotate(12deg) translateY(-8px); }
+  34% { transform: rotate(-12deg) translateY(-6px); }
+  46% { transform: rotate(10deg) translateY(-8px); }
+  58% { transform: rotate(-8deg) translateY(-4px); }
+  70% { transform: rotate(6deg); }
+  84% { transform: rotate(-3deg); }
+  100% { transform: rotate(0); }
+}
+
+/* The prize: a leaf for Byome points, or the item's own picture */
+.daily-prize {
+  position: absolute;
+  z-index: 0;
+  width: 72px;
+  height: 72px;
+  margin-left: -36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.daily-leaf {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  color: var(--leaf);
+  filter: drop-shadow(0 0 8px rgba(255, 231, 163, 0.75));
+}
+
+.daily-leaf .leaf-body {
+  fill: currentColor;
+  stroke-width: 1.2;
+}
+
+/* on a filled leaf the vein needs to be dark to show */
+.daily-leaf .leaf-vein {
+  stroke: var(--forest-dark);
+  stroke-width: 1.2;
+}
+
+.daily-prize.is-item {
+  width: 96px;
+  height: 96px;
+  margin-left: -48px;
+  background: radial-gradient(circle, rgba(255, 231, 163, 0.55), transparent 70%);
+}
+
+.daily-prize-art {
+  position: relative;
+  width: 88px;
+  height: 88px;
+}
+
+.daily-prize-art img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* Big wins get a bigger, brighter leaf */
+.daily-prize.tier-lucky,
+.daily-prize.tier-jackpot {
+  width: 92px;
+  height: 92px;
+  margin-left: -46px;
+}
+
+.daily-prize.tier-lucky .daily-leaf,
+.daily-prize.tier-jackpot .daily-leaf {
+  filter: drop-shadow(0 0 14px rgba(255, 220, 130, 1));
+}
+
+.daily-prize.is-out {
+  animation: daily-pop 0.7s cubic-bezier(0.2, 1.4, 0.4, 1) forwards;
+}
+
+.daily-prize.is-out.no-motion {
+  animation: daily-fade 0.4s forwards;
+  transform: translateY(-56px);
+}
+
+@keyframes daily-pop {
+  0% { opacity: 0; transform: translateY(0) scale(0.4); }
+  35% { opacity: 1; }
+  100% { opacity: 1; transform: translateY(-56px) scale(1); }
+}
+
+@keyframes daily-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .daily-packet.is-shaking { animation: none; }
+  .daily-prize.is-out { animation: daily-fade 0.4s forwards; transform: translateY(-56px); }
+}
+
+.daily-close {
+  margin-top: 0.4rem;
+}
+
+.daily-nudge {
+  margin: 0.8rem 0 0;
+  padding: 0.7rem 0.8rem;
+  border-radius: 10px;
+  background-color: var(--forest-dark);
+  font-size: 0.9rem;
+  text-align: left;
+}
+
+.daily-dialog .celebrate-actions {
+  margin-top: 1rem;
+}
+
+/* The event calendar: seven stamps */
+.daily-calendar {
+  margin-top: 0.4rem;
+  padding: 0.8rem;
+  border: 1px solid var(--event-orange);
+  border-radius: 12px;
+  text-align: left;
+}
+
+.daily-calendar-title {
+  margin: 0 0 0.5rem;
+  color: var(--event-text);
+  font-family: var(--font-heading);
+  font-size: 1.1rem;
+}
+
+.daily-calendar-days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.daily-stamp {
+  position: relative;
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px dashed rgba(243, 237, 224, 0.35);
+  border-radius: 50%;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.daily-stamp.is-done {
+  border: 2px solid var(--event-orange);
+  background-color: var(--event-orange);
+  color: #24402F;
+}
+
+.daily-stamp.is-today {
+  box-shadow: 0 0 0 3px rgba(242, 140, 56, 0.45);
+}
+
+.daily-stamp.is-treat::after,
+.daily-stamp.is-final::after {
+  position: absolute;
+  right: -6px;
+  bottom: -8px;
+  font-size: 0.8rem;
+}
+
+.daily-stamp.is-treat::after { content: "\1F381"; }
+.daily-stamp.is-final::after { content: "\2B50"; }
+
+.daily-calendar-note {
+  margin: 0.7rem 0 0;
+  font-size: 0.88rem;
+  opacity: 0.9;
+}
+
+.hero-text .daily-card {
+  max-width: 420px;
+  margin: 1.2rem 0 0;
+}
+
+.daily-amount-note {
+  margin: 0;
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
