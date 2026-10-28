@@ -7247,3 +7247,63 @@ textarea.is-over {
 .variation-form .edit-buttons {
   margin-top: 0.6rem;
 }
+
+/* =========================================================
+   BETA BANNER (Community and Reviews pages)
+   ========================================================= */
+.beta-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  margin: 0 0 1rem;
+  padding: 0.7rem 0.6rem 0.7rem 0.9rem;
+  border: 1px solid var(--leaf);
+  border-radius: 10px;
+  background-color: var(--forest-mid);
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+.beta-banner p {
+  flex: 1;
+  margin: 0;
+}
+
+.beta-banner-tag {
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+  padding: 0.1rem 0.55rem;
+  border-radius: 999px;
+  background-color: var(--leaf);
+  color: var(--forest-dark);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.beta-banner-close {
+  flex-shrink: 0;
+  width: 2rem;
+  height: 2rem;
+  margin: -0.3rem 0 0;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  color: var(--cream);
+  font-size: 1.3rem;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0.75;
+}
+
+.beta-banner-close:hover,
+.beta-banner-close:focus-visible {
+  opacity: 1;
+}
+
+/* Desert: a soft glow of sand behind the logo, so it stays readable
+   over the cacti */
+.biome-desert .logo img {
+  filter: drop-shadow(0 0 3px #FFFBF3) drop-shadow(0 0 8px #FFFBF3) drop-shadow(0 0 18px rgba(255, 248, 232, 0.95));
+}

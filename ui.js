@@ -1177,6 +1177,34 @@ const UI = (function () {
       }));
     }).observe(document.body, { childList: true, subtree: true });
   }
+  // ---------- Beta banner ----------
+  // Pages with <body data-beta-banner> (Community and Reviews) say Byome is
+  // in beta and ask for feedback. The × hides it until the browser is closed.
+  const BETA_HIDDEN = "byome-beta-banner-hidden";
+  function betaBanner() {
+    const main = document.querySelector("main");
+    if (!main || document.body.dataset.betaBanner === undefined) return;
+    try { if (sessionStorage.getItem(BETA_HIDDEN)) return; } catch (e) { /* show it */ }
+    const banner = el("aside", "beta-banner");
+    banner.setAttribute("aria-label", "Byome is in beta");
+    const sprout = el("span", "beta-banner-tag", "Beta");
+    const text = el("p");
+    const link = el("a", "inline-link", "Send us feedback");
+    link.href = "modmail.html?new=feedback";
+    text.append(el("strong", null, "Byome is in beta!"),
+      " We're still growing, and we'd love to hear what you think: what you love, what's confusing, and what's broken. ",
+      link, ".");
+    const close = el("button", "beta-banner-close", "\u00d7");
+    close.type = "button";
+    close.setAttribute("aria-label", "Hide the beta message");
+    close.addEventListener("click", () => {
+      banner.remove();
+      try { sessionStorage.setItem(BETA_HIDDEN, "1"); } catch (e) { /* fine */ }
+    });
+    banner.append(sprout, text, close);
+    main.prepend(banner);
+  }
+
   // Text boxes whose maxLength is set after they're added to the page
   document.addEventListener("focusin", (e) => { if (e.target.matches && e.target.matches("textarea[maxlength]")) limitTextarea(e.target); });
 
@@ -1184,6 +1212,7 @@ const UI = (function () {
     watchTextareas();
     addPasswordToggles();
     buildFooter();
+    betaBanner();
     calmBottomBounce();
     checkAchievements();
     thankModerator();
