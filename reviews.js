@@ -106,7 +106,25 @@ function setWriting(open) {
   writeToggle.textContent = open ? "Close" : "Write a review";
   writeToggle.classList.toggle("btn-solid", !open);
   writeToggle.classList.toggle("btn-ghost", open);
-  if (open) document.getElementById("review-brand").focus();
+  if (!open) return;
+  // On a product's page, the form starts with that product chosen
+  if (prefillProductPage()) form.querySelector("input[name=rating]").focus();
+  else document.getElementById("review-brand").focus();
+}
+
+// reviews.html?product=<id>: choose that product's brand and name in the
+// form. Returns true if it's chosen. (Waits until the products have loaded.)
+function prefillProductPage() {
+  if (!productParam || !products.length || addingProduct) return false;
+  const p = products.find((x) => x.id === productParam);
+  if (!p) return false;
+  if (productSelect.value !== p.id) {
+    brandSearch.choose(p.brand);
+    productSelect.value = p.id;
+    productSelect.dispatchEvent(new Event("change", { bubbles: true }));
+    productDropdown.refresh();
+  }
+  return true;
 }
 writeToggle.addEventListener("click", () => setWriting(form.hidden));
 // reviews.html?write=1 (from the starter checklist) opens the form
@@ -379,7 +397,7 @@ function enhanceSelect(select) {
 // The skin-type pills narrow both the summary and the reviews below.
 async function showProductPage() {
   const summary = document.getElementById("product-summary");
-  ["review-search", "category-chips", "subcategory-chips", "suggest-line"].forEach((id) => {
+  ["review-search", "category-chips", "subcategory-chips", "suggest-line", "new-product-line"].forEach((id) => {
     const node = document.getElementById(id);
     if (node) (id === "review-search" ? node.closest(".review-search") : node).hidden = true;
   });
@@ -552,6 +570,7 @@ async function init() {
 
   await Promise.all([loadProducts(), loadMyPendingProducts()]);
   if (productParam) await showProductPage();
+  if (!form.hidden) prefillProductPage(); // opened with ?write=1
   loadReviews();
 }
 
