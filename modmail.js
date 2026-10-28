@@ -3,7 +3,9 @@
 // moderators"). Feedback comes here too.
 //   modmail.html                 your conversations (moderators: everyone's)
 //   modmail.html?new=message     write to the moderators
-//   modmail.html?new=feedback    send feedback (the page you came from is noted)
+//   modmail.html?new=feedback    send feedback (the page you came from is noted);
+//                                visitors without an account can send it too
+//                                (database/2026-11-24-visitor-feedback.sql)
 //   modmail.html?thread=ID       one conversation
 // The data comes from database/2026-11-17-blocks-modmail.sql.
 const box = document.getElementById("modmail");
@@ -83,6 +85,7 @@ async function showList(isMod) {
       const meta = el("p", "modmail-meta");
       const bits = [];
       if (isMod && filter !== "mine" && t.member) bits.push("From " + t.member);
+      else if (isMod && t.from_visitor) bits.push("From a visitor");
       if (t.about) bits.push("about " + t.about);
       bits.push(t.count === 1 ? "1 message" : t.count + " messages");
       meta.append(document.createTextNode(bits.join(" · ") + " · "), UI.timeTag(t.updated_at));
@@ -155,6 +158,107 @@ function showCompose(kind) {
   subject.focus();
 }
 
+// ---------- Feedback from visitors (no account needed) ----------
+const VISITOR_TOPICS = ["Why I didn't join", "Something's broken", "Something confusing", "An idea", "Something I liked"];
+
+function showVisitorFeedback() {
+  box.replaceChildren();
+  document.querySelector("h1").textContent = "Send feedback";
+  document.title = "Send feedback — Byome";
+  box.appendChild(el("p", "modmail-intro",
+    "No account needed. Tell us anything: what you liked, what confused you, or why Byome isn't for you (yet). " +
+    "Good or bad, it all helps, and every moderator reads it."));
+
+  const form = el("form", "stacked-form modmail-form");
+  const topicLabel = el("p", "field-label", "What's it about? (optional)");
+  const topics = el("div", "category-chips quick-picks");
+  topics.setAttribute("role", "group");
+  topics.setAttribute("aria-label", "What's it about?");
+  let topic = "";
+  VISITOR_TOPICS.forEach((text) => {
+    const b = el("button", "category-chip", text);
+    b.type = "button";
+    b.setAttribute("aria-pressed", "false");
+    b.addEventListener("click", () => {
+      topic = topic === text ? "" : text;
+      topics.querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", String(x.textContent === topic)));
+    });
+    topics.appendChild(b);
+  });
+
+  const bodyLabel = el("label", "field-label", "Your feedback");
+  const body = el("textarea", "text-input modmail-body");
+  body.id = "visitor-body";
+  body.rows = 6;
+  body.maxLength = 2000;
+  body.required = true;
+  body.placeholder = "What's on your mind?";
+  bodyLabel.htmlFor = body.id;
+
+  const contactLabel = el("label", "field-label", "Email or another way to reach you (optional)");
+  const contact = el("input", "text-input");
+  contact.id = "visitor-contact";
+  contact.maxLength = 200;
+  contact.autocomplete = "email";
+  contactLabel.htmlFor = contact.id;
+  const contactHint = el("p", "field-hint",
+    "Only if you'd like us to follow up. Only the moderators see it, and we'll only use it to reply to this. Leave it blank to stay anonymous.");
+
+  // Hidden from people; bots that fill in every box fill this in too
+  const trapWrap = el("div", "visually-hidden");
+  trapWrap.setAttribute("aria-hidden", "true");
+  const trap = el("input");
+  trap.name = "website";
+  trap.tabIndex = -1;
+  trap.autocomplete = "off";
+  trapWrap.append(el("label", null, "Leave this empty"), trap);
+
+  const send = el("button", "btn btn-solid", "Send feedback");
+  send.type = "submit";
+  const message = el("p", "auth-message");
+  message.setAttribute("aria-live", "polite");
+  const row = el("div", "modmail-send-row");
+  row.appendChild(send);
+  form.append(topicLabel, topics, bodyLabel, body, contactLabel, contact, contactHint, trapWrap, row, message);
+  box.appendChild(form);
+
+  const joinLine = el("p", "field-hint");
+  joinLine.append(document.createTextNode("Already a member? "), link("login.html", "Log in"),
+    document.createTextNode(" to send feedback you can follow in mod mail."));
+  box.appendChild(joinLine);
+
+  let page = null;
+  try {
+    const ref = document.referrer ? new URL(document.referrer) : null;
+    if (ref && ref.origin === window.location.origin && !/modmail\.html/.test(ref.pathname)) page = ref.pathname + ref.search;
+  } catch (e) { page = null; }
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    send.disabled = true;
+    say(message, "Sending…", true);
+    const { error } = await supabaseClient.rpc("visitor_feedback", {
+      p_subject: topic || "Feedback", p_body: body.value.trim(), p_contact: contact.value.trim() || null,
+      p_page: page, p_trap: trap.value,
+    });
+    if (error) {
+      say(message, /visitor_feedback/.test(error.message)
+        ? "Sorry, that didn't send. Please email us at " + CONTACT + " instead."
+        : error.message, false);
+      send.disabled = false;
+      return;
+    }
+    box.replaceChildren();
+    box.appendChild(el("p", "modmail-sent", "Thank you! Your feedback is with the moderators." +
+      (contact.value.trim() ? " If we have questions, we'll get in touch." : "")));
+    const next = el("p", "modmail-intro");
+    next.append(document.createTextNode("Changed your mind about Byome? "), link("signup.html", "Join here"),
+      document.createTextNode(", or "), link("reviews.html", "keep browsing reviews"), document.createTextNode("."));
+    box.appendChild(next);
+  });
+  body.focus();
+}
+
 // ---------- One conversation ----------
 async function showThread(id) {
   const { data: t, error } = await supabaseClient.rpc("modmail_thread", { p_thread: id });
@@ -180,6 +284,7 @@ async function showThread(id) {
   const meta = el("p", "modmail-meta");
   const bits = [];
   if (t.as_mod && t.member) bits.push("From " + t.member);
+  else if (t.as_mod && t.from_visitor) bits.push("From a visitor (no account)");
   if (t.about) bits.push("about " + t.about);
   if (t.as_mod && t.page) bits.push("sent from " + t.page);
   bits.push(t.status === "closed" ? "Marked done" : "Open");
@@ -197,6 +302,24 @@ async function showThread(id) {
     list.appendChild(msg);
   });
   box.appendChild(list);
+
+  // A visitor can't see replies here: follow up with them directly, if they
+  // left a way to reach them
+  if (t.from_visitor) {
+    const note = el("div", "modmail-visitor-note");
+    if (t.contact) {
+      const how = el("p");
+      how.append(el("strong", null, "They'd like to hear back at: "));
+      how.append(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(t.contact)
+        ? link("mailto:" + t.contact + "?subject=" + encodeURIComponent("Re: " + t.subject + " (Byome)"), t.contact)
+        : document.createTextNode(t.contact));
+      note.appendChild(how);
+      note.appendChild(el("p", "field-hint", "Visitors can't see replies on Byome, so reply from hello@byome.xyz if you follow up. Please only use this to follow up on their feedback."));
+    } else {
+      note.appendChild(el("p", "field-hint", "This visitor didn't leave a way to reach them, so there's no reply to send. Mark it done once it's been read."));
+    }
+    box.appendChild(note);
+  }
 
   if (t.status === "closed" && !t.as_mod) {
     box.appendChild(el("p", "field-hint", "The moderators marked this as done. You can still reply, and it'll open again."));
@@ -231,7 +354,9 @@ async function showThread(id) {
     });
     row.appendChild(toggle);
   }
-  form.append(label, body, row, message);
+  // (no reply box for a visitor's feedback: they can't see replies here)
+  if (t.from_visitor) { send.remove(); form.append(row, message); }
+  else form.append(label, body, row, message);
   box.appendChild(form);
 
   form.addEventListener("submit", async (e) => {
@@ -248,9 +373,12 @@ async function showThread(id) {
 (async function () {
   const { data } = await supabaseClient.auth.getSession();
   if (!data.session) {
+    // Visitors can send feedback; conversations with the moderators need an account
+    if (params.get("new") !== "message" && !params.get("thread")) { showVisitorFeedback(); return; }
     box.replaceChildren();
     const p = el("p", "modmail-intro");
-    p.append(link("login.html", "Log in"), document.createTextNode(" to message the moderators or send feedback. Not a member? Email us at "),
+    p.append(link("login.html", "Log in"), document.createTextNode(" to message the moderators. Not a member? You can still "),
+      link("modmail.html?new=feedback", "send us feedback"), document.createTextNode(", or email us at "),
       link("mailto:" + CONTACT, CONTACT), document.createTextNode("."));
     box.appendChild(p);
     return;
