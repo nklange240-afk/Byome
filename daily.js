@@ -64,19 +64,20 @@ const DAILY = (function () {
     return b;
   }
 
-  // A big four-pointed sparkle with a small one beside it
-  function starIcon() {
+  // Byome points are a leaf everywhere on the site (profile, shop), so the
+  // prize is the same leaf, just bigger
+  function leafIcon() {
     const ns = "http://www.w3.org/2000/svg";
     const svg = document.createElementNS(ns, "svg");
-    svg.setAttribute("viewBox", "0 0 64 64");
-    svg.setAttribute("class", "daily-star");
-    [["M28 6c1.6 12.6 8.4 19.4 21 21-12.6 1.6-19.4 8.4-21 21-1.6-12.6-8.4-19.4-21-21 12.6-1.6 19.4-8.4 21-21z", ""],
-     ["M50 38c.7 5.4 3.6 8.3 9 9-5.4.7-8.3 3.6-9 9-.7-5.4-3.6-8.3-9-9 5.4-.7 8.3-3.6 9-9z", "is-small"]].forEach(([d, c]) => {
-      const path = document.createElementNS(ns, "path");
-      path.setAttribute("d", d);
-      if (c) path.setAttribute("class", c);
-      svg.appendChild(path);
-    });
+    svg.setAttribute("viewBox", "0 0 24 24");
+    svg.setAttribute("class", "daily-leaf");
+    const body = document.createElementNS(ns, "path");
+    body.setAttribute("class", "leaf-body");
+    body.setAttribute("d", "M20 4C10 4 4.5 9.5 4.5 15c0 2.2 1.3 4 3.5 4C14.5 19 20 14 20 4z");
+    const vein = document.createElementNS(ns, "path");
+    vein.setAttribute("class", "leaf-vein");
+    vein.setAttribute("d", "M3.5 21C7 15 11 11.5 15 9");
+    svg.append(body, vein);
     return svg;
   }
 
@@ -184,7 +185,7 @@ const DAILY = (function () {
         prize.classList.add("is-item");
         prize.appendChild(UI.itemArt(gift.item, "daily-prize-art"));
       } else {
-        prize.appendChild(starIcon()); // Byome points: a sparkle, like ✨
+        prize.appendChild(leafIcon());
       }
       prize.classList.add("is-out", "tier-" + tier);
       if (reduceMotion()) prize.classList.add("no-motion");
