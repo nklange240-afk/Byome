@@ -8,14 +8,12 @@
 //                                  card (only until today's is opened)
 const DAILY = (function () {
   // The packets. Each member sees three, in their own mix for the day.
-  // When the art is ready, give each one an image (a transparent PNG,
-  // about 300 x 400) and it's used instead of the plain colour.
+  // To add a colour: a transparent PNG (300 x 400, same shape as the
+  // others) in biome-assets, and a line here.
   const PACKETS = [
-    { key: "sunny", color: "#F2C66D", image: null },
-    { key: "rosy", color: "#F2A7C3", image: null },
-    { key: "leafy", color: "#A6D98A", image: null },
-    { key: "sky", color: "#9CC8E8", image: null },
-    { key: "lilac", color: "#C9A8E8", image: null },
+    { key: "yellow", image: "biome-assets/packet-yellow.png" },
+    { key: "blue", image: "biome-assets/packet-blue.png" },
+    { key: "pink", image: "biome-assets/packet-pink.png" },
   ];
 
   const HEADINGS = {
@@ -100,9 +98,10 @@ const DAILY = (function () {
 
     const box = el("button", "daily-card");
     box.type = "button";
-    const icon = el("span", "daily-card-packet");
-    icon.setAttribute("aria-hidden", "true");
-    icon.textContent = "✨";
+    // The card shows the first of today's packets
+    const icon = el("img", "daily-card-packet");
+    icon.src = todaysPackets(session.session.user.id, data.day)[0].image;
+    icon.alt = "";
     const text = el("span", "daily-card-text");
     text.append(el("strong", null, "Your daily surprise is waiting"),
       el("span", null, "Pick a packet and shake out today's prize."));
