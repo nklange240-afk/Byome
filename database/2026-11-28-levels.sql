@@ -201,17 +201,17 @@ revoke execute on function public.refresh_level(uuid) from public, anon, authent
 -- Anything that could earn someone a level checks theirs again
 create or replace function public.level_after_change() returns trigger
 language plpgsql security definer set search_path to public as $$
-declare who uuid;
+declare
+  r jsonb := to_jsonb(new);  -- (each table has different columns, so read them by name)
+  who uuid;
 begin
-  who := case tg_table_name
-    when 'reviews' then new.user_id
-    when 'products' then new.suggested_by
-    when 'likes' then (select user_id from posts where id = new.post_id)
-    when 'comments' then (select user_id from posts where id = new.post_id)
-    when 'poll_votes' then (select user_id from posts where id = new.post_id)
-    when 'review_standouts' then (select user_id from reviews where id = new.review_id)
-    when 'review_likes' then (select user_id from reviews where id = new.review_id)
-  end;
+  if tg_table_name = 'reviews' then who := (r->>'user_id')::uuid;
+  elsif tg_table_name = 'products' then who := (r->>'suggested_by')::uuid;
+  elsif tg_table_name in ('likes', 'comments', 'poll_votes') then
+    select user_id into who from posts where id = (r->>'post_id')::uuid;
+  elsif tg_table_name in ('review_standouts', 'review_likes') then
+    select user_id into who from reviews where id = (r->>'review_id')::uuid;
+  end if;
   if who is not null then perform refresh_level(who); end if;
   return null;
 end $$;
