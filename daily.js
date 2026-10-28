@@ -177,9 +177,9 @@ const DAILY = (function () {
 
     function reveal(gift, packet) {
       const tier = gift.tier;
-      // Where the prize comes out: the top of the chosen packet
+      // The prize rises from the packets' tops, centred in the box
       const r = packet.getBoundingClientRect(), s = stage.getBoundingClientRect();
-      prize.style.left = (r.left - s.left + r.width / 2) + "px";
+      prize.style.left = "50%";
       prize.style.bottom = (s.bottom - r.top - 24) + "px";
       if (gift.item) {
         prize.classList.add("is-item");
