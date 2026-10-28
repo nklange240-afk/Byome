@@ -66,6 +66,22 @@ const DAILY = (function () {
     return b;
   }
 
+  // A big four-pointed sparkle with a small one beside it
+  function starIcon() {
+    const ns = "http://www.w3.org/2000/svg";
+    const svg = document.createElementNS(ns, "svg");
+    svg.setAttribute("viewBox", "0 0 64 64");
+    svg.setAttribute("class", "daily-star");
+    [["M28 6c1.6 12.6 8.4 19.4 21 21-12.6 1.6-19.4 8.4-21 21-1.6-12.6-8.4-19.4-21-21 12.6-1.6 19.4-8.4 21-21z", ""],
+     ["M50 38c.7 5.4 3.6 8.3 9 9-5.4.7-8.3 3.6-9 9-.7-5.4-3.6-8.3-9-9 5.4-.7 8.3-3.6 9-9z", "is-small"]].forEach(([d, c]) => {
+      const path = document.createElementNS(ns, "path");
+      path.setAttribute("d", d);
+      if (c) path.setAttribute("class", c);
+      svg.appendChild(path);
+    });
+    return svg;
+  }
+
   function reduceMotion() {
     return typeof A11Y !== "undefined" && A11Y.reducedMotion();
   }
@@ -169,7 +185,7 @@ const DAILY = (function () {
         prize.classList.add("is-item");
         prize.appendChild(UI.itemArt(gift.item, "daily-prize-art"));
       } else {
-        prize.textContent = "+" + gift.points;
+        prize.appendChild(starIcon()); // Byome points: a sparkle, like ✨
       }
       prize.classList.add("is-out", "tier-" + tier);
       if (reduceMotion()) prize.classList.add("no-motion");
