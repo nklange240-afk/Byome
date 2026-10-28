@@ -174,7 +174,8 @@ const DAILY = (function () {
       prize.classList.add("is-out", "tier-" + tier);
       if (reduceMotion()) prize.classList.add("no-motion");
 
-      h.textContent = HEADINGS[tier] || HEADINGS.small;
+      // (until the rare and heirloom exclusives exist, those draws give points)
+      h.textContent = (tier === "rare" || tier === "heirloom") && !gift.item ? HEADINGS.great : HEADINGS[tier] || HEADINGS.small;
       sub.textContent = "";
       if (gift.item) {
         amount.textContent = gift.item.name + (gift.duplicate ? " (another one for your collection)" : "");
