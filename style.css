@@ -7412,8 +7412,10 @@ dialog.daily-dialog {
   padding-top: 1.4rem;
 }
 
+/* Room for the heading, the prize and a one-line note, so the packets
+   don't move when the prize appears */
 .daily-head {
-  min-height: 5.2rem;
+  min-height: 6.6rem;
 }
 
 .daily-sub {
@@ -7599,13 +7601,13 @@ dialog.daily-dialog {
 
 .daily-prize.is-out.no-motion {
   animation: daily-fade 0.4s forwards;
-  transform: translateY(-80px);
+  transform: translateY(-56px);
 }
 
 @keyframes daily-pop {
   0% { opacity: 0; transform: translateY(0) scale(0.4); }
   35% { opacity: 1; }
-  100% { opacity: 1; transform: translateY(-80px) scale(1); }
+  100% { opacity: 1; transform: translateY(-56px) scale(1); }
 }
 
 @keyframes daily-fade {
@@ -7615,7 +7617,7 @@ dialog.daily-dialog {
 
 @media (prefers-reduced-motion: reduce) {
   .daily-packet.is-shaking { animation: none; }
-  .daily-prize.is-out { animation: daily-fade 0.4s forwards; transform: translateY(-80px); }
+  .daily-prize.is-out { animation: daily-fade 0.4s forwards; transform: translateY(-56px); }
 }
 
 .daily-close {
@@ -7702,4 +7704,10 @@ dialog.daily-dialog {
 .hero-text .daily-card {
   max-width: 420px;
   margin: 1.2rem 0 0;
+}
+
+.daily-amount-note {
+  margin: 0;
+  font-size: 0.85rem;
+  opacity: 0.8;
 }

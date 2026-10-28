@@ -194,7 +194,8 @@ const DAILY = (function () {
       h.textContent = (tier === "rare" || tier === "heirloom") && !gift.item ? HEADINGS.great : HEADINGS[tier] || HEADINGS.small;
       sub.textContent = "";
       if (gift.item) {
-        amount.textContent = gift.item.name + (gift.duplicate ? " (another one for your collection)" : "");
+        amount.textContent = gift.item.name;
+        if (gift.duplicate) amount.after(el("p", "daily-amount-note", "Another one for your collection"));
       } else {
         amount.textContent = pointsText(gift.points);
       }
