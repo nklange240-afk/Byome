@@ -77,5 +77,7 @@ from (values
   ('2026-11-20-minimum-length.sql',       exists (select 1 from pg_trigger where tgname = 'reviews_minimum_length')),
   ('2026-11-21-helpful-stats.sql',        exists (select 1 from fn where name = 'member_helpful_stats')),
   ('2026-11-22-review-new-products.sql',  exists (select 1 from fn where name = 'merge_product_suggestion')),
-  ('2026-11-23-variation-suggestions.sql', exists (select 1 from tbl where name = 'variation_suggestions'))
+  ('2026-11-23-variation-suggestions.sql', exists (select 1 from tbl where name = 'variation_suggestions')),
+  ('2026-11-24-visitor-feedback.sql',     exists (select 1 from fn where name = 'visitor_feedback')),
+  ('2026-11-25-modmail-automod.sql',      exists (select 1 from fn where name = 'text_flag_reasons'))
 ) as checks(file, ok);

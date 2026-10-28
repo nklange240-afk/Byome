@@ -7247,3 +7247,118 @@ textarea.is-over {
 .variation-form .edit-buttons {
   margin-top: 0.6rem;
 }
+
+/* =========================================================
+   BETA BANNER (Community and Reviews pages)
+   ========================================================= */
+.beta-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  margin: 0 0 1rem;
+  padding: 0.7rem 0.6rem 0.7rem 0.9rem;
+  border: 1px solid var(--leaf);
+  border-radius: 10px;
+  background-color: var(--forest-mid);
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+.beta-banner p {
+  flex: 1;
+  margin: 0;
+}
+
+.beta-banner-tag {
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+  padding: 0.1rem 0.55rem;
+  border-radius: 999px;
+  background-color: var(--leaf);
+  color: var(--forest-dark);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.beta-banner-close {
+  flex-shrink: 0;
+  width: 2rem;
+  height: 2rem;
+  margin: -0.3rem 0 0;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  color: var(--cream);
+  font-size: 1.3rem;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0.75;
+}
+
+.beta-banner-close:hover,
+.beta-banner-close:focus-visible {
+  opacity: 1;
+}
+
+/* Desert: a soft glow of sand behind the logo, so it stays readable
+   over the cacti */
+.biome-desert .logo img {
+  filter: drop-shadow(0 0 3px #FFFBF3) drop-shadow(0 0 8px #FFFBF3) drop-shadow(0 0 18px rgba(255, 248, 232, 0.95));
+}
+
+/* Mod mail: a visitor's contact details (moderators only) */
+.modmail-visitor-note {
+  margin: 0.8rem 0;
+  padding: 0.6rem 0.8rem;
+  border-left: 3px solid var(--gold);
+  background-color: rgba(224, 168, 62, 0.08);
+  border-radius: 0 6px 6px 0;
+}
+
+.modmail-form .quick-picks {
+  margin-bottom: 0.4rem;
+}
+
+/* (form buttons on this page are big and borderless; the topic chips aren't) */
+.stacked-form .quick-picks .category-chip {
+  margin-top: 0;
+  border: 1px solid var(--moss);
+  font-size: 0.82rem;
+}
+
+/* Mod mail: a message automod found words in, hidden until shown */
+.flagged-hidden {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.8rem;
+  margin-top: 0.3rem;
+}
+
+.flagged-note {
+  flex-basis: 100%;
+  margin: 0;
+  font-style: italic;
+  opacity: 0.85;
+}
+
+.flagged-kind {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: 0.88rem;
+  opacity: 0.8;
+}
+
+.flagged-show {
+  padding: 0.25rem 0.8rem;
+  font-size: 0.85rem;
+}
+
+.modmail-thread-title .flagged-hidden {
+  margin-top: 0;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-weight: 400;
+}
