@@ -968,7 +968,7 @@ async function showAchievements(profileId) {
 // ---------- Returned to you ----------
 // When a moderator removes a post or review, its author keeps a private
 // copy here. Revising and resubmitting posts it again, held for a
-// moderator before anyone else sees it; "Let it go" deletes the copy.
+// moderator before anyone else sees it; "Delete" removes the copy for good.
 async function showReturned(profile, isMe) {
   const box = document.getElementById("returned");
   const { data: items, error } = await supabaseClient.from("returned_content")
@@ -987,7 +987,7 @@ async function showReturned(profile, isMe) {
   box.appendChild(el("h2", "section-title", "Returned to you"));
   box.appendChild(el("p", "returned-intro",
     "Only you can see these, and each one says why it came back. " +
-    "You can revise a removed post or review and resubmit it (a moderator will look it over before it goes up), or let it go."));
+    "You can revise a removed post or review and resubmit it (a moderator will look it over before it goes up), or delete it."));
   items.forEach((item) => box.appendChild(returnedCard(item, names, profile, isMe)));
   box.hidden = false;
 }
@@ -1027,7 +1027,7 @@ function returnedCard(item, names, profile, isMe) {
   const actions = el("div", "post-actions");
   const revise = el("button", "btn btn-solid", "Revise and resubmit");
   revise.type = "button";
-  const letGo = el("button", "btn btn-ghost", "Let it go");
+  const letGo = el("button", "btn btn-ghost", "Delete");
   letGo.type = "button";
   if (productReturn) {
     // Nothing to resubmit: the words are kept here to reuse
@@ -1046,7 +1046,7 @@ function returnedCard(item, names, profile, isMe) {
   card.append(actions, message);
 
   letGo.addEventListener("click", async () => {
-    if (!confirm("Let this go? It will be deleted for good.")) return;
+    if (!confirm("Delete this for good? You won't be able to get it back.")) return;
     const { error } = await supabaseClient.from("returned_content").delete().eq("id", item.id);
     if (error) { message.textContent = error.message; message.style.color = "#E07A5F"; return; }
     card.remove();

@@ -48,7 +48,7 @@ async function init() {
   currentUser = data.session.user;
 
   const { data: products } = await supabaseClient
-    .from("products").select("id, name, brand, status, suggested_by").neq("status", "rejected");
+    .from("products").select("id, name, brand, status, suggested_by, variations").neq("status", "rejected");
   knownProducts = products || [];
 }
 
@@ -82,6 +82,15 @@ function showSimilar() {
       a.href = "reviews.html?q=" + encodeURIComponent(product.brand + " " + product.name);
       a.textContent = label;
       li.append(a);
+      // A new shade of it? That's a variation, not a new product
+      if (product.variations && product.variations.length) {
+        const shade = document.createElement("button");
+        shade.type = "button";
+        shade.className = "link-btn similar-pick";
+        shade.textContent = "New shade or scent? Suggest it here";
+        shade.addEventListener("click", () => openVariationPanel(product));
+        li.append(" \u00b7 ", shade);
+      }
     } else {
       li.textContent = label + " (you suggested this already; it's waiting for a moderator)";
     }
@@ -174,6 +183,72 @@ variationsInput.addEventListener("input", () => {
     : "";
 });
 form.addEventListener("reset", () => { sizeWarning.hidden = true; });
+
+// ---------- A new variation of a listed product ----------
+// Only products that already come in variations are offered here.
+const variationOpen = document.getElementById("variation-open");
+const variationPanel = document.getElementById("variation-panel");
+const variationSearch = document.getElementById("variation-search");
+const variationResults = document.getElementById("variation-results");
+const variationSlot = document.getElementById("variation-form-slot");
+
+function productsWithVariations() {
+  return knownProducts.filter((p) => p.status === "approved" && p.variations && p.variations.length);
+}
+
+function showVariationResults() {
+  const q = searchWords(variationSearch.value);
+  const shown = q.length ? productsWithVariations().filter((p) => {
+    const text = searchWords(p.brand + " " + p.name).join(" ");
+    return q.every((w) => text.includes(w));
+  }).slice(0, 6) : [];
+  variationResults.replaceChildren();
+  if (q.length && !shown.length) {
+    const li = document.createElement("li");
+    li.className = "field-hint";
+    li.textContent = "No listed product with shades or scents matches that. If it's a new product, suggest it below.";
+    variationResults.appendChild(li);
+  }
+  shown.forEach((p) => {
+    const li = document.createElement("li");
+    const pick = document.createElement("button");
+    pick.type = "button";
+    pick.className = "link-btn";
+    pick.textContent = p.brand + " \u2014 " + p.name;
+    pick.addEventListener("click", () => chooseVariationProduct(p));
+    li.appendChild(pick);
+    variationResults.appendChild(li);
+  });
+}
+
+function searchWords(text) {
+  return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().split(/\s+/).filter(Boolean);
+}
+
+function chooseVariationProduct(p) {
+  variationResults.replaceChildren();
+  variationSearch.value = p.brand + " " + p.name;
+  const listed = document.createElement("p");
+  listed.className = "field-hint";
+  listed.textContent = "Already listed: " + p.variations.join(", ");
+  const form = UI.variationForm(p);
+  variationSlot.replaceChildren(listed, form);
+  form.querySelector("input").focus();
+}
+
+function openVariationPanel(product) {
+  variationPanel.hidden = false;
+  variationOpen.setAttribute("aria-expanded", "true");
+  if (product) chooseVariationProduct(product);
+  else variationSearch.focus();
+  variationPanel.scrollIntoView({ block: "nearest" });
+}
+
+variationOpen.addEventListener("click", () => {
+  if (variationPanel.hidden) openVariationPanel();
+  else { variationPanel.hidden = true; variationOpen.setAttribute("aria-expanded", "false"); }
+});
+variationSearch.addEventListener("input", () => { variationSlot.replaceChildren(); showVariationResults(); });
 
 init();
 showVariationHint();

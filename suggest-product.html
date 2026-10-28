@@ -25,8 +25,8 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=141" />
-  <script src="a11y.js?v=141"></script>
+  <link rel="stylesheet" href="style.css?v=142" />
+  <script src="a11y.js?v=142"></script>
 </head>
 <body>
 
@@ -50,6 +50,18 @@
         to live. A moderator will look it over before it goes live —
         search first to avoid submitting a duplicate.
       </p>
+
+      <!-- A new shade or scent of a listed product (suggest-product.js) -->
+      <div class="variation-entry">
+        <p><strong>New shade or scent of a product that's already here?</strong>
+          <button type="button" id="variation-open" class="link-btn" aria-expanded="false" aria-controls="variation-panel">Suggest a new variation instead</button></p>
+        <div id="variation-panel" class="stacked-form" hidden>
+          <label for="variation-search">Which product?</label>
+          <input type="text" id="variation-search" autocomplete="off" placeholder="Search by brand or name..." />
+          <ul id="variation-results" class="merge-results" aria-live="polite"></ul>
+          <div id="variation-form-slot"></div>
+        </div>
+      </div>
 
       <form id="suggest-form" class="stacked-form">
         <label for="product-name">Product name</label>
@@ -94,10 +106,10 @@
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase-client.js?v=141"></script>
-  <script src="nav-menu.js?v=141"></script>
-  <script src="ui.js?v=141"></script>
-  <script src="product-match.js?v=141"></script>
-  <script src="suggest-product.js?v=141"></script>
+  <script src="supabase-client.js?v=142"></script>
+  <script src="nav-menu.js?v=142"></script>
+  <script src="ui.js?v=142"></script>
+  <script src="product-match.js?v=142"></script>
+  <script src="suggest-product.js?v=142"></script>
 </body>
 </html>

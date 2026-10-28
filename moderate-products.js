@@ -52,6 +52,7 @@ async function init() {
   loadHeld();
   loadReports();
   loadQueue();
+  loadVariations();
   loadLog();
   // Refresh the log after any action on this page (they all reload a queue)
   document.querySelector("main").addEventListener("click", (e) => {
@@ -72,7 +73,7 @@ const LOG_WORDS = {
 };
 const LOG_TYPES = {
   post: "post", comment: "comment", review: "review", review_update: "review update",
-  product: "product suggestion", profile: "profile",
+  product: "product suggestion", profile: "profile", variation: "variation suggestion",
 };
 
 async function loadLog(more) {
@@ -416,6 +417,109 @@ function buildQueueItem(product, matches, waitingReviews) {
   }
   article.appendChild(actions);
 
+  return article;
+}
+
+// ---------- New shades and scents ----------
+// Members suggest new variations of listed products
+// (database/2026-11-23-variation-suggestions.sql).
+const variationQueueEl = document.getElementById("variation-queue");
+
+async function loadVariations() {
+  const { data, error } = await supabaseClient.from("variation_suggestions")
+    .select("id, variation, created_at, profiles!suggested_by(username), products!product_id(id, brand, name, variations)")
+    .eq("status", "pending").order("created_at", { ascending: true });
+  variationQueueEl.replaceChildren();
+  if (error) {
+    variationQueueEl.appendChild(el("p", "feed-empty", /variation_suggestions/.test(error.message)
+      ? "Run database/2026-11-23-variation-suggestions.sql to switch this on."
+      : "Couldn't load suggestions: " + error.message));
+    return;
+  }
+  if (!data.length) {
+    variationQueueEl.appendChild(el("p", "feed-empty", "No new shades or scents waiting."));
+    return;
+  }
+  data.forEach((s) => variationQueueEl.appendChild(buildVariationItem(s)));
+}
+
+function buildVariationItem(s) {
+  const article = el("article", "post");
+  const product = s.products || { brand: "", name: "A removed product", variations: [] };
+  article.appendChild(el("h2", "post-title", s.variation));
+  const meta = el("div", "post-meta");
+  meta.appendChild(el("span", "post-author", "New variation of " + product.brand + " \u2014 " + product.name));
+  article.appendChild(meta);
+  article.appendChild(el("p", "field-hint", "Already listed: " + ((product.variations || []).join(", ") || "none")));
+  article.appendChild(el("p", "feed-empty", "Suggested by " + (s.profiles ? s.profiles.username : "Unknown") + " \u00b7 " + formatDate(s.created_at)));
+
+  const fix = el("input");
+  fix.type = "text";
+  fix.value = s.variation;
+  fix.maxLength = 100;
+  fix.id = "variation-fix-" + s.id;
+  const fixLabel = el("label", "field-label", "Spelling (fix any typo before approving; they keep the credit)");
+  fixLabel.htmlFor = fix.id;
+  const fixBox = el("div", "merge-form");
+  fixBox.append(fixLabel, fix);
+  article.appendChild(fixBox);
+
+  const message = el("p", "auth-message");
+  message.setAttribute("aria-live", "polite");
+  const actions = el("div", "post-actions");
+  async function decide(approve, reason) {
+    actions.querySelectorAll("button").forEach((b) => { b.disabled = true; });
+    const { error } = await supabaseClient.rpc("decide_variation",
+      { p_id: s.id, p_approve: approve, p_reason: reason || null, p_variation: approve ? fix.value : null });
+    if (error) {
+      message.textContent = error.message;
+      message.style.color = "#E07A5F";
+      actions.querySelectorAll("button").forEach((b) => { b.disabled = false; });
+      return;
+    }
+    loadVariations();
+  }
+  const approve = el("button", "action-btn mod-btn is-good", "Approve");
+  approve.type = "button";
+  approve.addEventListener("click", () => decide(true));
+  const reject = el("button", "action-btn mod-btn is-bad", "Reject");
+  reject.type = "button";
+  reject.addEventListener("click", () => {
+    if (article.querySelector(".edit-form")) return;
+    actions.hidden = true;
+    const form = el("form", "edit-form");
+    const label = el("label", "field-label", "Why isn't it being added? (shown to the member)");
+    const text = el("textarea");
+    text.id = "variation-reason-" + s.id;
+    label.htmlFor = text.id;
+    text.rows = 2;
+    text.maxLength = 500;
+    text.required = true;
+    const picks = el("div", "reason-choices quick-picks");
+    [
+      ["Already listed", "Thanks! This shade is already listed under a slightly different name."],
+      ["Couldn't find it", "Thanks! We couldn't find this shade for this product. Please check the name on the packaging."],
+      ["It's a size", "Thanks! Sizes aren't variations, since reviews cover every size of a product."],
+    ].forEach(([t, reason]) => {
+      const b = el("button", "category-chip", t);
+      b.type = "button";
+      b.addEventListener("click", () => { text.value = reason; text.focus(); });
+      picks.appendChild(b);
+    });
+    const buttons = el("div", "edit-buttons");
+    const confirmBtn = el("button", "btn btn-solid", "Reject suggestion");
+    confirmBtn.type = "submit";
+    const cancel = el("button", "action-btn", "Cancel");
+    cancel.type = "button";
+    cancel.addEventListener("click", () => { form.remove(); actions.hidden = false; });
+    buttons.append(confirmBtn, cancel);
+    form.append(label, picks, text, buttons);
+    form.addEventListener("submit", (e) => { e.preventDefault(); if (text.value.trim()) decide(false, text.value.trim()); });
+    article.insertBefore(form, message);
+    text.focus();
+  });
+  actions.append(approve, reject);
+  article.append(actions, message);
   return article;
 }
 

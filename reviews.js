@@ -386,7 +386,7 @@ async function showProductPage() {
   document.getElementById("product-back").hidden = false;
 
   const [productRes, statsRes] = await Promise.all([
-    supabaseClient.from("products").select("id, name, brand, photo_url, category, subcategory")
+    supabaseClient.from("products").select("id, name, brand, photo_url, category, subcategory, variations")
       .eq("id", productParam).maybeSingle(),
     supabaseClient.from("reviews").select("rating, would_repurchase, holy_grail, profiles!user_id(skin_type)")
       .eq("product_id", productParam).is("held_at", null).limit(2000),
@@ -420,6 +420,25 @@ async function showProductPage() {
   }
   head.appendChild(who);
   summary.appendChild(head);
+
+  // Its shades or scents, and a way to suggest a new one (only for
+  // products that come in variations)
+  if (product.variations && product.variations.length) {
+    const shades = el("p", "product-variations");
+    shades.append(el("strong", null, "Comes in: "), document.createTextNode(product.variations.join(", ")));
+    summary.appendChild(shades);
+    if (currentUser) {
+      const add = el("button", "link-btn", "Missing one? Suggest a new shade or scent");
+      add.type = "button";
+      add.addEventListener("click", () => {
+        const form = UI.variationForm(product, () => { form.remove(); add.hidden = false; add.focus(); });
+        add.hidden = true;
+        add.after(form);
+        form.querySelector("input").focus();
+      });
+      summary.appendChild(add);
+    }
+  }
 
   const statsBox = el("div", "product-stats");
   summary.appendChild(statsBox);

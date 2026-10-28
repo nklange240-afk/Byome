@@ -56,14 +56,22 @@ Each of these counts as one contribution:
 - **Levels never go down on their own.**
 - **A moderator can demote someone** if they feel it's appropriate. It's logged, and the member is told kindly.
 - **Moderation isn't tied to levels,** so moderators never hesitate to moderate carefully and err on the side of caution. Content being held or removed doesn't take a level away.
-- **Active restrictions pause progress:** a restricted member doesn't level up until the restriction ends, but keeps their current level.
+- **Active restrictions pause progress:** a restricted member keeps their current level but can't level up while restricted. Once the restriction is lifted (or runs out), their next level-up waits for a moderator's approval instead of happening on its own.
 - **Level badges are public:** a small badge next to every username, seen by everyone.
 
 ## Restrictions (built alongside levels)
-Levels depend on "no active account restrictions", so restrictions are built with them. Moderators can restrict a member from:
+Levels depend on "no active account restrictions", so restrictions are built with them.
+
+**What counts (agreed):** any limit on what **one specific member** can do counts as a restriction. A site-wide limit (for example, the emergency pause on all photo uploads) never counts against anyone.
+
+Moderators can restrict a member from:
 - posting in the Community
 - commenting
+- writing reviews
+- suggesting products and variations
 - uploading photos (when photos exist)
+
+**After a restriction:** while any restriction is active, the member can't level up. When it ends, the member goes on a "Level-up needs approval" list for moderators. If they've met the next level's requirements, a moderator approves (or declines, with a reason) before the level-up happens. It's logged like other decisions.
 
 Each restriction has:
 - a **reason**, and the member is told why

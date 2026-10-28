@@ -7197,3 +7197,53 @@ textarea.is-over {
   font-weight: 600;
   margin: 0.3rem 0 0.5rem;
 }
+
+/* =========================================================
+   NEW SHADES AND SCENTS (product page, suggest page)
+   ========================================================= */
+.product-variations {
+  margin: 0.6rem 0 0.1rem;
+  font-size: 0.95rem;
+}
+
+.product-summary > .link-btn {
+  padding-top: 0.2rem;
+  margin-bottom: 0.6rem;
+}
+
+.variation-form {
+  margin: 0.4rem 0 0.8rem;
+}
+
+.variation-form input[type="text"] {
+  width: 100%;
+  background-color: var(--forest-dark);
+  border: 1px solid var(--moss);
+  border-radius: 6px;
+  padding: 0.6rem 0.8rem;
+  color: var(--cream);
+  font-family: var(--font-body);
+  font-size: 1rem;
+}
+
+.variation-entry {
+  margin: 0 0 1.2rem;
+  padding: 0.6rem 0.8rem;
+  border: 1px dashed var(--moss);
+  border-radius: 8px;
+  font-size: 0.95rem;
+}
+
+.variation-entry .link-btn {
+  padding: 0.2rem 0 0;
+  font-size: inherit;
+  text-align: left;
+}
+
+.variation-entry .stacked-form {
+  margin-top: 0.6rem;
+}
+
+.variation-form .edit-buttons {
+  margin-top: 0.6rem;
+}
