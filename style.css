@@ -7327,3 +7327,30 @@ textarea.is-over {
   border: 1px solid var(--moss);
   font-size: 0.82rem;
 }
+
+/* Mod mail: a message automod found words in, hidden until shown */
+.flagged-hidden {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.8rem;
+  margin-top: 0.3rem;
+}
+
+.flagged-note {
+  margin: 0;
+  font-style: italic;
+  opacity: 0.85;
+}
+
+.flagged-show {
+  padding: 0.25rem 0.8rem;
+  font-size: 0.85rem;
+}
+
+.modmail-thread-title .flagged-hidden {
+  margin-top: 0;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-weight: 400;
+}

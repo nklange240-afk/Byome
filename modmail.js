@@ -27,6 +27,26 @@ function link(href, text, className) {
 
 const KIND_LABELS = { message: "Message", block: "Block", feedback: "Feedback" };
 
+// Automod words in mod mail aren't held, just hidden until someone chooses
+// to read them (database/2026-11-25-modmail-automod.sql).
+// {offensive,strong} -> "may contain offensive and strong language"
+function flagPhrase(flags) {
+  if (!flags || !flags.length) return "";
+  const list = flags.length === 1 ? flags[0] : flags.slice(0, -1).join(", ") + " and " + flags[flags.length - 1];
+  return "may contain " + list + " language";
+}
+
+// A note in place of `content`, with a button to show it
+function hiddenBehind(content, what, flags, buttonText) {
+  const wrap = el("div", "flagged-hidden");
+  const note = el("p", "flagged-note", what + " " + flagPhrase(flags) + ".");
+  const show = el("button", "btn btn-ghost flagged-show", buttonText);
+  show.type = "button";
+  show.addEventListener("click", () => { wrap.replaceWith(content); });
+  wrap.append(note, show);
+  return wrap;
+}
+
 function say(target, text, good) {
   target.textContent = text;
   target.style.color = good ? "" : "#E07A5F";
@@ -80,7 +100,10 @@ async function showList(isMod) {
       const a = el("a", "modmail-row" + (t.status === "closed" ? " is-closed" : ""));
       a.href = "modmail.html?thread=" + t.id;
       const top = el("div", "modmail-row-top");
-      top.append(el("span", "post-category-tag", KIND_LABELS[t.kind] || t.kind), el("strong", "modmail-subject", t.subject));
+      const hideSubject = !t.mine && t.subject_flags && t.subject_flags.length;
+      top.append(el("span", "post-category-tag", KIND_LABELS[t.kind] || t.kind), hideSubject
+        ? el("em", "modmail-subject", "Subject hidden: it " + flagPhrase(t.subject_flags))
+        : el("strong", "modmail-subject", t.subject));
       a.appendChild(top);
       const meta = el("p", "modmail-meta");
       const bits = [];
@@ -267,13 +290,16 @@ async function showThread(id) {
     box.append(el("p", "feed-empty", "We couldn't find that conversation."), link("modmail.html", "Back to mod mail"));
     return;
   }
-  document.title = t.subject + " — Mod mail — Byome";
+  const hideSubject = !t.mine && t.subject_flags && t.subject_flags.length;
+  document.title = (hideSubject ? "Mod mail" : t.subject + " — Mod mail") + " — Byome";
 
   const back = link("modmail.html", "← All mod mail", "inline-link modmail-back");
   box.appendChild(back);
   // The conversation's subject, as its own heading above the messages
   const title = el("h2", "modmail-thread-title");
-  title.append(el("span", "post-category-tag", KIND_LABELS[t.kind] || t.kind), el("span", null, t.subject));
+  const subjectText = el("span", null, t.subject);
+  title.append(el("span", "post-category-tag", KIND_LABELS[t.kind] || t.kind),
+    hideSubject ? hiddenBehind(subjectText, "The subject", t.subject_flags, "Show subject") : subjectText);
   box.appendChild(title);
   if (params.get("sent") === "1") {
     box.appendChild(el("p", "modmail-sent", t.kind === "feedback"
@@ -298,7 +324,9 @@ async function showThread(id) {
     who.append(el("strong", null, m.mine ? "You" : m.sender || "Deleted member"));
     if (m.from_mods && t.as_mod && !m.mine) who.append(document.createTextNode(" (moderator)"));
     who.append(document.createTextNode(" · "), UI.timeTag(m.created_at));
-    msg.append(who, el("p", "modmail-text", m.body));
+    const text = el("p", "modmail-text", m.body);
+    msg.append(who, !m.mine && m.flags && m.flags.length
+      ? hiddenBehind(text, "This message", m.flags, "Show message") : text);
     list.appendChild(msg);
   });
   box.appendChild(list);
