@@ -407,14 +407,25 @@ const UI = (function () {
     const dialog = el("dialog", "celebrate");
     dialog.setAttribute("aria-labelledby", "celebrate-heading");
     if (options.label) dialog.appendChild(el("p", "celebrate-label", options.label));
+    if (options.art) dialog.appendChild(options.art);
     if (options.item) dialog.appendChild(itemArt(options.item));
     const h = el("h2", null, options.heading);
     h.id = "celebrate-heading";
     dialog.appendChild(h);
     if (options.text) dialog.appendChild(el("p", "celebrate-text", options.text));
+    if (options.list && options.list.length) {
+      dialog.appendChild(el("p", "celebrate-list-title", options.listTitle || "Unlocked"));
+      const ul = el("ul", "celebrate-list");
+      options.list.forEach((t) => ul.appendChild(el("li", null, t)));
+      dialog.appendChild(ul);
+    }
 
     const actions = el("div", "celebrate-actions");
-    if (options.notice) {
+    if (options.link) {
+      const a = el("a", "btn btn-ghost", options.link.text);
+      a.href = options.link.href;
+      actions.appendChild(a);
+    } else if (options.notice) {
       // just the button
     } else if (options.item && options.item.kind === "biome") {
       const choose = el("a", "btn btn-ghost", "Choose my biome");
@@ -436,7 +447,7 @@ const UI = (function () {
     actions.appendChild(ok);
     dialog.appendChild(actions);
 
-    dialog.addEventListener("close", () => { dialog.remove(); showNext(); });
+    dialog.addEventListener("close", () => { dialog.remove(); if (options.onClose) options.onClose(); showNext(); });
     // Clicking the dim background closes it too
     dialog.addEventListener("click", (e) => { if (e.target === dialog) dialog.close(); });
     document.body.appendChild(dialog);
@@ -729,6 +740,73 @@ const UI = (function () {
     const badge = el("span", "member-badge is-" + kind, kind === "founder" ? "Founder" : "Mod");
     badge.title = kind === "founder" ? "Byome's founder" : "Byome moderator";
     return badge;
+  }
+
+  // ---------- Levels (database/2026-11-28-levels.sql) ----------
+  const LEVELS = [
+    null,
+    { key: "seed", name: "Seed" },
+    { key: "sprout", name: "Sprout" },
+    { key: "sapling", name: "Sapling" },
+    { key: "bloom", name: "Bloom" },
+    { key: "evergreen", name: "Evergreen" },
+  ];
+
+  function levelInfo(level) {
+    return LEVELS[level] || LEVELS[1];
+  }
+
+  // The level's drawing in a small cream circle; withName adds the name
+  // beside it (profiles). Hover or long-press shows "Sprout · level 2".
+  function levelBadge(level, withName, size) {
+    const info = levelInfo(level);
+    const wrap = el("span", "level-badge level-" + info.key + (withName ? " has-name" : "") + (size ? " is-" + size : ""));
+    const label = info.name + " \u00b7 level " + (LEVELS.indexOf(info));
+    wrap.title = label;
+    const token = el("span", "level-token");
+    const img = el("img");
+    img.src = art("biome-assets/level-" + info.key + ".png");
+    img.alt = withName ? "" : label;
+    token.appendChild(img);
+    wrap.appendChild(token);
+    if (withName) wrap.appendChild(el("span", "level-name", info.name));
+    return wrap;
+  }
+
+  const LEVEL_UP = {
+    2: ["You've sprouted!", "Your first review is out in the world. Thank you for sharing what you know with Byome."],
+    3: ["You've grown into a Sapling!", "25 contributions to Byome: reviews, posts people loved and product suggestions. Thank you for helping our community grow."],
+    4: ["You're in bloom!", "100 reviews, and our team agrees: you've bloomed. Thank you for everything you share with Byome."],
+    5: ["You're an Evergreen!", "The highest level on Byome. Thoughtful, trusted, and an important part of the Byome community."],
+  };
+
+  // A level-up pop-up, once, the next time someone visits after levelling
+  // up (one for the level they've reached, even if they passed several)
+  let levelChecked = false;
+  async function checkLevelUp() {
+    if (levelChecked || typeof supabaseClient === "undefined") return;
+    levelChecked = true;
+    const { data: session } = await supabaseClient.auth.getSession();
+    if (!session.session) return;
+    const { data, error } = await supabaseClient.rpc("my_level");
+    if (error || !data || data.level <= data.seen || data.level < 2) return;
+    // (a request only goes out once something waits on it)
+    supabaseClient.rpc("mark_level_seen").then(() => {});
+    const info = levelInfo(data.level);
+    const words = LEVEL_UP[data.level];
+    const art = el("div", "level-up-art level-" + info.key);
+    art.appendChild(levelBadge(data.level, false, "large"));
+    celebrate({
+      label: "Level up!",
+      art: art,
+      heading: words[0],
+      text: words[1],
+      list: [
+        "Your " + info.name + " badge, next to your name on posts and reviews",
+        data.gift ? "A gift: " + data.gift.name + " (it's on your shelf)" : "A gift for this level is on its way \u{1F381}",
+      ],
+      link: { href: "profile.html", text: "See my profile" },
+    });
   }
 
   // A small preview of a biome (shop cards, Edit profile, pop-ups)
@@ -1215,9 +1293,10 @@ const UI = (function () {
     betaBanner();
     calmBottomBounce();
     checkAchievements();
+    checkLevelUp();
     thankModerator();
     if (document.body.dataset.biome) setBiome(document.body.dataset.biome);
   });
 
-  return { liveEvent, eventBanner, centralTime, iconOrLabel, reviewIcons, openAccessibility, REMOVAL_REASONS, removalReasonLabel, friendlyDate, timeTag, emptyState, celebrate, checkAchievements, sparkles, itemArt, soilImage, sizeName, sizeBadge, setBiome, biomeSymbol, memberBadge, biomeSwatch, biomeLook, biomePreview, openBiomePreview, previewOnHover, previewButton, startModSession, refreshLimits, variationForm };
+  return { liveEvent, eventBanner, centralTime, iconOrLabel, reviewIcons, openAccessibility, REMOVAL_REASONS, removalReasonLabel, friendlyDate, timeTag, emptyState, celebrate, checkAchievements, sparkles, itemArt, soilImage, sizeName, sizeBadge, setBiome, biomeSymbol, memberBadge, biomeSwatch, biomeLook, biomePreview, openBiomePreview, previewOnHover, previewButton, startModSession, refreshLimits, variationForm, LEVELS, levelInfo, levelBadge };
 })();

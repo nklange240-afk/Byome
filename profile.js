@@ -896,7 +896,7 @@ async function showAchievements(profileId) {
   const reviewsEl = document.getElementById("profile-reviews");
   const postsEl = document.getElementById("profile-posts");
 
-  const columns = "id, username, created_at, avatar_path, avatar_ring, skin_type, skin_concerns, hair_type, hair_texture, is_moderator, badge, profile_biome, show_biome_symbol";
+  const columns = "id, username, created_at, avatar_path, avatar_ring, skin_type, skin_concerns, hair_type, hair_texture, is_moderator, badge, profile_biome, show_biome_symbol, level";
   const find = (cols) => {
     const q = supabaseClient.from("profiles").select(cols);
     return (wanted ? q.eq("username", wanted) : q.eq("id", me)).maybeSingle();
@@ -957,6 +957,7 @@ async function showAchievements(profileId) {
   }
 
   showHelpful(profile, isMe);
+  showLevel(profile, isMe, me);
   if (isMe) showPoints(profile.id, profile.is_moderator);
   showBiome(profile.id, isMe);
   showAchievements(profile.id);
@@ -1221,6 +1222,136 @@ function openBlockDialog(profile, name) {
 // ---------- "54 people found AliceB's reviews helpful" ----------
 // Different people, not votes: one person marking many reviews counts once
 // (database/2026-11-21-helpful-stats.sql; until it's run, nothing shows)
+// ---------- Levels ----------
+// Everyone's profile shows their level; your own also shows what's next
+// ("Only you can see this"); moderators can lower someone else's level.
+async function showLevel(profile, isMe, me) {
+  if (!profile.level) return;
+  const meta = document.querySelector(".profile-meta");
+  const pill = UI.levelBadge(profile.level, true);
+  pill.classList.add("profile-level");
+  meta.parentNode.insertBefore(pill, meta);
+
+  if (isMe) {
+    const { data } = await supabaseClient.rpc("my_level");
+    if (data) {
+      const card = nextLevelCard(data);
+      if (card) document.getElementById("profile-helpful").after(card);
+    }
+    return;
+  }
+  // Moderators: lower someone's level (their next level-up then waits for a moderator)
+  const { data: viewer } = await supabaseClient.from("profiles").select("is_moderator").eq("id", me).maybeSingle();
+  if (!viewer || !viewer.is_moderator || profile.level <= 1) return;
+  const change = el("button", "link-btn level-change", "Change level");
+  change.type = "button";
+  pill.after(change);
+  change.addEventListener("click", () => {
+    if (document.querySelector(".level-demote-form")) return;
+    change.after(demoteForm(profile, () => window.location.reload()));
+  });
+}
+
+function nextLevelCard(data) {
+  const s = data.stats;
+  const next = data.level + 1;
+  if (next > 5) return null;  // Evergreen: the top
+  const card = el("section", "next-level");
+  const head = el("div", "next-level-head");
+  head.append(el("span", "next-level-label", "Next level"), UI.levelBadge(next, true));
+  card.append(head, el("p", "next-level-private", "Only you can see this."));
+
+  function bar(have, need, label) {
+    const row = el("div", "next-level-bar");
+    const top = el("p", "next-level-bar-label");
+    top.append(document.createTextNode(label + " "), el("strong", null, Math.min(have, need) + " of " + need));
+    const track = el("div", "next-level-track");
+    const fill = el("div", "next-level-fill");
+    fill.style.width = Math.min(100, Math.round(100 * have / need)) + "%";
+    track.appendChild(fill);
+    track.setAttribute("role", "progressbar");
+    track.setAttribute("aria-valuemin", "0");
+    track.setAttribute("aria-valuemax", String(need));
+    track.setAttribute("aria-valuenow", String(Math.min(have, need)));
+    track.setAttribute("aria-label", label);
+    row.append(top, track);
+    return row;
+  }
+  function check(done, text) {
+    const li = el("li", done ? "is-done" : "");
+    li.append(el("span", "next-level-tick", done ? "\u2713" : "\u25CB"), document.createTextNode(" " + text));
+    return li;
+  }
+
+  if (data.approval_waiting) {
+    card.appendChild(el("p", "next-level-note", "Your next level-up is waiting for a moderator to look at it. You'll get a notification when they do."));
+  } else if (next === 2) {
+    const ul = el("ul", "next-level-checks");
+    ul.append(check(s.reviews >= 1, "Write your first review"),
+      check(s.days >= 3, s.days >= 3 ? "Be a member for 3 days" : "Be a member for 3 days (" + (3 - s.days) + " to go)"));
+    card.appendChild(ul);
+  } else if (next === 3) {
+    card.appendChild(bar(s.contributions, 25, "Contributions"));
+    card.appendChild(el("p", "next-level-breakdown",
+      s.reviews + (s.reviews === 1 ? " review" : " reviews") + " \u00b7 " +
+      s.posts + (s.posts === 1 ? " post others enjoyed" : " posts others enjoyed") + " \u00b7 " +
+      s.products + (s.products === 1 ? " approved product suggestion" : " approved product suggestions")));
+    card.appendChild(el("p", "next-level-note", "Posts count once someone else likes, comments or votes on them."));
+  } else if (next === 4) {
+    if (data.bloom_waiting) {
+      card.appendChild(el("p", "next-level-note", "Your reviews are being looked at by our team \u{1F338} You'll get a notification as soon as you bloom!"));
+    } else {
+      card.appendChild(bar(s.reviews, 100, "Published reviews"));
+      card.appendChild(el("p", "next-level-note", "At 100, our moderators take a look through your reviews, and then you bloom."));
+    }
+  } else {
+    const ul = el("ul", "next-level-checks");
+    const months = Math.min(6, Math.floor(s.days / 30.4));
+    ul.append(
+      check(s.standouts >= 5, "5 standout reviews (" + Math.min(s.standouts, 5) + " so far)"),
+      check(s.helpful >= 50, s.helpful >= 50 ? s.helpful + " people found your reviews helpful (goal: 50)" : "50 people find your reviews helpful (" + s.helpful + " so far)"),
+      check(s.six_months, s.six_months ? "A member for 6 months" : "A member for 6 months (" + months + " so far)"));
+    card.appendChild(ul);
+  }
+  return card;
+}
+
+function demoteForm(profile, onDone) {
+  const form = el("form", "edit-form level-demote-form");
+  const label = el("label", "field-label", "Move " + profile.username + " down to");
+  const select = el("select");
+  select.id = "demote-level";
+  label.htmlFor = select.id;
+  for (let n = profile.level - 1; n >= 1; n--) select.appendChild(new Option(UI.levelInfo(n).name + " (level " + n + ")", String(n)));
+  const reasonLabel = el("label", "field-label", "Why? (they'll see this)");
+  const reason = el("textarea");
+  reason.id = "demote-reason";
+  reasonLabel.htmlFor = reason.id;
+  reason.rows = 2;
+  reason.maxLength = 300;
+  reason.required = true;
+  const hint = el("p", "field-hint", "Their next level-up will then wait for a moderator to approve it. It's logged.");
+  const buttons = el("div", "edit-buttons");
+  const save = el("button", "btn btn-solid", "Change level");
+  save.type = "submit";
+  const cancel = el("button", "action-btn", "Cancel");
+  cancel.type = "button";
+  cancel.addEventListener("click", () => form.remove());
+  buttons.append(save, cancel);
+  const message = el("p", "auth-message");
+  message.setAttribute("aria-live", "polite");
+  form.append(label, select, reasonLabel, reason, hint, buttons, message);
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    save.disabled = true;
+    const { error } = await supabaseClient.rpc("demote_member",
+      { p_user: profile.id, p_level: Number(select.value), p_reason: reason.value.trim() });
+    if (error) { message.textContent = error.message; message.style.color = "#E07A5F"; save.disabled = false; return; }
+    onDone();
+  });
+  return form;
+}
+
 async function showHelpful(profile, isMe) {
   const { data, error } = await supabaseClient.rpc("member_helpful_stats", { p_user: profile.id });
   if (error || !data || !data.people) return;

@@ -957,7 +957,7 @@ async function loadReviews(more) {
     .select("id, product_id, rating, title, body, variation, would_repurchase, holy_grail, created_at, edited_at, held_at, user_id, helpful_count, " +
       REVIEW_EVENT_COLUMNS +
       // filtering by skin type needs an inner join on the reviewer's profile
-      "profiles!user_id" + (skinFilter ? "!inner" : "") + "(username, avatar_path, avatar_ring, profile_biome, show_biome_symbol, is_moderator, badge, skin_type), " +
+      "profiles!user_id" + (skinFilter ? "!inner" : "") + "(username, avatar_path, avatar_ring, profile_biome, show_biome_symbol, is_moderator, badge, level, skin_type), " +
       "products!product_id!inner(name, brand, photo_url, category, subcategory), review_likes(user_id), review_updates(id, body, created_at, held_at), review_standouts(review_id)");
   if (sortBy === "helpful") query = query.order("helpful_count", { ascending: false });
   query = query.order("created_at", { ascending: false }).order("id").range(from, to);

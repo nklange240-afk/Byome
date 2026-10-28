@@ -201,7 +201,7 @@ async function showLinkedPost() {
 // an edit or a new post keeps however many were already showing.
 const PAGE_SIZE = 20;
 let postsShown = 0;
-let POST_COLUMNS = "id, title, body, category, created_at, edited_at, held_at, user_id, profiles!user_id(username, avatar_path, avatar_ring, profile_biome, show_biome_symbol, is_moderator, badge), likes(user_id), comments(count), polls(closes_at, poll_options(id, label, position))";
+let POST_COLUMNS = "id, title, body, category, created_at, edited_at, held_at, user_id, profiles!user_id(username, avatar_path, avatar_ring, profile_biome, show_biome_symbol, is_moderator, badge, level), likes(user_id), comments(count), polls(closes_at, poll_options(id, label, position))";
 
 // Events (database/2026-10-29-events-halloween.sql): which event a post is
 // part of, and whether a moderator featured it. Left out until that's run.

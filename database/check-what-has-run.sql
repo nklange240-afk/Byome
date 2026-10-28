@@ -81,5 +81,6 @@ from (values
   ('2026-11-24-visitor-feedback.sql',     exists (select 1 from fn where name = 'visitor_feedback')),
   ('2026-11-25-modmail-automod.sql',      exists (select 1 from fn where name = 'text_flag_reasons')),
   ('2026-11-26-daily-surprise.sql',       exists (select 1 from fn where name = 'claim_daily_gift')),
-  ('2026-11-27-bait-the-trap-4.sql',      exists (select 1 from public.achievements where key = 'hh-bait-the-trap' and description like '%4 members%'))
+  ('2026-11-27-bait-the-trap-4.sql',      exists (select 1 from public.achievements where key = 'hh-bait-the-trap' and description like '%4 members%')),
+  ('2026-11-28-levels.sql',               exists (select 1 from col where t = 'profiles' and c = 'level'))
 ) as checks(file, ok);

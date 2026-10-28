@@ -87,6 +87,9 @@ const PROFILES = (function () {
       const a = el("a", "post-author", profile.username);
       a.href = "profile.html?user=" + encodeURIComponent(profile.username);
       wrap.appendChild(a);
+      // Their level, on posts and reviews (comments leave level out of
+      // what they load, so there's no badge there)
+      if (profile.level && typeof UI !== "undefined" && UI.levelBadge) wrap.appendChild(UI.levelBadge(profile.level));
       // Their biome's symbol, if they've turned it on
       const symbol = typeof UI !== "undefined" ? UI.biomeSymbol(profile) : null;
       if (symbol) wrap.appendChild(symbol);
