@@ -66,7 +66,35 @@ Byome's biggest event yet, running about five weeks. The decisions are the owner
   - the discontinued product you've never found a dupe for
 - **On the review form,** the event version of "I no longer use this" becomes **"This is a Ghost of Christmas Past 👻"**, with a short hint covering all three kinds. Reviews with it are tagged and listed on the Events page, like Halloween's.
 - **To build:** event checkboxes per event. They're currently fixed to Halloween's ("I no longer use this", "This is a fall or seasonal product"). Christmas could have its own second checkbox, for example "This is a winter or holiday product".
-- **More achievements, spread over the five weeks** so there's always something to work towards. **(to decide)**
+- **Points for helping are only for receiving:** members earn points when others find their reviews helpful, never for handing out Helpful marks. Rewards are hidden ("A surprise, coming soon") until their art is ready. Things finished during the event still count during the grace period.
+
+### The achievements (owner's picks so far; rewards to decide)
+| Achievement | How to earn it |
+|---|---|
+| **Ghosts of Christmas Past** | Review a product that still haunts you, and tick "This is a Ghost of Christmas Past 👻" |
+| **Baby, It's Cold Outside** | Review a winter product, and tick "This is a winter or holiday product" (winter skincare, holiday sets, festive scents) |
+| **Making a List, Checking It Twice** | Add products to your new "Want to try" list (below). This introduces the feature. **(to decide: how many, maybe 5)** |
+| **Comfort and Joy** | Have your reviews marked Helpful by 5 different members during the event |
+| **Christmas Caroling** | Spread some Christmas cheer: like Community posts. **(to decide: how many; maybe 12 posts from at least 5 different members, so it can't all go to one friend.)** Unliking and liking again doesn't count twice, and liking your own posts doesn't count |
+| **Santa's Little Helper** | Share a gift idea for a beauty lover in the pinned gift guide post (at least 50 characters) |
+| **Auld Lang Syne** | In a pinned post for the last week of the year, share one piece of beauty or life advice you're taking into the new year |
+| **Fresh Snowfall** | Get 3 product suggestions approved |
+| **Come In from the Cold** | Invite 1 friend who joins, writes a post and writes a review |
+| **Deck the Halls** | Put your Christmas tree on your shelf |
+| **Every Door Opened** | Stamp all 24 advent calendar doors |
+| **Winter Wonderland** | Finish any 7 of the achievements above **(to decide: the number)** |
+
+- **Rewards to match (ideas):** stockings, snowdrop, poinsettia, cable knit pot, hot cocoa pot, paper garland, tree themes, and the snowy shelf (heirloom) for Winter Wonderland.
+- **Release in waves (option):** some achievements appear in later weeks, for example Auld Lang Syne only in the final week. This needs a small addition: an achievement can appear on a set date.
+- **Pinned posts:** the gift guide (whole event) and Auld Lang Syne (last week). Like Halloween's horror story post, they're about products and experiences, not people.
+
+## New feature: "Want to try" list
+Introduced by Making a List, Checking It Twice, and kept after the event.
+- **A "Want to try" button** on every product page and review, to save the product to your list.
+- **Your list:** each product with its rating, how many reviews it has, and **how many new reviews since you added it**, so it's easy to check in.
+- **Notifications (optional):** "3 new reviews of a product on your list", sent at most once a day so it never gets noisy.
+- **Tried it?** Reviewing a product on your list offers to move it to a "Tried" section.
+- **(to decide)** Whether lists are private (the suggestion, at least to start) or can be shown on your profile, and whether there's a limit on length.
 - **Weekly drops (suggestion):** a new theme or shop item each week, announced on the Events page, so the event stays fresh for five weeks.
 
 ## Art list
