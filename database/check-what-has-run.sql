@@ -88,5 +88,6 @@ from (values
   ('2026-12-01-sapphire-butterfly.sql',   exists (select 1 from public.achievements where key = 'bug-squasher')),
   ('2026-12-02-shop-sign-stats.sql',      exists (select 1 from tbl where name = 'sign_stats')),
   ('2026-12-03-site-numbers.sql',         exists (select 1 from fn where name = 'site_numbers_report')),
-  ('2026-12-04-urgent-modmail.sql',       exists (select 1 from col where t = 'modmail_threads' and c = 'urgent'))
+  ('2026-12-04-urgent-modmail.sql',       exists (select 1 from col where t = 'modmail_threads' and c = 'urgent')),
+  ('2026-12-05-hide-reef.sql',            exists (select 1 from public.biome_items where key = 'reef' and not available))
 ) as checks(file, ok);
