@@ -220,8 +220,8 @@ function buildCard(item, balance, ownedCount, event) {
 // a card with an end date (until) stops showing after it, and a card with
 // a link (href) can be tapped.
 // Each sign is counted when it's actually seen (at least half on screen for
-// a second) and tapped, under its key, for the Shop signs page
-// (shop-signs.html, database/2026-12-02-shop-sign-stats.sql). A new card
+// a second) and tapped, under its key, for the Site numbers page
+// (site-numbers.html, database/2026-12-02-shop-sign-stats.sql). A new card
 // needs a new key, added to shop_signs so the page can name it.
 const AD_CLIENT = "ca-pub-1517865451153702"; // Byome's AdSense account
 const AD_SIGNS = [

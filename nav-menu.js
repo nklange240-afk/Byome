@@ -2,7 +2,7 @@
 // same menu in the same order:
 //   Guests:  Reviews, Log in, Sign up
 //   Members: Community, Reviews, Suggest a product, Byome Shop |
-//            My profile, Notifications (unread count), Mod mail, Moderate (moderators), Shop signs (with access) |
+//            My profile, Notifications (unread count), Mod mail, Moderate (moderators), Site numbers (with access) |
 //            username, Log out
 (function () {
   const toggle = document.getElementById("menu-toggle");
@@ -74,7 +74,7 @@
     const mail = link("modmail.html", "Mod mail");
     const modLink = link("moderate-products.html", "Moderate");
     modLink.hidden = true; // shown below for moderators
-    const signsLink = link("shop-signs.html", "Shop signs");
+    const signsLink = link("site-numbers.html", "Site numbers");
     signsLink.hidden = true; // shown below for people with access
     line();
     const name = document.createElement("span");
@@ -106,9 +106,9 @@
       .eq("id", data.session.user.id).single();
     if (!profile) return;
     name.textContent = profile.username;
-    // The shop sign numbers (database/2026-12-02-shop-sign-stats.sql)
+    // The site numbers (database/2026-12-03-site-numbers.sql)
     supabaseClient.rpc("my_permissions").then(({ data: perms }) => {
-      if (perms && perms.includes("sign_stats")) signsLink.hidden = false;
+      if (perms && (perms.includes("site_numbers") || perms.includes("sign_stats"))) signsLink.hidden = false;
     });
     if (profile.is_moderator) {
       modLink.hidden = false;

@@ -12,8 +12,8 @@
 -- database notes that they've seen a sign for two days, then deletes it;
 -- nobody can see those notes, not even the owner.
 --
--- The numbers are on the "Shop signs" page (shop-signs.html), for people
--- given access. Moderators don't get it automatically. Give access in the
+-- The numbers are on the "Site numbers" page (site-numbers.html, from
+-- 2026-12-03-site-numbers.sql), for people given access. Moderators don't get it automatically. Give access in the
 -- SQL Editor (the founder gets it when this file runs):
 --   select public.grant_permission('username', 'sign_stats');
 --   select public.revoke_permission('username', 'sign_stats');
@@ -160,7 +160,7 @@ end $$;
 revoke execute on function public.log_sign_event(text, text) from public, anon;
 grant execute on function public.log_sign_event(text, text) to authenticated;
 
--- The Shop signs page: totals and each day's numbers for the last p_days days
+-- The Site numbers page: the shop signs' totals and each day's numbers for the last p_days days
 create or replace function public.sign_stats_report(p_days integer default 30) returns jsonb
 language plpgsql stable security definer set search_path to public as $$
 declare
