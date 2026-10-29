@@ -19,7 +19,9 @@ Photos on reviews (and later posts). This is the agreed plan, so it can be built
 - **Up to 2 photos per review to start** (owner's decision), each with an optional image description (alt text) for people using screen readers, the same setup Byome already uses for product photos.
 - **Photos are shrunk in the browser before upload** (about 150–250 KB each, like profile pictures). This also **strips hidden location data** from phone photos.
 - **Small previews in lists;** the full photo only when tapped. This keeps bandwidth (the free plan's main limit) low.
-- **A Report button on every photo,** with reasons (nudity or sexual content, violence or gore, drugs, harassment, spam, other) and optional details, like text reports today.
+- **A Report button on every photo,** with reasons (nudity or sexual content, violence or gore, drugs, harassment, spam, not a real photo, other) and optional details, like text reports today.
+- **A reported photo disappears straight away** (owner's decision, unlike text, which stays up while reported). From the first report it's hidden from everyone but moderators and only lives in the moderation queue until a moderator checks it. If something does slip through, this limits how many people see it. The review's words stay up; only the photo is hidden, with "This photo is being checked by our moderators" in its place.
+  - **The risk:** someone could report photos just to hide them. A moderator restores anything that's fine, and members who repeatedly report photos that turn out fine are noted for the moderators.
 
 ## Who can upload
 - **Only members above level 1** (level 2 and up). This deters bots and people trying to advertise their own content, explicit or otherwise.
@@ -82,18 +84,35 @@ Reviews should show real products in real use. But automatic "AI detectors" are 
 - **Only the owner can turn uploads back on** (agreed), so it can't be undone by accident or by one moderator alone.
 
 ## Suspected child sexual abuse material (CSAM)
-- **If automod flags possible sexual content involving a minor,** there's **no reveal button at all**, for anyone, including the owner. Reporting doesn't require viewing it.
+**Layers that try to stop it ever appearing** (all before photos launch):
+1. Only Sprouts and up can upload (no brand-new or throwaway accounts).
+2. **Hash matching** (PhotoDNA, below): known abuse images are recognised and blocked before anyone sees them.
+3. **Two image checks** (Google SafeSearch and OpenAI) hold anything sexual or suspicious.
+4. A new member's first few photos wait for a moderator anyway.
+5. One report hides a photo straight away.
+6. The emergency pause stops all uploads at once.
+
+**If something is suspected** (automod, hash match or a report):
+- **No reveal button at all**, for anyone, including the owner. Reporting doesn't require viewing it.
 - **The card shows only the safety checklist** and one button: **"Remove and preserve for report"**. This:
   - hides the photo from everyone
-  - keeps it stored for the legal report (US providers must preserve reported material for a period after reporting; check the current requirements when building)
-  - pauses that member's uploads
+  - moves it, with the uploader's account details, upload time and the network information Supabase keeps, into a locked, private store that only the owner's database access can reach, kept for **1 year** (the current US preservation period after a report; confirm when building)
+  - pauses that member's uploads and account
   - alerts the owner immediately
+- **A hash match is handled the same way automatically:** the photo is never shown, it's preserved, the account is paused and the owner is alerted.
 - **Checklist for anyone who comes across it** (in the moderator guide and on the emergency screen):
   1. Pause uploads if needed.
   2. Hide it with "Remove and preserve for report".
-  3. **Don't download, screenshot or share it**, even with other moderators.
+  3. **Don't download, screenshot, forward or share it**, even with other moderators or the police directly. Possessing or sending it is itself illegal, and Byome's preserved copy is what the report uses.
   4. Tell the owner.
-  5. The owner reports it to the **NCMEC CyberTipline** (report.cybertip.org). US sites are legally required to report it.
+  5. The owner reports it to the **NCMEC CyberTipline** through Byome's provider account, "as soon as reasonably possible" (US law, 18 U.S.C. § 2258A), and doesn't delete the preserved copy until the preservation period ends.
+  6. Don't tell the uploader about the report (it could interfere with an investigation). Their account just stays paused.
+
+**Owner's preparation (before photos launch):**
+- **Register Byome with NCMEC as an electronic service provider** (ESP), so reports can be filed straight away from a provider account. See the CyberTipline's information for providers at missingkids.org.
+- **Apply for PhotoDNA** (Microsoft; free for qualifying services) and, if possible, **Google's Content Safety API** (free for qualifying partners; flags likely new abuse images, which hash matching can't).
+- **A short chat with a lawyer** when the LLC is set up, to confirm the reporting and preservation steps.
+- Keep this checklist somewhere you can find it in a panic.
 
 ## Costs and limits (free plan)
 - **Storage:** 1 GB holds roughly 4,000–6,000 photos.
