@@ -7937,3 +7937,33 @@ dialog.daily-dialog {
 .level-demote-form select {
   width: 100%;
 }
+
+/* The moderator guide: one fold per topic */
+.mod-guide-tip {
+  margin: 0.2rem 0 0.6rem;
+  font-size: 0.85rem;
+  opacity: 0.75;
+}
+
+.mod-guide-section {
+  border-top: 1px solid var(--moss);
+}
+
+.mod-guide-section:last-child {
+  border-bottom: 1px solid var(--moss);
+}
+
+.mod-guide .mod-guide-section > summary {
+  padding: 0.65rem 0.2rem;
+  font-family: var(--font-heading);
+  font-size: 1.02rem;
+  font-weight: 600;
+}
+
+.mod-guide-section[open] > summary {
+  color: var(--gold-text);
+}
+
+.mod-guide-section > :not(summary) {
+  margin-bottom: 0.8rem;
+}

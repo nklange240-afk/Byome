@@ -6,13 +6,17 @@ Photos on reviews (and later posts). This is the agreed plan, so it can be built
 
 ---
 
+## Before building
+- **Owner:** register Byome with NCMEC's CyberTipline as an electronic service provider, apply for hash matching (PhotoDNA or similar), create the Google Cloud and OpenAI accounts and keys, and ideally upgrade Supabase to Pro (photos are the main bandwidth cost).
+- **Terms and Privacy updates:** what's stored, location data removed, automated checks by outside services, and the reporting duty.
+
 ## Order of work
-1. **Levels** (a separate project; must come first)
+1. **Levels** (built) and **restrictions** (next; photo bans are one kind of restriction)
 2. **Photos on reviews**, with every safety feature below built in
 3. **Photos on posts**, if photos on reviews go well
 
 ## The basics
-- **Up to 3 or 4 photos per review,** each with an image description (the same accessibility setup Byome already uses).
+- **Up to 2 photos per review to start** (owner's decision), each with an optional image description (alt text) for people using screen readers, the same setup Byome already uses for product photos.
 - **Photos are shrunk in the browser before upload** (about 150–250 KB each, like profile pictures). This also **strips hidden location data** from phone photos.
 - **Small previews in lists;** the full photo only when tapped. This keeps bandwidth (the free plan's main limit) low.
 - **A Report button on every photo,** with reasons (nudity or sexual content, violence or gore, drugs, harassment, spam, other) and optional details, like text reports today.
@@ -23,10 +27,24 @@ Photos on reviews (and later posts). This is the agreed plan, so it can be built
 - **Enforced by the database** (storage rules and database functions), not just by hiding the button.
 
 ## Automatic checking
-- **Every upload is checked server-side** (a Supabase Edge Function) by an image-safety service, for example OpenAI's moderation API (free, checks images) or Google Cloud Vision SafeSearch. Confirm current pricing and terms when building.
+Safety is the top priority here (owner), so checking is layered: no single check is trusted alone.
+- **Two independent image checks on every upload** (a Supabase Edge Function), and a photo is held if **either** one flags it:
+  - **Google Cloud Vision SafeSearch:** long-established image safety rating (adult, racy, violence, medical). About 1,000 checks a month free, then roughly $1.50 per 1,000.
+  - **OpenAI's moderation service:** free, a second opinion with its own categories (including self-harm and graphic violence).
+  - Confirm current pricing, categories and terms of both when building. Byome's keys stay secret in Supabase, never in the site's code.
+- **Hash matching for known child sexual abuse material** (for example Microsoft PhotoDNA, which is free for qualifying services, or Thorn's Safer). This is the industry-standard tool for that specific risk; general image checks aren't designed for it. Apply before photos launch.
+- **The checks run before a photo is ever shown to anyone.** If a check can't run (the service is down), the photo waits for a moderator rather than going live.
 - **Anything flagged is held for moderators**, like the word filter does for text. The flag records the categories and confidence (for example nudity: likely, violence: possible).
 - **A new member's first few photos are also held** for a quick moderator look, whatever the automatic check says.
 - No automated check is perfect, so the Report button and moderators stay the backstop.
+
+## AI-generated photos (lower priority)
+Reviews should show real products in real use. But automatic "AI detectors" are unreliable: they often flag real phone photos (filters, beauty modes, heavy editing) and miss AI images, so they'd wrongly accuse genuine members. So:
+- **No automatic AI blocking.**
+- **Content Credentials check:** many AI tools (and some cameras and editors) add a "Content Credentials" label to their images. Before a photo is shrunk (which strips hidden data), the browser checks for it, and a photo labelled as AI-made is held for a moderator with the note "This photo says it was made with AI". There are no false accusations this way, though it won't catch everything.
+- **A report reason:** "Not a real photo (AI-made or copied)".
+- **Community guidelines:** photos must be your own, of products you actually used.
+- A paid AI-detection service can be revisited later if it becomes a real problem.
 
 ## How moderators see flagged or reported photos
 **Hidden by default.** Nobody on the team should be surprised by an image they don't feel equipped to handle.
