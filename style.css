@@ -8019,3 +8019,8 @@ dialog.daily-dialog {
   display: inline-block;
   font-size: 1.1rem;
 }
+
+/* The Sapphire Butterfly rests on the pot's rim: a soft shadow under it */
+.biome-companion.companion-sapphire-butterfly {
+  filter: drop-shadow(1px 3px 2px rgba(0, 0, 0, 0.35));
+}
