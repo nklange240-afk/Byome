@@ -8178,3 +8178,38 @@ dialog.daily-dialog {
   outline: 2px solid var(--gold);
   outline-offset: 2px;
 }
+
+/* =========================================================
+   URGENT MOD MAIL (modmail.js)
+   ========================================================= */
+.modmail-urgent-field {
+  margin: 0.5rem 0 0.25rem;
+}
+
+.modmail-urgent-field .field-hint {
+  margin-top: 0.2rem;
+}
+
+/* (the form's usual full-width boxes would push the label under it) */
+.stacked-form .modmail-urgent-field .check-row {
+  display: flex;
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.stacked-form .modmail-urgent-field .check-row input {
+  display: inline-block;
+  flex: none;
+  width: 1.15rem;
+  height: 1.15rem;
+  padding: 0;
+  margin: 0;
+}
+
+/* The word does the work; the colour is extra */
+.post-category-tag.modmail-urgent {
+  color: var(--red-text);
+  border-color: currentColor;
+  font-weight: 600;
+}
