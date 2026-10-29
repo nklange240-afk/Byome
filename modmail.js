@@ -27,6 +27,29 @@ function link(href, text, className) {
 
 const KIND_LABELS = { message: "Message", block: "Block", feedback: "Feedback" };
 
+// "This is urgent": moved to the top of the moderators' list and emailed
+// to the Byome inbox (database/2026-12-04-urgent-modmail.sql)
+function urgentBox(id) {
+  const wrap = el("div", "modmail-urgent-field");
+  const row = el("label", "check-row");
+  const box = el("input");
+  box.type = "checkbox";
+  box.id = id;
+  const hint = el("p", "field-hint",
+    "Tick this if someone's safety is at risk (threats, harassment, self-harm or illegal content), or if something " +
+    "important on Byome isn't working at all, like logging in, posting or reviewing. Urgent messages go to the top of " +
+    "the moderators' list and are emailed to the Byome inbox. If someone is in immediate danger, contact local emergency services first.");
+  hint.id = id + "-hint";
+  box.setAttribute("aria-describedby", hint.id);
+  row.append(box, document.createTextNode(" This is urgent"));
+  wrap.append(row, hint);
+  return { wrap, box };
+}
+
+function urgentTag() {
+  return el("span", "post-category-tag modmail-urgent", "Urgent");
+}
+
 // Automod words in mod mail aren't held, just hidden until someone chooses
 // to read them (database/2026-11-25-modmail-automod.sql).
 // What each kind means, since the names alone are easy to mix up
@@ -116,7 +139,9 @@ async function showList(isMod) {
       a.href = "modmail.html?thread=" + t.id;
       const top = el("div", "modmail-row-top");
       const hideSubject = !t.mine && t.subject_flags && t.subject_flags.length;
-      top.append(el("span", "post-category-tag", KIND_LABELS[t.kind] || t.kind), hideSubject
+      top.append(el("span", "post-category-tag", KIND_LABELS[t.kind] || t.kind));
+      if (t.urgent) top.append(urgentTag());
+      top.append(hideSubject
         ? el("em", "modmail-subject", "Subject hidden: it " + flagPhrase(t.subject_flags))
         : el("strong", "modmail-subject", t.subject));
       a.appendChild(top);
@@ -147,7 +172,7 @@ function showCompose(kind) {
   document.querySelector("h1").textContent = feedback ? "Send feedback" : "Message the moderators";
   box.appendChild(el("p", "modmail-intro", feedback
     ? "Found a bug, got an idea, or something just felt off? Tell us! Every moderator can see it, and we read everything."
-    : "Every moderator can see your message, and replies come from the moderator team. For something urgent, like someone in danger, contact local emergency services first."));
+    : "Every moderator can see your message, and replies come from the moderator team."));
 
   const form = el("form", "stacked-form modmail-form");
   const subjLabel = el("label", "field-label", feedback ? "What's it about?" : "Subject");
@@ -165,6 +190,7 @@ function showCompose(kind) {
   body.required = true;
   bodyLabel.htmlFor = body.id;
   if (feedback) body.placeholder = "What happened, and on which page? If it's a bug, what were you doing just before?";
+  const urgent = urgentBox("modmail-urgent");
   const send = el("button", "btn btn-solid", feedback ? "Send feedback" : "Send to the moderators");
   send.type = "submit";
   const message = el("p", "auth-message");
@@ -172,7 +198,7 @@ function showCompose(kind) {
   const cancel = link("modmail.html", "Cancel");
   const row = el("div", "modmail-send-row");
   row.append(send, cancel);
-  form.append(subjLabel, subject, bodyLabel, body, row, message);
+  form.append(subjLabel, subject, bodyLabel, body, urgent.wrap, row, message);
   box.appendChild(form);
 
   // Where the feedback was sent from (the page they were on)
@@ -188,7 +214,7 @@ function showCompose(kind) {
     say(message, "Sending…", true);
     const { data: id, error } = await supabaseClient.rpc("modmail_start", {
       p_kind: feedback ? "feedback" : "message", p_subject: subject.value.trim(), p_body: body.value.trim(),
-      p_about: null, p_page: page,
+      p_about: null, p_page: page, p_urgent: urgent.box.checked,
     });
     if (error) { say(message, error.message, false); send.disabled = false; return; }
     window.location.href = "modmail.html?thread=" + id + "&sent=1";
@@ -257,7 +283,8 @@ function showVisitorFeedback() {
   message.setAttribute("aria-live", "polite");
   const row = el("div", "modmail-send-row");
   row.appendChild(send);
-  form.append(topicLabel, topics, bodyLabel, body, contactLabel, contact, contactHint, trapWrap, row, message);
+  const urgent = urgentBox("visitor-urgent");
+  form.append(topicLabel, topics, bodyLabel, body, contactLabel, contact, contactHint, urgent.wrap, trapWrap, row, message);
   box.appendChild(form);
 
   const joinLine = el("p", "field-hint");
@@ -277,7 +304,7 @@ function showVisitorFeedback() {
     say(message, "Sending…", true);
     const { error } = await supabaseClient.rpc("visitor_feedback", {
       p_subject: topic || "Feedback", p_body: body.value.trim(), p_contact: contact.value.trim() || null,
-      p_page: page, p_trap: trap.value,
+      p_page: page, p_trap: trap.value, p_urgent: urgent.box.checked,
     });
     if (error) {
       say(message, /visitor_feedback/.test(error.message)
@@ -313,8 +340,9 @@ async function showThread(id) {
   // The conversation's subject, as its own heading above the messages
   const title = el("h2", "modmail-thread-title");
   const subjectText = el("span", null, t.subject);
-  title.append(el("span", "post-category-tag", KIND_LABELS[t.kind] || t.kind),
-    hideSubject ? hiddenBehind(subjectText, "The subject", t.subject_flags, "Show subject", t.as_mod) : subjectText);
+  title.append(el("span", "post-category-tag", KIND_LABELS[t.kind] || t.kind));
+  if (t.urgent) title.append(urgentTag());
+  title.append(hideSubject ? hiddenBehind(subjectText, "The subject", t.subject_flags, "Show subject", t.as_mod) : subjectText);
   box.appendChild(title);
   if (params.get("sent") === "1") {
     box.appendChild(el("p", "modmail-sent", t.kind === "feedback"
@@ -328,6 +356,7 @@ async function showThread(id) {
   else if (t.as_mod && t.from_visitor) bits.push("From a visitor (no account)");
   if (t.about) bits.push("about " + t.about);
   if (t.as_mod && t.page) bits.push("sent from " + t.page);
+  if (t.as_mod && t.urgent) bits.push(t.emailed ? "emailed to the inbox" : "not emailed (over the daily limit, or email isn't set up)");
   bits.push(t.status === "closed" ? "Marked done" : "Open");
   meta.textContent = bits.join(" · ");
   box.appendChild(meta);
