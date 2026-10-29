@@ -1,4 +1,4 @@
-# Plan: member levels (levels built; restrictions next)
+# Plan: member levels (levels and restrictions built)
 
 Levels show how much a member has grown with Byome. They have to exist **before member photos** (see `photos.md`), because photo uploads unlock at level 2.
 
@@ -86,6 +86,7 @@ Banning a member from the site entirely stays a separate, more serious action.
 - **Members who already qualified** when levels launched got one pop-up for the level they'd reached.
 - **Gifts:** until a level's gift exists, its pop-up says "A gift for this level is on its way 🎁". `select public.release_level_gift(level, 'item-key');` gives it to everyone at that level or higher, and to everyone who reaches it later.
 - **Restrictions don't hide existing content** (owner's decision): they only stop new posts, comments, reviews or suggestions.
+- **Restrictions** (`database/2026-11-30-restrictions.sql`): Restrict on a member's profile (posting, commenting, reviewing, suggesting; 7 days, 30 days or permanent; a reason they see), a notice on their own profile, a Restrictions list with Lift on the Moderate page, and a guide topic. Restricting someone sets their next level-up to wait for a moderator. Moderators can't be restricted. Photo restrictions are ready in the database for when photos exist.
 
 ## Already built before levels
 - **Helpful stats** (`database/2026-11-21-helpful-stats.sql`): each profile shows "54 people found AliceB's reviews helpful". It counts different people, not votes, only live reviews, and never the member's own marks. It'll also appear in the Bloom list.

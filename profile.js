@@ -1238,18 +1238,150 @@ async function showLevel(profile, isMe, me) {
       const card = nextLevelCard(data);
       if (card) document.getElementById("profile-helpful").after(card);
     }
+    showMyRestrictions(profile);
     return;
   }
   // Moderators: lower someone's level (their next level-up then waits for a moderator)
   const { data: viewer } = await supabaseClient.from("profiles").select("is_moderator").eq("id", me).maybeSingle();
-  if (!viewer || !viewer.is_moderator || profile.level <= 1) return;
-  const change = el("button", "link-btn level-change", "Change level");
-  change.type = "button";
-  pill.after(change);
-  change.addEventListener("click", () => {
-    if (document.querySelector(".level-demote-form")) return;
-    change.after(demoteForm(profile, () => window.location.reload()));
+  if (!viewer || !viewer.is_moderator) return;
+  if (profile.level > 1) {
+    const change = el("button", "link-btn level-change", "Change level");
+    change.type = "button";
+    pill.after(change);
+    change.addEventListener("click", () => {
+      if (document.querySelector(".level-demote-form")) return;
+      change.after(demoteForm(profile, () => window.location.reload()));
+    });
+  }
+  if (!profile.is_moderator) showModRestrictions(profile);
+}
+
+// ---------- Restrictions (database/2026-11-30-restrictions.sql) ----------
+const RESTRICTION_KINDS = [
+  ["posting", "Posting in the Community"],
+  ["commenting", "Commenting"],
+  ["reviewing", "Writing reviews"],
+  ["suggesting", "Suggesting products"],
+];
+
+function untilText(x) {
+  return x.ends_at
+    ? "until " + new Date(x.ends_at).toLocaleDateString(undefined, { month: "long", day: "numeric" })
+    : "until further notice";
+}
+
+// Your own profile: what's paused, and why (only you can see this)
+async function showMyRestrictions(profile) {
+  const { data, error } = await supabaseClient.rpc("active_restrictions", { p_user: profile.id });
+  if (error || !data || !data.length) return;
+  const box = el("section", "restriction-notice");
+  box.appendChild(el("h2", "restriction-title", "Paused on your account"));
+  const ul = el("ul");
+  data.forEach((x) => {
+    const li = el("li");
+    li.append(el("strong", null, x.label.charAt(0).toUpperCase() + x.label.slice(1)), document.createTextNode(", " + untilText(x) + ". Reason: " + x.reason));
+    ul.appendChild(li);
   });
+  box.appendChild(ul);
+  const p = el("p", "field-hint");
+  const a = el("a", "inline-link", "message the moderators");
+  a.href = "modmail.html?new=message";
+  p.append(document.createTextNode("Everything you've already shared stays up, and only you can see this. Questions? You can "), a, document.createTextNode("."));
+  box.appendChild(p);
+  document.getElementById("profile-helpful").after(box);
+}
+
+// Moderators on someone else's profile: what's paused, Lift, and Restrict
+async function showModRestrictions(profile) {
+  const wrap = el("div", "mod-restrictions");
+  const meta = document.querySelector(".profile-meta");
+  meta.parentNode.insertBefore(wrap, meta);
+
+  async function paint() {
+    wrap.replaceChildren();
+    const { data } = await supabaseClient.rpc("active_restrictions", { p_user: profile.id });
+    (data || []).forEach((x) => {
+      const row = el("p", "mod-restriction-row");
+      row.append(el("strong", null, "Paused: "), document.createTextNode(x.label + ", " + untilText(x) + " (" + x.reason + ") "));
+      const lift = el("button", "link-btn", "Lift");
+      lift.type = "button";
+      lift.addEventListener("click", async () => {
+        if (!confirm("Lift this restriction now? " + profile.username + " will be told.")) return;
+        lift.disabled = true;
+        const { error } = await supabaseClient.rpc("lift_restriction", { p_id: x.id });
+        if (error) { alert(error.message); lift.disabled = false; return; }
+        paint();
+      });
+      row.appendChild(lift);
+      wrap.appendChild(row);
+    });
+    const open = el("button", "link-btn", "Restrict");
+    open.type = "button";
+    open.addEventListener("click", () => {
+      if (wrap.querySelector(".restrict-form")) return;
+      wrap.appendChild(restrictForm(profile, paint, () => wrap.querySelector(".restrict-form").remove()));
+    });
+    wrap.appendChild(open);
+  }
+  paint();
+}
+
+function restrictForm(profile, onDone, onCancel) {
+  const form = el("form", "edit-form restrict-form");
+  form.appendChild(el("p", "field-label", "Pause for " + profile.username + ":"));
+  const boxes = RESTRICTION_KINDS.map(([key, text]) => {
+    const label = el("label", "check-row");
+    const box = el("input");
+    box.type = "checkbox";
+    box.value = key;
+    label.append(box, document.createTextNode(" " + text));
+    form.appendChild(label);
+    return box;
+  });
+  form.appendChild(el("p", "field-label", "For how long?"));
+  const lengths = el("div", "category-chips quick-picks");
+  let days = 7;
+  [[7, "7 days"], [30, "30 days"], [null, "Permanently"]].forEach(([d, text]) => {
+    const b = el("button", "category-chip", text);
+    b.type = "button";
+    b.setAttribute("aria-pressed", String(d === days));
+    b.addEventListener("click", () => {
+      days = d;
+      lengths.querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+    });
+    lengths.appendChild(b);
+  });
+  form.appendChild(lengths);
+  const reasonLabel = el("label", "field-label", "Why? (they'll see this)");
+  const reason = el("textarea");
+  reason.id = "restrict-reason";
+  reasonLabel.htmlFor = reason.id;
+  reason.rows = 2;
+  reason.maxLength = 300;
+  reason.required = true;
+  form.append(reasonLabel, reason,
+    el("p", "field-hint", "Everything they've already shared stays up; this only stops new content. They can't level up while it's active, and their next level-up then waits for a moderator. It's logged, and any moderator can lift it."));
+  const buttons = el("div", "edit-buttons");
+  const save = el("button", "btn btn-solid", "Restrict");
+  save.type = "submit";
+  const cancel = el("button", "action-btn", "Cancel");
+  cancel.type = "button";
+  cancel.addEventListener("click", onCancel);
+  buttons.append(save, cancel);
+  const message = el("p", "auth-message");
+  message.setAttribute("aria-live", "polite");
+  form.append(buttons, message);
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const kinds = boxes.filter((b) => b.checked).map((b) => b.value);
+    if (!kinds.length) { message.textContent = "Choose at least one thing to pause."; message.style.color = "#E07A5F"; return; }
+    save.disabled = true;
+    const { error } = await supabaseClient.rpc("restrict_member",
+      { p_user: profile.id, p_kinds: kinds, p_days: days, p_reason: reason.value.trim() });
+    if (error) { message.textContent = error.message; message.style.color = "#E07A5F"; save.disabled = false; return; }
+    onDone();
+  });
+  return form;
 }
 
 function nextLevelCard(data) {
@@ -1283,7 +1415,9 @@ function nextLevelCard(data) {
     return li;
   }
 
-  if (data.approval_waiting) {
+  if (data.restricted) {
+    card.appendChild(el("p", "next-level-note", "Levelling up is paused while part of your account is paused. Afterwards, a moderator will look at your next level-up."));
+  } else if (data.approval_waiting) {
     card.appendChild(el("p", "next-level-note", "Your next level-up is waiting for a moderator to look at it. You'll get a notification when they do."));
   } else if (next === 2) {
     const ul = el("ul", "next-level-checks");
