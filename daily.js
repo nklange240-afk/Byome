@@ -14,6 +14,10 @@ const DAILY = (function () {
     { key: "yellow", image: "biome-assets/packet-yellow.png" },
     { key: "blue", image: "biome-assets/packet-blue.png" },
     { key: "pink", image: "biome-assets/packet-pink.png" },
+    { key: "purple", image: "biome-assets/packet-purple.png" },
+    { key: "red", image: "biome-assets/packet-red.png" },
+    { key: "orange", image: "biome-assets/packet-orange.png" },
+    { key: "green", image: "biome-assets/packet-green.png" },
   ];
 
   const HEADINGS = {
