@@ -7966,6 +7966,8 @@ dialog.daily-dialog {
 
 .mod-guide-section > :not(summary) {
   margin-bottom: 0.8rem;
+}
+
 /* =========================================================
    RESTRICTIONS (profile.js, Moderate page)
    ========================================================= */
@@ -8023,4 +8025,156 @@ dialog.daily-dialog {
 /* The Sapphire Butterfly rests on the pot's rim: a soft shadow under it */
 .biome-companion.companion-sapphire-butterfly {
   filter: drop-shadow(1px 3px 2px rgba(0, 0, 0, 0.35));
+}
+
+/* =========================================================
+   SITE NUMBERS (site-numbers.html): how Byome is doing, and how
+   often the shop's signs are seen and tapped, for people with access
+   ========================================================= */
+.stat-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 0.6rem;
+  margin: 0.75rem 0 0.5rem;
+}
+
+/* The number sits above its label (the label comes first for screen readers) */
+.stat-tile {
+  display: flex;
+  flex-direction: column-reverse;
+  justify-content: flex-end;
+  gap: 0.2rem;
+  padding: 0.75rem 0.9rem;
+  background-color: var(--forest-mid);
+  border-radius: 12px;
+}
+
+.stat-tile dt {
+  font-size: 0.85rem;
+  line-height: 1.3;
+  opacity: 0.85;
+}
+
+.stat-tile dd {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: 1.6rem;
+  font-weight: 600;
+  line-height: 1.15;
+}
+
+.stats-subtitle {
+  margin: 1.25rem 0 0.25rem;
+  font-family: var(--font-heading);
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+.sign-stats-intro,
+.stats-note,
+.stats-period,
+.stats-coverage {
+  line-height: 1.5;
+}
+
+.stats-note {
+  margin: 0.25rem 0 0.75rem;
+  opacity: 0.85;
+}
+
+.stats-period {
+  margin-top: 0;
+  font-weight: 600;
+}
+
+.stats-coverage {
+  padding: 0.75rem 1rem;
+  background-color: var(--forest-mid);
+  border-radius: 12px;
+}
+
+/* Wide tables scroll sideways on small phones instead of squashing */
+.stats-table-wrap {
+  overflow-x: auto;
+  margin: 0.5rem 0 0.75rem;
+}
+
+.stats-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+.stats-table th,
+.stats-table td {
+  padding: 0.5rem 0.35rem;
+  border-bottom: 1px solid var(--moss);
+  text-align: left;
+  vertical-align: top;
+}
+
+.stats-table thead th {
+  font-weight: 600;
+  /* (so "Tap rate" can wrap onto two lines on a phone) */
+  white-space: normal;
+  vertical-align: bottom;
+}
+
+.stats-table tbody th {
+  min-width: 5rem;
+}
+
+.stats-table tbody th {
+  font-weight: 500;
+  padding-left: 0;
+}
+
+.stats-table thead th:first-child {
+  padding-left: 0;
+}
+
+.stats-table .is-number {
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Five columns: a little smaller so it fits a phone */
+.stats-table.is-compact {
+  font-size: 0.85rem;
+}
+
+.stats-table.is-compact th,
+.stats-table.is-compact td {
+  padding-left: 0.2rem;
+  padding-right: 0.2rem;
+}
+
+/* (two-word headings go onto two lines) */
+.stats-table.is-compact thead th {
+  max-width: 4.5rem;
+}
+
+.stats-table.is-compact tbody th {
+  min-width: 3.5rem;
+  padding-left: 0;
+}
+
+.stats-sub {
+  display: block;
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+
+.stats-days {
+  margin: 0.25rem 0;
+}
+
+.stats-days summary {
+  cursor: pointer;
+  padding: 0.35rem 0;
+}
+
+.stats-days summary:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
 }
