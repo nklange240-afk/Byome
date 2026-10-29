@@ -85,5 +85,6 @@ from (values
   ('2026-11-28-levels.sql',               exists (select 1 from col where t = 'profiles' and c = 'level')),
   ('2026-11-29-levels-fix.sql',           exists (select 1 from fn where name = 'level_after_change' and body like '%to_jsonb(new)%')),
   ('2026-11-30-restrictions.sql',         exists (select 1 from tbl where name = 'restrictions')),
-  ('2026-12-01-sapphire-butterfly.sql',   exists (select 1 from public.achievements where key = 'bug-squasher'))
+  ('2026-12-01-sapphire-butterfly.sql',   exists (select 1 from public.achievements where key = 'bug-squasher')),
+  ('2026-12-02-shop-sign-stats.sql',      exists (select 1 from tbl where name = 'sign_stats'))
 ) as checks(file, ok);

@@ -219,17 +219,21 @@ function buildCard(item, balance, ownedCount, event) {
 // about an item (hideIfOwned) isn't shown to members who already own it,
 // a card with an end date (until) stops showing after it, and a card with
 // a link (href) can be tapped.
+// Each sign is counted when it's actually seen (at least half on screen for
+// a second) and tapped, under its key, for the Shop signs page
+// (shop-signs.html, database/2026-12-02-shop-sign-stats.sql). A new card
+// needs a new key, added to shop_signs so the page can name it.
 const AD_CLIENT = "ca-pub-1517865451153702"; // Byome's AdSense account
 const AD_SIGNS = [
-  { box: "ad-sign-middle", slot: "5772047833" },             // "Byome 300x250 Mid-Scroll"
-  { box: "ad-sign", slot: "4710247604", bottom: true },      // "Byome 300x250"
+  { box: "ad-sign-middle", slot: "5772047833", key: "google-middle" }, // "Byome 300x250 Mid-Scroll"
+  { box: "ad-sign", slot: "4710247604", bottom: true, key: "google-bottom" }, // "Byome 300x250"
 ];
 
 const HOUSE_ADS = [
-  { image: "biome-assets/ad-house-thanks.png", text: "Thank you for joining Byome!" },
-  { image: "biome-assets/ad-house-better-place.png", text: "You make Byome a better place!" },
-  { image: "biome-assets/ad-house-terry.png", text: "Rare: Terry pot now available!", hideIfOwned: "terry" },
-  { image: "biome-assets/ad-house-haunted-harvest.png", text: "Haunted Harvest, October 15 to November 1. Find it under the Events tab!",
+  { key: "house-thanks", image: "biome-assets/ad-house-thanks.png", text: "Thank you for joining Byome!" },
+  { key: "house-better-place", image: "biome-assets/ad-house-better-place.png", text: "You make Byome a better place!" },
+  { key: "house-terry", image: "biome-assets/ad-house-terry.png", text: "Rare: Terry pot now available!", hideIfOwned: "terry" },
+  { key: "house-haunted-harvest", image: "biome-assets/ad-house-haunted-harvest.png", text: "Haunted Harvest, October 15 to November 1. Find it under the Events tab!",
     href: "events.html", until: "2026-11-02T05:59:00Z" },
 ];
 
@@ -244,17 +248,65 @@ async function houseAd() {
   const img = el("img", "ad-house");
   img.src = card.image;
   img.alt = card.text;
+  img.dataset.sign = card.key;
   if (!card.href) return img;
   const link = el("a", "ad-house");
   link.href = card.href;
+  link.dataset.sign = card.key;
   img.className = "";
   link.appendChild(img);
+  // Count the tap before leaving the page (waiting at most a second)
+  link.addEventListener("click", (e) => {
+    e.preventDefault();
+    const go = () => { window.location.href = card.href; };
+    Promise.race([logSign(card.key, "tap"), new Promise((r) => setTimeout(r, 1000))]).then(go, go);
+  });
   return link;
+}
+
+function logSign(key, kind) {
+  return supabaseClient.rpc("log_sign_event", { p_sign: key, p_kind: kind }).then(() => {});
+}
+
+// Which sign is showing in a spot: the Google ad if it filled, otherwise
+// (bottom spot only) the Byome card behind it. Null while it's undecided:
+// Google hasn't answered yet. If Google never answers (an ad blocker, or the
+// site isn't approved yet), the card is what's showing.
+let adScriptAt = 0;
+let adScriptFailed = false;
+function showingSign(spot, slot) {
+  const ad = slot.querySelector(".adsbygoogle");
+  const status = ad && ad.getAttribute("data-ad-status");
+  if (status === "filled") return spot.key;
+  const card = slot.querySelector("[data-sign]");
+  if (status === "unfilled" || adScriptFailed || Date.now() - adScriptAt > 4000) {
+    return card ? card.dataset.sign : "";
+  }
+  return null;
+}
+
+// Counts a spot's sign once it's been at least half on screen for a second
+function watchSign(spot, sign, slot) {
+  let timer = null;
+  const observer = new IntersectionObserver((entries) => {
+    const visible = entries[entries.length - 1].isIntersecting;
+    clearTimeout(timer);
+    if (!visible) return;
+    const check = () => {
+      const key = showingSign(spot, slot);
+      if (key === null) { timer = setTimeout(check, 1000); return; } // ask again in a moment
+      observer.disconnect();
+      if (key) logSign(key, "view");
+    };
+    timer = setTimeout(check, 1000);
+  }, { threshold: 0.5 });
+  observer.observe(sign);
 }
 
 async function showAdSigns() {
   const preview = new URLSearchParams(window.location.search).has("adpreview");
   if (!AD_CLIENT && !preview) return;
+  adScriptAt = Date.now();
 
   for (const [i, spot] of AD_SIGNS.entries()) {
     const box = document.getElementById(spot.box);
@@ -279,6 +331,7 @@ async function showAdSigns() {
     }
     sign.append(frame, slot);
     box.appendChild(sign);
+    if (AD_CLIENT) watchSign(spot, sign, slot);
     if (spot.bottom) {
       box.appendChild(el("p", "ad-note",
         "Ads help keep Byome running. They only appear here in the shop, never on Reviews or in the Community."));
@@ -291,6 +344,7 @@ async function showAdSigns() {
   script.async = true;
   script.crossOrigin = "anonymous";
   script.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=" + AD_CLIENT;
+  script.addEventListener("error", () => { adScriptFailed = true; });
   document.head.appendChild(script);
   AD_SIGNS.forEach(() => (window.adsbygoogle = window.adsbygoogle || []).push({}));
 }

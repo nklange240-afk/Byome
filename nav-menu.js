@@ -2,7 +2,7 @@
 // same menu in the same order:
 //   Guests:  Reviews, Log in, Sign up
 //   Members: Community, Reviews, Suggest a product, Byome Shop |
-//            My profile, Notifications (unread count), Mod mail, Moderate (moderators) |
+//            My profile, Notifications (unread count), Mod mail, Moderate (moderators), Shop signs (with access) |
 //            username, Log out
 (function () {
   const toggle = document.getElementById("menu-toggle");
@@ -74,6 +74,8 @@
     const mail = link("modmail.html", "Mod mail");
     const modLink = link("moderate-products.html", "Moderate");
     modLink.hidden = true; // shown below for moderators
+    const signsLink = link("shop-signs.html", "Shop signs");
+    signsLink.hidden = true; // shown below for people with access
     line();
     const name = document.createElement("span");
     name.id = "header-username"; // edit-profile.js updates this after a rename
@@ -104,6 +106,10 @@
       .eq("id", data.session.user.id).single();
     if (!profile) return;
     name.textContent = profile.username;
+    // The shop sign numbers (database/2026-12-02-shop-sign-stats.sql)
+    supabaseClient.rpc("my_permissions").then(({ data: perms }) => {
+      if (perms && perms.includes("sign_stats")) signsLink.hidden = false;
+    });
     if (profile.is_moderator) {
       modLink.hidden = false;
       // How many things are waiting for a moderator

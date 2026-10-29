@@ -7966,6 +7966,8 @@ dialog.daily-dialog {
 
 .mod-guide-section > :not(summary) {
   margin-bottom: 0.8rem;
+}
+
 /* =========================================================
    RESTRICTIONS (profile.js, Moderate page)
    ========================================================= */
@@ -8023,4 +8025,97 @@ dialog.daily-dialog {
 /* The Sapphire Butterfly rests on the pot's rim: a soft shadow under it */
 .biome-companion.companion-sapphire-butterfly {
   filter: drop-shadow(1px 3px 2px rgba(0, 0, 0, 0.35));
+}
+
+/* =========================================================
+   SHOP SIGNS (shop-signs.html): how often the shop's signs are
+   seen and tapped, for people with access
+   ========================================================= */
+.sign-stats-intro,
+.stats-note,
+.stats-period,
+.stats-coverage {
+  line-height: 1.5;
+}
+
+.stats-note {
+  margin: 0.25rem 0 0.75rem;
+  opacity: 0.85;
+}
+
+.stats-period {
+  margin-top: 0;
+  font-weight: 600;
+}
+
+.stats-coverage {
+  padding: 0.75rem 1rem;
+  background-color: var(--forest-mid);
+  border-radius: 12px;
+}
+
+/* Wide tables scroll sideways on small phones instead of squashing */
+.stats-table-wrap {
+  overflow-x: auto;
+  margin: 0.5rem 0 0.75rem;
+}
+
+.stats-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+.stats-table th,
+.stats-table td {
+  padding: 0.5rem 0.35rem;
+  border-bottom: 1px solid var(--moss);
+  text-align: left;
+  vertical-align: top;
+}
+
+.stats-table thead th {
+  font-weight: 600;
+  /* (so "Tap rate" can wrap onto two lines on a phone) */
+  white-space: normal;
+  vertical-align: bottom;
+}
+
+.stats-table tbody th {
+  min-width: 7rem;
+}
+
+.stats-table tbody th {
+  font-weight: 500;
+  padding-left: 0;
+}
+
+.stats-table thead th:first-child {
+  padding-left: 0;
+}
+
+.stats-table .is-number {
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.stats-sub {
+  display: block;
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+
+.stats-days {
+  margin: 0.25rem 0;
+}
+
+.stats-days summary {
+  cursor: pointer;
+  padding: 0.35rem 0;
+}
+
+.stats-days summary:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
 }
