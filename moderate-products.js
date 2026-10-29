@@ -54,6 +54,7 @@ async function init() {
   loadQueue();
   loadVariations();
   loadLevels();
+  loadRestrictions();
   loadLog();
   // Refresh the log after any action on this page (they all reload a queue)
   document.querySelector("main").addEventListener("click", (e) => {
@@ -72,6 +73,7 @@ const LOG_WORDS = {
   remove_bio: "removed the bio of",
   standout: "marked as standout", merge: "merged",
   level_up: "approved a level-up:", level_not_yet: "put a level-up on hold:", demote: "lowered a level:",
+  restrict: "restricted", lift_restriction: "lifted a restriction:",
 };
 const LOG_TYPES = {
   post: "post", comment: "comment", review: "review", review_update: "review update",
@@ -101,7 +103,7 @@ async function loadLog(more) {
     const verb = LOG_WORDS[row.action] || row.action;
     const kind = LOG_TYPES[row.target_type] || row.target_type;
     let sentence = " " + verb + " ";
-    if (row.target_type === "profile" && ["remove_avatar", "reset_username", "remove_bio", "level_up", "level_not_yet", "demote"].indexOf(row.action) !== -1) {
+    if (row.target_type === "profile" && ["remove_avatar", "reset_username", "remove_bio", "level_up", "level_not_yet", "demote", "restrict", "lift_restriction"].indexOf(row.action) !== -1) {
       sentence += row.note ? row.note : "a member";
     } else {
       sentence += (row.owner ? row.owner.username + "\u2019s " : "a ") + kind;
@@ -533,6 +535,48 @@ function buildLevelItem(q) {
   actions.append(approve, notYet);
   article.append(actions, message);
   return article;
+}
+
+// ---------- Restrictions (database/2026-11-30-restrictions.sql) ----------
+// Everyone with something paused, and Lift. Restrict from a member's profile.
+const restrictionListEl = document.getElementById("restriction-list");
+
+async function loadRestrictions() {
+  const { data, error } = await supabaseClient.rpc("active_restrictions");
+  restrictionListEl.replaceChildren();
+  if (error) {
+    restrictionListEl.appendChild(el("p", "feed-empty", /active_restrictions/.test(error.message)
+      ? "Run database/2026-11-30-restrictions.sql to switch this on."
+      : "Couldn't load restrictions: " + error.message));
+    return;
+  }
+  if (!data.length) {
+    restrictionListEl.appendChild(el("p", "feed-empty", "Nobody is restricted right now. To restrict someone, open their profile."));
+    return;
+  }
+  data.forEach((x) => {
+    const row = el("article", "post restriction-row");
+    const who = el("a", "post-title", x.username);
+    who.href = "profile.html?user=" + encodeURIComponent(x.username);
+    const until = x.ends_at
+      ? "until " + new Date(x.ends_at).toLocaleDateString(undefined, { month: "long", day: "numeric" })
+      : "permanently";
+    const line = el("p", "post-body");
+    line.append(el("strong", null, x.label.charAt(0).toUpperCase() + x.label.slice(1)), document.createTextNode(", " + until + ". Reason: " + x.reason));
+    const actions = el("div", "post-actions");
+    const lift = el("button", "action-btn mod-btn", "Lift");
+    lift.type = "button";
+    lift.addEventListener("click", async () => {
+      if (!confirm("Lift this restriction now? " + x.username + " will be told.")) return;
+      lift.disabled = true;
+      const { error: err } = await supabaseClient.rpc("lift_restriction", { p_id: x.id });
+      if (err) { alert(err.message); lift.disabled = false; return; }
+      loadRestrictions();
+    });
+    actions.appendChild(lift);
+    row.append(who, line, actions);
+    restrictionListEl.appendChild(row);
+  });
 }
 
 // ---------- New shades and scents ----------
