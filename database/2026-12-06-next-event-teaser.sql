@@ -1,9 +1,11 @@
 -- =========================================================
 -- Byome: "New event coming ..." on the Events page between events.
 -- When no event is on (or about to start), the Events page shows a card
--- saying "New event coming November 27" in the biome you choose here,
--- without naming the event. It switches over by itself the moment the
--- current event ends; the ended event stays listed underneath.
+-- saying "New event coming November 27", without naming the event. It
+-- appears by itself the moment the current event ends; the ended event
+-- stays listed underneath, in its own biome until its wrap-up time is over
+-- (Haunted Harvest: November 16). Then the page switches to the biome you
+-- choose here.
 -- Once the next event is added to the events table, its own "Coming soon"
 -- card takes over instead.
 --

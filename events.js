@@ -220,7 +220,8 @@ function teaserCard(next) {
   const teaser = current.some((ev) => ev.status === "live" || ev.status === "upcoming") ? null : await nextEvent();
   // The page is set in the current (or most recent) event's own biome
   const lead = current[current.length - 1] || past[0];
-  if (teaser && teaser.biome) UI.setBiome(teaser.biome);
+  // (the ended event keeps its biome until its wrap-up time is over too)
+  if (teaser && teaser.biome && !current.length) UI.setBiome(teaser.biome);
   else if (lead && lead.biome) UI.setBiome(lead.biome);
   if (teaser) box.appendChild(teaserCard(teaser));
   current.forEach((ev) => box.appendChild(eventSection(ev, loggedIn, shopItems || [])));
