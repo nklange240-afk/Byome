@@ -245,6 +245,7 @@ function buildReviewCard(r, isMe, reload) {
   if (r.would_repurchase !== null && r.would_repurchase !== undefined) {
     tags.appendChild(el("span", "review-tag", r.would_repurchase ? "Would repurchase" : "Wouldn't repurchase"));
   }
+  if (r.gifted) tags.appendChild(UI.giftedTag());
   if (tags.children.length) article.appendChild(tags);
 
   article.appendChild(metaRow(r.created_at, r.edited_at));
@@ -1143,7 +1144,7 @@ async function loadContent(profile, isMe) {
     .select("id, rating, title, body, variation, would_repurchase, holy_grail, " + extra + "created_at, edited_at, held_at, products!product_id(name, brand), review_likes(user_id), review_standouts(review_id), review_updates(id, body, created_at, held_at)", { count: "exact" })
     .eq("user_id", profile.id).order("created_at", { ascending: false }).limit(30);
   const [reviewsRes, postsRes] = await Promise.all([
-    reviewQuery("no_longer_using, seasonal, ").then((res) => (res.error ? reviewQuery("") : res)),
+    reviewQuery("no_longer_using, seasonal, gifted, ").then((res) => (res.error ? reviewQuery("") : res)),
     supabaseClient.from("posts")
       .select("id, title, body, created_at, edited_at, held_at, likes(user_id), comments(count), polls(poll_options(label, position))", { count: "exact" })
       .eq("user_id", profile.id).order("created_at", { ascending: false }).limit(30),

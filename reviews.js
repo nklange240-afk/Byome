@@ -943,7 +943,7 @@ function startOverReviews() {
 
 // The event checkbox columns (database/2026-10-29-events-halloween.sql); left
 // out if they aren't in the database yet
-let REVIEW_EVENT_COLUMNS = "no_longer_using, seasonal, ";
+let REVIEW_EVENT_COLUMNS = "no_longer_using, seasonal, gifted, ";
 
 async function loadReviews(more) {
   const from = more === true ? reviewsShown : 0;
@@ -1005,7 +1005,7 @@ async function loadReviews(more) {
 
   if (more === true) listEl.querySelectorAll(".load-more").forEach((b) => b.remove());
   else listEl.innerHTML = "";
-  if (error && REVIEW_EVENT_COLUMNS && /no_longer_using|seasonal/.test(error.message)) {
+  if (error && REVIEW_EVENT_COLUMNS && /no_longer_using|seasonal|gifted/.test(error.message)) {
     // the event columns aren't in the database yet: load without them
     REVIEW_EVENT_COLUMNS = "";
     return loadReviews(more);
@@ -1293,6 +1293,7 @@ function buildReview(r) {
   if (r.would_repurchase !== null && r.would_repurchase !== undefined) {
     tags.appendChild(el("span", "review-tag", r.would_repurchase ? "Would repurchase" : "Wouldn't repurchase"));
   }
+  if (r.gifted) tags.appendChild(UI.giftedTag());
   if (tags.children.length) info.appendChild(tags);
 
   productRow.appendChild(info);
@@ -1386,6 +1387,8 @@ form.addEventListener("submit", async (event) => {
     variation: (newProduct ? npVariation.value.trim() : variationSelect.value) || null,
     ...extras.get(),
     ...eventChoices(),
+    // (database/2026-12-12-gifted-reviews.sql)
+    ...(document.getElementById("review-gifted").checked ? { gifted: true } : {}),
   }).select("held_at").single();
 
   if (error) {
