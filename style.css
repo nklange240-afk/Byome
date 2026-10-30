@@ -4005,11 +4005,12 @@ body > .biome-overlay {
     rgba(0, 0, 0, 0.45) calc(50% + 290px), #000 calc(50% + 440px));
 }
 
-/* The desert's cacti hug the very edges of their art, so on computers the
-   art is always exactly the screen's width (never wider and cropped); its
-   empty middle stays wider than the posts */
+/* The desert's cacti and the tundra's branches hug the very edges of their
+   art, so on computers the art is always exactly the screen's width (never
+   wider and cropped); its empty middle stays wider than the posts */
 @media (min-width: 901px) {
-  body.biome-desert > .biome-overlay:not(.is-full) {
+  body.biome-desert > .biome-overlay:not(.is-full),
+  body.biome-tundra > .biome-overlay:not(.is-full) {
     background-size: 100% auto;
   }
 }
