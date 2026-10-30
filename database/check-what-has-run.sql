@@ -94,5 +94,6 @@ from (values
   ('2026-12-07-beta-testers.sql',         exists (select 1 from tbl where name = 'beta_testers')),
   ('2026-12-08-beta-event.sql',           exists (select 1 from tbl where name = 'beta_progress')),
   ('2026-12-09-no-links.sql',             exists (select 1 from fn where name = 'has_link')),
-  ('2026-12-10-username-holds.sql',       exists (select 1 from tbl where name = 'username_history'))
+  ('2026-12-10-username-holds.sql',       exists (select 1 from tbl where name = 'username_history')),
+  ('2026-12-11-username-automod.sql',     exists (select 1 from fn where name = 'username_is_flagged'))
 ) as checks(file, ok);
