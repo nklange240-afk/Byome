@@ -1308,7 +1308,7 @@ function buildReview(r) {
   const bodyEl = el("p", "post-body", r.body);
   article.append(meta);
   if (r.held_at) article.appendChild(heldNotice());
-  article.append(bodyEl);
+  article.append(...UI.readMore(bodyEl));
 
   // Follow-up updates, oldest first
   const updates = (r.review_updates || []).slice()
@@ -1326,7 +1326,8 @@ function buildReview(r) {
     const edit = actionButton("Edit");
     edit.addEventListener("click", () => {
       if (article.querySelector(".edit-form")) return;
-      const hide = (hidden) => { titleEl.hidden = hidden; productRow.hidden = hidden; bodyEl.hidden = hidden; };
+      const more = article.querySelector(".read-more");
+      const hide = (hidden) => { titleEl.hidden = hidden; productRow.hidden = hidden; bodyEl.hidden = hidden; if (more) more.hidden = hidden; };
       hide(true);
       const editForm = EDIT_FORMS.review(r, product, loadReviews, () => { editForm.remove(); hide(false); });
       article.insertBefore(editForm, actions);

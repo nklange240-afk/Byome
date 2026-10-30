@@ -8446,3 +8446,33 @@ dialog.daily-dialog {
 .achievement-tip-event.is-beta {
   color: #8FC1EF;
 }
+
+/* =========================================================
+   READ MORE: long posts and reviews show their first 8 lines
+   ========================================================= */
+.post-body.is-clamped {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 8;
+  line-clamp: 8;
+  overflow: hidden;
+}
+
+.read-more {
+  display: block;
+  margin-top: 0.3rem;
+  padding: 0.2rem 0;
+  background: none;
+  border: none;
+  color: var(--gold-text);
+  font-family: var(--font-body);
+  font-size: 0.92rem;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.read-more:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}

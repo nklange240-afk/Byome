@@ -92,5 +92,7 @@ from (values
   ('2026-12-05-hide-reef.sql',            exists (select 1 from public.biome_items where key = 'reef' and not available)),
   ('2026-12-06-next-event-teaser.sql',    exists (select 1 from tbl where name = 'site_settings')),
   ('2026-12-07-beta-testers.sql',         exists (select 1 from tbl where name = 'beta_testers')),
-  ('2026-12-08-beta-event.sql',           exists (select 1 from tbl where name = 'beta_progress'))
+  ('2026-12-08-beta-event.sql',           exists (select 1 from tbl where name = 'beta_progress')),
+  ('2026-12-09-no-links.sql',             exists (select 1 from fn where name = 'has_link')),
+  ('2026-12-10-username-holds.sql',       exists (select 1 from tbl where name = 'username_history'))
 ) as checks(file, ok);
