@@ -8406,19 +8406,23 @@ dialog.daily-dialog {
   margin: 0.35rem 0 0;
 }
 
-img.beta-badge {
-  height: 40px;
-  width: auto;
-}
-
-.beta-badge.is-text {
-  display: inline-block;
-  padding: 0.1rem 0.7rem;
-  border: 1px solid var(--sugar);
-  border-right-color: var(--spice);
-  border-bottom-color: var(--spice);
+.beta-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.1rem 0.7rem 0.1rem 0.35rem;
+  border: 1px solid #4A90D9;
   border-radius: 999px;
   font-size: 0.85rem;
   font-weight: 600;
-  color: var(--sugar-text);
+}
+
+.beta-badge img {
+  width: 1.6em;
+  height: 1.6em;
+  object-fit: contain;
+}
+
+.beta-badge:not(:has(img)) {
+  padding-left: 0.7rem;
 }

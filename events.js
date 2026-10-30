@@ -248,6 +248,14 @@ function betaSection(ev) {
   const live = ev.status === "live";
   const section = el("section", "event-card is-beta" + (live ? " is-live" : ""));
   const head = el("div", "event-head");
+  if (ev.badge_image) {
+    const badge = document.createElement("img");
+    badge.className = "event-badge";
+    badge.src = ev.badge_image;
+    badge.alt = "";
+    badge.addEventListener("error", () => badge.remove());
+    head.appendChild(badge);
+  }
   const titles = el("div");
   titles.appendChild(el("h2", "event-name", ev.name));
   const when = el("p", "event-when");

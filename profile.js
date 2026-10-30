@@ -765,14 +765,19 @@ function showTraits(profile) {
 }
 
 // Beta testers get a badge on their profile, for good (only here, not by
-// their name on posts and reviews). The picture once
-// biome-assets/badge-beta-tester.png exists, the words until then.
+// their name on posts and reviews): the beta badge picture, once
+// biome-assets/badge-beta-tester.png exists, and the words.
 // (database/2026-12-08-beta-event.sql)
 async function showBetaBadge(profile) {
   const { data, error } = await supabaseClient.rpc("beta_badge", { p_user: profile.id });
   if (error || !data) return;
-  const badge = UI.iconOrLabel("biome-assets/badge-beta-tester.png", "Beta tester", "beta-badge", "\ud83c\udf6c\ud83c\udf36\ufe0f Beta tester");
+  const badge = el("span", "beta-badge");
   badge.title = "Helped test Byome in Beta Testing: Sugar and Spice";
+  const icon = document.createElement("img");
+  icon.src = "biome-assets/badge-beta-tester.png";
+  icon.alt = "";
+  icon.addEventListener("error", () => icon.remove());
+  badge.append(icon, "Beta tester");
   const row = el("p", "beta-badge-row");
   row.appendChild(badge);
   document.querySelector(".profile-meta").before(row);
