@@ -91,5 +91,6 @@ from (values
   ('2026-12-04-urgent-modmail.sql',       exists (select 1 from col where t = 'modmail_threads' and c = 'urgent')),
   ('2026-12-05-hide-reef.sql',            exists (select 1 from public.biome_items where key = 'reef' and not available)),
   ('2026-12-06-next-event-teaser.sql',    exists (select 1 from tbl where name = 'site_settings')),
-  ('2026-12-07-beta-testers.sql',         exists (select 1 from tbl where name = 'beta_testers'))
+  ('2026-12-07-beta-testers.sql',         exists (select 1 from tbl where name = 'beta_testers')),
+  ('2026-12-08-beta-event.sql',           exists (select 1 from tbl where name = 'beta_progress'))
 ) as checks(file, ok);

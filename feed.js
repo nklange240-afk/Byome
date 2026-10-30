@@ -15,6 +15,7 @@ let isModerator = false;
 let selectedCategory = ""; // "" means all categories
 let selectedEvent = "";    // the event chip: only that event's posts
 let liveEvent = null;      // the event that's on, if any
+let canSeeBeta = false;    // beta testers and moderators: the Beta Testing tab
 const eventNames = {};     // event key -> name, for the tags on posts
 
 // The orange tag on an event's posts, with the event's little icon
@@ -28,6 +29,52 @@ function eventTag(key) {
   icon.addEventListener("error", () => icon.remove());
   tag.append(icon, eventNames[key]);
   return tag;
+}
+
+// A post's category, as a tag (Beta Testing ones in their own colours)
+function categoryTag(category) {
+  return el("span", "post-category-tag" + (category === BETA_CATEGORY ? " is-beta" : ""), category);
+}
+
+// ---------- The Beta Testing tab ----------
+// Only beta testers and moderators can see its posts and comments
+// (database/2026-12-08-beta-event.sql). They get a "Beta Testing" chip and
+// category; its posts stay out of "All", so they're never mixed in with
+// what everyone can see.
+const BETA_CATEGORY = "Beta Testing";
+
+async function setUpBeta() {
+  const { data, error } = await supabaseClient.rpc("can_see_beta");
+  canSeeBeta = Boolean(!error && data);
+  if (!canSeeBeta) return;
+  const option = document.createElement("option");
+  option.value = BETA_CATEGORY;
+  option.textContent = BETA_CATEGORY + " (testers only)";
+  postCategory.appendChild(option);
+
+  const chip = el("button", "category-chip is-beta", BETA_CATEGORY);
+  chip.type = "button";
+  chip.dataset.value = BETA_CATEGORY;
+  // events.html links here with ?tab=beta
+  const opening = new URLSearchParams(window.location.search).get("tab") === "beta";
+  if (opening) {
+    selectedCategory = BETA_CATEGORY;
+    categoryFilter.querySelectorAll(".category-chip").forEach((b) => b.setAttribute("aria-pressed", "false"));
+  }
+  chip.setAttribute("aria-pressed", String(opening));
+  // (just after "All")
+  const all = categoryFilter.querySelector(".category-chip");
+  if (all) all.after(chip); else categoryFilter.appendChild(chip);
+
+  const note = el("p", "beta-tab-note", "\ud83d\udd12 Only beta testers and moderators can see posts in Beta Testing.");
+  note.id = "beta-tab-note";
+  note.hidden = !opening;
+  categoryFilter.after(note);
+}
+
+// "All" leaves out the Beta Testing tab's posts
+function notBeta(query) {
+  return canSeeBeta ? query.or('category.is.null,category.neq."' + BETA_CATEGORY + '"') : query;
 }
 
 // Small helper: create an element with a class and text in one line.
@@ -153,6 +200,7 @@ async function init() {
 
   UI.eventBanner(document.querySelector("main"), document.querySelector("main > h1"));
   DAILY.card(document.querySelector("main"), document.querySelector("main > h1"));
+  await setUpBeta();
   await setUpEvents();
   await REPORTS.loadMine(currentUser.id); // so flags you've used start red
   await loadPosts();
@@ -238,6 +286,9 @@ async function loadPosts(more) {
 
   if (selectedEvent) query = query.eq("event_key", selectedEvent);
   else if (selectedCategory) query = query.eq("category", selectedCategory);
+  else query = notBeta(query);
+  const betaNote = document.getElementById("beta-tab-note");
+  if (betaNote) betaNote.hidden = selectedCategory !== BETA_CATEGORY || Boolean(selectedEvent);
 
   // Pinned posts go first (only on the first page); they're left out of
   // the list below so they don't show twice
@@ -281,7 +332,7 @@ async function loadPosts(more) {
 // that's run there are none.
 // While an event is on, its featured posts sit up there too.
 async function loadPinned() {
-  const narrow = (q) => (selectedEvent ? q.eq("event_key", selectedEvent) : selectedCategory ? q.eq("category", selectedCategory) : q);
+  const narrow = (q) => (selectedEvent ? q.eq("event_key", selectedEvent) : selectedCategory ? q.eq("category", selectedCategory) : notBeta(q));
   const pinnedQ = narrow(supabaseClient.from("posts").select(POST_COLUMNS + ", pinned_at")
     .not("pinned_at", "is", null).order("pinned_at", { ascending: false }).limit(5));
   const featuredQ = liveEvent ? narrow(supabaseClient.from("posts").select(POST_COLUMNS + ", pinned_at")
@@ -318,11 +369,11 @@ function buildPost(post, pollResult) {
   if (post.title) {
     const titleRow = el("div", "post-title-row");
     titleRow.appendChild(el("h2", "post-title", post.title));
-    if (post.category) titleRow.appendChild(el("span", "post-category-tag", post.category));
+    if (post.category) titleRow.appendChild(categoryTag(post.category));
     if (post.event_key && eventNames[post.event_key]) titleRow.appendChild(eventTag(post.event_key));
     article.appendChild(titleRow);
   } else if (post.category) {
-    article.appendChild(el("span", "post-category-tag", post.category));
+    article.appendChild(categoryTag(post.category));
   }
   article.appendChild(buildMeta(post.profiles, post.created_at, post.edited_at));
   if (post.held_at) article.appendChild(heldNotice());
@@ -713,6 +764,8 @@ function setComposing(open) {
   postForm.hidden = !open;
   postStarter.hidden = open;
   postStarter.setAttribute("aria-expanded", String(open));
+  // posting from the Beta Testing tab starts in that category
+  if (open && selectedCategory === BETA_CATEGORY && !postCategory.value) postCategory.value = BETA_CATEGORY;
   if (open) postTitle.focus();
 }
 postStarter.addEventListener("click", () => setComposing(true));

@@ -764,6 +764,20 @@ function showTraits(profile) {
   box.hidden = chips.length === 0;
 }
 
+// Beta testers get a badge on their profile, for good (only here, not by
+// their name on posts and reviews). The picture once
+// biome-assets/badge-beta-tester.png exists, the words until then.
+// (database/2026-12-08-beta-event.sql)
+async function showBetaBadge(profile) {
+  const { data, error } = await supabaseClient.rpc("beta_badge", { p_user: profile.id });
+  if (error || !data) return;
+  const badge = UI.iconOrLabel("biome-assets/badge-beta-tester.png", "Beta tester", "beta-badge", "\ud83c\udf6c\ud83c\udf36\ufe0f Beta tester");
+  badge.title = "Helped test Byome in Beta Testing: Sugar and Spice";
+  const row = el("p", "beta-badge-row");
+  row.appendChild(badge);
+  document.querySelector(".profile-meta").before(row);
+}
+
 // Achievements earned, shown on every profile under the shelf
 // Achievements: a chip each. Hovering, tapping or tabbing to one opens an
 // info box (like the shelf's) saying how it was earned, when, and its
@@ -776,6 +790,8 @@ async function showAchievements(profileId) {
   let { data, error } = await load("earned_at, achievement:achievements!achievement_key(name, description, sort_order, " +
     "reward:biome_items!reward_item(name, rarity), event:events!event_key(name, starts_at, badge_image))");
   if (error) ({ data, error } = await load("earned_at, achievement:achievements!achievement_key(name, description, sort_order, reward:biome_items!reward_item(name, rarity))"));
+  // (achievements you can't see, like another tester's beta ones, come back empty)
+  if (!error) data = data.filter((row) => row.achievement);
   if (error || !data.length) return;
 
   box.innerHTML = "";
@@ -955,6 +971,7 @@ async function showAchievements(profileId) {
     document.getElementById("profile-since").textContent =
       "Member since " + new Date(profile.created_at).toLocaleDateString(undefined, { month: "long", year: "numeric" });
   }
+  showBetaBadge(profile);
 
   showHelpful(profile, isMe);
   showLevel(profile, isMe, me);

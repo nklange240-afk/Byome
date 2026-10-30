@@ -76,9 +76,11 @@ async function loadShop() {
     shopItems("available_from, available_until, ").then((res) => (res.error ? shopItems("") : res)),
     supabaseClient.from("biome_inventory").select("item_key").eq("user_id", currentUser.id),
     // (events come from database/2026-10-29-events-halloween.sql; fine without)
-    supabaseClient.from("events").select("key, name, badge_image, starts_at, ends_at"),
+    supabaseClient.from("events").select("key, name, badge_image, starts_at, ends_at, beta_only")
+      .then((res) => (res.error ? supabaseClient.from("events").select("key, name, badge_image, starts_at, ends_at") : res)),
   ]);
-  const events = eventsRes.error ? [] : eventsRes.data || [];
+  // (the beta event never labels shop items: database/2026-12-08-beta-event.sql)
+  const events = eventsRes.error ? [] : (eventsRes.data || []).filter((ev) => !ev.beta_only);
 
   shopEl.innerHTML = "";
   shopMoreEl.innerHTML = "";

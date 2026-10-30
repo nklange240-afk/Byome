@@ -552,9 +552,16 @@ const UI = (function () {
   function liveEvent() {
     if (!liveEventPromise) {
       const now = new Date().toISOString();
+      // (never the beta event, which beta testers can also see:
+      // database/2026-12-08-beta-event.sql; until that's run, any event)
+      const find = (publicOnly) => {
+        let q = supabaseClient.from("events").select("key, name, tagline, starts_at, ends_at, grace_until, badge_image, story_post_id")
+          .lte("starts_at", now).gte("ends_at", now);
+        if (publicOnly) q = q.eq("beta_only", false);
+        return q.order("starts_at").limit(1);
+      };
       liveEventPromise = typeof supabaseClient === "undefined" ? Promise.resolve(null)
-        : supabaseClient.from("events").select("key, name, tagline, starts_at, ends_at, grace_until, badge_image, story_post_id")
-          .lte("starts_at", now).gte("ends_at", now).order("starts_at").limit(1)
+        : find(true).then((res) => (res.error ? find(false) : res))
           .then(({ data, error }) => (error || !data || !data.length ? null : data[0]), () => null);
     }
     return liveEventPromise;
