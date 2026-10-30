@@ -577,6 +577,33 @@ const UI = (function () {
     return text + " Central Time";
   }
 
+  // A long post or review shows its first 8 lines and a "Read more"
+  // button. Returns the body and the button (if it needs one) to add to the
+  // page together: article.append(...UI.readMore(bodyEl)).
+  function readMore(body) {
+    if (!body || body.textContent.length < 400) return [body];
+    body.classList.add("is-clamped");
+    const button = el("button", "read-more", "Read more");
+    button.type = "button";
+    button.setAttribute("aria-expanded", "false");
+    button.addEventListener("click", () => {
+      const open = body.classList.toggle("is-clamped") === false;
+      button.textContent = open ? "Show less" : "Read more";
+      button.setAttribute("aria-expanded", String(open));
+      if (!open) body.scrollIntoView({ block: "nearest" });
+    });
+    // Once it's on the page: no button if all of it already fits
+    let tries = 0;
+    (function check() {
+      if (!body.isConnected) { if (++tries < 10) requestAnimationFrame(check); return; }
+      if (body.scrollHeight <= body.clientHeight + 2) {
+        body.classList.remove("is-clamped");
+        button.remove();
+      }
+    })();
+    return [body, button];
+  }
+
   // A small picture with words to fall back on: the picture once its art
   // exists, the words (in a pill) until then
   function iconOrLabel(src, label, className, shortLabel) {
@@ -1308,5 +1335,5 @@ const UI = (function () {
     if (document.body.dataset.biome) setBiome(document.body.dataset.biome);
   });
 
-  return { liveEvent, eventBanner, centralTime, iconOrLabel, reviewIcons, openAccessibility, REMOVAL_REASONS, removalReasonLabel, friendlyDate, timeTag, emptyState, celebrate, checkAchievements, sparkles, itemArt, soilImage, sizeName, sizeBadge, setBiome, biomeSymbol, memberBadge, biomeSwatch, biomeLook, biomePreview, openBiomePreview, previewOnHover, previewButton, startModSession, refreshLimits, variationForm, LEVELS, levelInfo, levelBadge };
+  return { liveEvent, eventBanner, centralTime, readMore, iconOrLabel, reviewIcons, openAccessibility, REMOVAL_REASONS, removalReasonLabel, friendlyDate, timeTag, emptyState, celebrate, checkAchievements, sparkles, itemArt, soilImage, sizeName, sizeBadge, setBiome, biomeSymbol, memberBadge, biomeSwatch, biomeLook, biomePreview, openBiomePreview, previewOnHover, previewButton, startModSession, refreshLimits, variationForm, LEVELS, levelInfo, levelBadge };
 })();

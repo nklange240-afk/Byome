@@ -188,7 +188,7 @@ function buildPostCard(p, isMe, reload) {
   if (p.title) parts.push(el("h2", "post-title", p.title));
   parts.push(metaRow(p.created_at, p.edited_at));
   if (p.held_at) parts.push(heldNotice());
-  if (p.body) parts.push(el("p", "post-body", p.body));
+  if (p.body) parts.push(...UI.readMore(el("p", "post-body", p.body)));
   // A poll: its options in one line (voting happens on Community)
   const poll = Array.isArray(p.polls) ? p.polls[0] : p.polls;
   if (poll && poll.poll_options) {
@@ -249,7 +249,7 @@ function buildReviewCard(r, isMe, reload) {
 
   article.appendChild(metaRow(r.created_at, r.edited_at));
   if (r.held_at) article.appendChild(heldNotice());
-  article.appendChild(el("p", "post-body", r.body));
+  article.append(...UI.readMore(el("p", "post-body", r.body)));
   (r.review_updates || []).slice().sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
     .forEach((u) => article.appendChild(reviewUpdateBox(u, r, isMe, reload)));
   const likes = r.review_likes ? r.review_likes.length : 0;

@@ -377,7 +377,7 @@ function buildPost(post, pollResult) {
   }
   article.appendChild(buildMeta(post.profiles, post.created_at, post.edited_at));
   if (post.held_at) article.appendChild(heldNotice());
-  if (post.body) article.appendChild(el("p", "post-body", post.body));
+  if (post.body) article.append(...UI.readMore(el("p", "post-body", post.body)));
   let pollVotes = pollResult ? pollResult.total : 0;
   if (poll) {
     const pollBox = POLLS.render(post, pollResult);
@@ -442,7 +442,7 @@ function buildPost(post, pollResult) {
       editBtn = edit;
       edit.addEventListener("click", () => {
         if (article.querySelector(".edit-form")) return;
-        const parts = [".post-title", ".post-body", ".poll"].map((sel) => article.querySelector(sel)).filter(Boolean);
+        const parts = [".post-title", ".post-body", ".read-more", ".poll"].map((sel) => article.querySelector(sel)).filter(Boolean);
         const show = (visible) => parts.forEach((p) => { p.hidden = !visible; });
         show(false);
         const editForm = poll
