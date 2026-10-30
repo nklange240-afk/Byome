@@ -6060,6 +6060,13 @@ dialog.a11y-dialog {
   border-color: var(--gold);
 }
 
+/* "New event coming ..." between events */
+.event-card.is-teaser {
+  border-color: var(--gold);
+  padding-bottom: 1rem;
+  text-align: center;
+}
+
 .event-head {
   display: flex;
   align-items: center;

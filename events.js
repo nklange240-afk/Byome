@@ -173,6 +173,25 @@ function eventSection(ev, loggedIn, shopItems) {
   return section;
 }
 
+// The next event's date and biome, if one is set and still to come
+async function nextEvent() {
+  const { data } = await supabaseClient.from("site_settings").select("value").eq("key", "next_event").maybeSingle();
+  const next = data && data.value;
+  if (!next || !/^\d{4}-\d{2}-\d{2}$/.test(next.date || "")) return null;
+  // (the date is a Central-time day; it's shown until the day itself has passed)
+  const today = new Date().toLocaleDateString("en-CA", { timeZone: "America/Chicago" });
+  return next.date >= today ? next : null;
+}
+
+function teaserCard(next) {
+  const card = el("section", "event-card is-teaser");
+  const day = new Date(next.date + "T12:00:00").toLocaleDateString("en-US", { month: "long", day: "numeric" });
+  // (a non-breaking space keeps "November 27" together on one line)
+  card.appendChild(el("h2", "event-name", "New event coming " + day.replace(" ", "\u00a0")));
+  card.appendChild(el("p", "event-tagline", "Check back then for achievements, Byome points and limited-edition treats."));
+  return card;
+}
+
 (async function () {
   const box = document.getElementById("events");
   const { data: session } = await supabaseClient.auth.getSession();
@@ -196,11 +215,16 @@ function eventSection(ev, loggedIn, shopItems) {
   box.replaceChildren();
   const current = overviews.filter((ev) => ev.status !== "ended");
   const past = overviews.filter((ev) => ev.status === "ended");
+  // Between events (nothing on or coming soon): "New event coming ..." in
+  // the biome chosen for it (database/2026-12-06-next-event-teaser.sql)
+  const teaser = current.some((ev) => ev.status === "live" || ev.status === "upcoming") ? null : await nextEvent();
   // The page is set in the current (or most recent) event's own biome
   const lead = current[current.length - 1] || past[0];
-  if (lead && lead.biome) UI.setBiome(lead.biome);
+  if (teaser && teaser.biome) UI.setBiome(teaser.biome);
+  else if (lead && lead.biome) UI.setBiome(lead.biome);
+  if (teaser) box.appendChild(teaserCard(teaser));
   current.forEach((ev) => box.appendChild(eventSection(ev, loggedIn, shopItems || [])));
-  if (!current.length) box.appendChild(el("p", "feed-empty", "No events on right now. Check back soon!"));
+  if (!current.length && !teaser) box.appendChild(el("p", "feed-empty", "No events on right now. Check back soon!"));
   if (past.length) {
     box.appendChild(el("h2", "section-title events-past-title", "Past events"));
     past.forEach((ev) => box.appendChild(eventSection(ev, loggedIn, [])));
