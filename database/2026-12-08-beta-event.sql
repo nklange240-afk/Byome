@@ -89,11 +89,13 @@ $$;
 
 
 -- ---------- The event ----------
-insert into public.events (key, name, tagline, starts_at, ends_at, grace_until, beta_only)
+insert into public.events (key, name, tagline, starts_at, ends_at, grace_until, beta_only, badge_image)
 values ('beta-2026', 'Beta Testing: Sugar and Spice',
         'Thank you for testing Byome! Sugar is using the site as it''s meant to be used. Spice is trying to break it.',
-        '2026-10-30 05:00:00+00', '2027-02-01 05:59:00+00', '2027-02-01 05:59:00+00', true)
-on conflict (key) do update set beta_only = true;
+        '2026-10-30 05:00:00+00', '2027-02-01 05:59:00+00', '2027-02-01 05:59:00+00', true,
+        'biome-assets/badge-beta-tester.png')
+on conflict (key) do update set beta_only = true,
+  badge_image = coalesce(public.events.badge_image, excluded.badge_image);
 
 -- The Spice prize
 insert into public.biome_items (key, kind, size, name, description, rarity, price, image, sort_order, max_per_member)
