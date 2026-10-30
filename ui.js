@@ -677,7 +677,7 @@ const UI = (function () {
               shadeFrom: 0.15, // pale dusty blue, deepening to dark blue by the bottom
               // hand-drawn winter branches, berries and snowflakes down both sides,
               // stronger than the forest's so the pale leaves stand out
-              overlays: [{ image: "biome-assets/overlay-tundra.webp", speed: 0.5, opacity: 0.95 }] },
+              overlays: [{ image: "biome-assets/overlay-tundra.webp", speed: 0.5, opacity: 0.9 }] },
     // Autumn woodland: golden light at the top, deepening through rust to
     // maple red by the bottom of the page, with leaves drifting down, and
     // hand-drawn autumn branches down both sides
