@@ -141,6 +141,19 @@ const EDIT_FORMS = (function () {
     extras.append(repField, grailBtn);
     form.appendChild(extras);
 
+    // "Gifted" (database/2026-12-12-gifted-reviews.sql; left out until it's run)
+    const hasGifted = r.gifted !== undefined;
+    const giftedBox = el("input");
+    giftedBox.type = "checkbox";
+    giftedBox.checked = Boolean(r.gifted);
+    if (hasGifted) {
+      const row = el("label", "check-row review-gifted-row");
+      const text = el("span");
+      text.append(el("strong", null, "Gifted:"), " a brand gave me this product, paid me, or I'm connected to the brand in another way.");
+      row.append(giftedBox, text);
+      form.appendChild(row);
+    }
+
     function paint() {
       leafBtns.forEach((btn, i) => {
         btn.classList.toggle("on", i < rating);
@@ -199,6 +212,7 @@ const EDIT_FORMS = (function () {
           body: body,
           would_repurchase: repurchase,
           holy_grail: rating === 5 && grail,
+          ...(hasGifted ? { gifted: giftedBox.checked } : {}),
           edited_at: new Date().toISOString(),
         })
         .eq("id", r.id)

@@ -60,7 +60,7 @@ const UI = (function () {
     footer.appendChild(el("p", "footer-tagline", "Byome — built by the community, for the community."));
     const links = el("nav", "footer-links");
     links.setAttribute("aria-label", "About Byome");
-    const items = [["index.html#about", "About"], ["terms.html", "Terms"], ["privacy.html", "Privacy"]];
+    const items = [["about.html", "About"], ["faq.html", "FAQ"], ["terms.html", "Terms"], ["privacy.html", "Privacy"]];
     if (CONTACT_EMAIL) items.push(["mailto:" + CONTACT_EMAIL, "Contact"]);
     // Feedback goes to the moderators' mod mail (modmail.html)
     items.push(["modmail.html?new=feedback", "Send feedback"]);
@@ -602,6 +602,14 @@ const UI = (function () {
       }
     })();
     return [body, button];
+  }
+
+  // The "Gifted" tag on a review whose writer got the product free, was
+  // paid, or is connected to the brand (database/2026-12-12-gifted-reviews.sql)
+  function giftedTag() {
+    const tag = el("span", "review-tag is-gifted", "Gifted");
+    tag.title = "The reviewer got this product free, was paid, or is connected to the brand";
+    return tag;
   }
 
   // A small picture with words to fall back on: the picture once its art
@@ -1335,5 +1343,5 @@ const UI = (function () {
     if (document.body.dataset.biome) setBiome(document.body.dataset.biome);
   });
 
-  return { liveEvent, eventBanner, centralTime, readMore, iconOrLabel, reviewIcons, openAccessibility, REMOVAL_REASONS, removalReasonLabel, friendlyDate, timeTag, emptyState, celebrate, checkAchievements, sparkles, itemArt, soilImage, sizeName, sizeBadge, setBiome, biomeSymbol, memberBadge, biomeSwatch, biomeLook, biomePreview, openBiomePreview, previewOnHover, previewButton, startModSession, refreshLimits, variationForm, LEVELS, levelInfo, levelBadge };
+  return { liveEvent, eventBanner, centralTime, readMore, giftedTag, iconOrLabel, reviewIcons, openAccessibility, REMOVAL_REASONS, removalReasonLabel, friendlyDate, timeTag, emptyState, celebrate, checkAchievements, sparkles, itemArt, soilImage, sizeName, sizeBadge, setBiome, biomeSymbol, memberBadge, biomeSwatch, biomeLook, biomePreview, openBiomePreview, previewOnHover, previewButton, startModSession, refreshLimits, variationForm, LEVELS, levelInfo, levelBadge };
 })();

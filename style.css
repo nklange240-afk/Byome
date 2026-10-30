@@ -8476,3 +8476,38 @@ dialog.daily-dialog {
   outline: 2px solid var(--gold);
   outline-offset: 2px;
 }
+
+/* About and FAQ pages (about.html, faq.html), styled like the terms */
+.legal-page h3 {
+  font-family: var(--font-heading);
+  font-size: 1.05rem;
+  margin: 1.1rem 0 0.3rem;
+}
+
+.about-lead {
+  font-size: 1.1rem;
+}
+
+.faq-more {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 2rem;
+}
+
+/* "Gifted" on reviews of products the writer got free or was paid for */
+.review-tag.is-gifted {
+  border-style: dashed;
+  font-weight: 600;
+}
+
+.review-gifted-row {
+  align-items: flex-start;
+  margin: 0.25rem 0 0.75rem;
+  font-size: 0.92rem;
+}
+
+.review-gifted-row input {
+  margin-top: 0.2rem;
+}
