@@ -793,7 +793,7 @@ async function showAchievements(profileId) {
     .eq("user_id", profileId).order("earned_at", { ascending: true });
   // (events come from database/2026-10-29-events-halloween.sql)
   let { data, error } = await load("earned_at, achievement:achievements!achievement_key(name, description, sort_order, " +
-    "reward:biome_items!reward_item(name, rarity), event:events!event_key(name, starts_at, badge_image))");
+    "reward:biome_items!reward_item(name, rarity), event:events!event_key(key, name, starts_at, badge_image))");
   if (error) ({ data, error } = await load("earned_at, achievement:achievements!achievement_key(name, description, sort_order, reward:biome_items!reward_item(name, rarity))"));
   // (achievements you can't see, like another tester's beta ones, come back empty)
   if (!error) data = data.filter((row) => row.achievement);
@@ -808,6 +808,12 @@ async function showAchievements(profileId) {
   tip.setAttribute("role", "tooltip");
   tip.hidden = true;
   let current = null;
+
+  // Beta testing achievements are blue rather than event orange
+  // (database/2026-12-08-beta-event.sql)
+  function isBeta(event) {
+    return Boolean(event && /^beta-/.test(event.key || ""));
+  }
 
   function badgeFor(event, className) {
     const img = document.createElement("img");
@@ -825,7 +831,7 @@ async function showAchievements(profileId) {
     head.appendChild(el("strong", null, a.name));
     parts.push(head);
     if (a.event) {
-      const ev = el("p", "achievement-tip-event");
+      const ev = el("p", "achievement-tip-event" + (isBeta(a.event) ? " is-beta" : ""));
       if (a.event.badge_image) {
         const b = badgeFor(a.event, "achievement-tip-badge");
         b.addEventListener("error", () => b.remove());
@@ -862,7 +868,8 @@ async function showAchievements(profileId) {
   data.forEach((row) => {
     if (!row.achievement) return;
     const li = el("li");
-    const chip = el("button", "achievement" + (row.achievement.event ? " is-event" : ""));
+    const event = row.achievement.event;
+    const chip = el("button", "achievement" + (event ? " is-event" : "") + (isBeta(event) ? " is-beta" : ""));
     chip.type = "button";
     chip._row = row;
     if (row.achievement.event && row.achievement.event.badge_image) {
