@@ -8221,3 +8221,228 @@ dialog.daily-dialog {
   border-color: currentColor;
   font-weight: 600;
 }
+
+/* =========================================================
+   BETA TESTING: SUGAR AND SPICE (beta testers only)
+   Candy pink for Sugar, chilli red for Spice
+   ========================================================= */
+:root {
+  --sugar: #F4A6C6;
+  --sugar-text: #F7BDD5;
+  --spice: #E8603F;
+  --spice-text: #F29B80;
+}
+
+.biome-meadow {
+  --sugar-text: #9C2F5E;      /* deeper on the light Meadow */
+  --spice-text: #A3361A;
+}
+
+.event-card.is-beta {
+  border-color: var(--sugar);
+  border-right-color: var(--spice);
+  border-bottom-color: var(--spice);
+}
+
+.event-pill.is-beta {
+  border-color: var(--sugar);
+  color: var(--sugar-text);
+}
+
+.beta-sides {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+@media (min-width: 760px) {
+  .beta-sides {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.beta-side {
+  padding: 0.85rem;
+  border: 1px solid var(--moss);
+  border-top: 4px solid var(--sugar);
+  border-radius: 10px;
+}
+
+.beta-side.is-spice {
+  border-top-color: var(--spice);
+}
+
+.beta-side-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.75rem;
+}
+
+.beta-side-name {
+  font-family: var(--font-heading);
+  font-size: 1.25rem;
+  color: var(--sugar-text);
+}
+
+.beta-side.is-spice .beta-side-name {
+  color: var(--spice-text);
+}
+
+.beta-side-count {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.beta-side-about {
+  margin-top: 0.25rem;
+  font-size: 0.9rem;
+}
+
+.beta-meter {
+  height: 8px;
+  margin: 0.6rem 0 0.2rem;
+  border-radius: 999px;
+  background-color: rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+}
+
+.beta-meter-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background-color: var(--sugar);
+}
+
+.beta-side.is-spice .beta-meter-fill {
+  background-color: var(--spice);
+}
+
+.beta-tasks {
+  list-style: none;
+  margin: 0.6rem 0 0;
+  padding: 0;
+}
+
+.beta-task {
+  padding: 0.55rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.beta-task-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.beta-task-name {
+  font-family: var(--font-heading);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.beta-task.is-done .beta-task-name::before {
+  content: "\2713  ";
+  color: var(--gold-text);
+}
+
+.beta-task-how {
+  margin-top: 0.15rem;
+  font-size: 0.88rem;
+}
+
+.beta-task .event-status,
+.beta-task .event-go {
+  margin-top: 0.2rem;
+}
+
+.beta-prize,
+.beta-heirloom {
+  margin-top: 0.6rem;
+}
+
+.beta-side.is-sugar .event-achievement.is-earned,
+.beta-side.is-sugar .event-achievement.is-qualified {
+  border-color: var(--sugar);
+}
+
+.beta-side.is-spice .event-achievement.is-earned,
+.beta-side.is-spice .event-achievement.is-qualified {
+  border-color: var(--spice);
+}
+
+.beta-heirloom .event-achievement {
+  border-color: var(--sugar);
+  border-right-color: var(--spice);
+  border-bottom-color: var(--spice);
+}
+
+/* The Community's Beta Testing tab */
+.category-chip.is-beta {
+  border-color: var(--sugar);
+  color: var(--sugar-text);
+}
+
+.category-chip.is-beta[aria-pressed="true"] {
+  background-color: var(--sugar);
+  border-color: var(--sugar);
+  color: #3A1426;
+}
+
+.post-category-tag.is-beta {
+  border-color: var(--sugar);
+  color: var(--sugar-text);
+}
+
+.beta-tab-note {
+  margin: -0.5rem 0 1rem;
+  font-size: 0.9rem;
+}
+
+/* The Beta tester badge on profiles */
+.beta-badge-row {
+  margin: 0.35rem 0 0;
+}
+
+.beta-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.1rem 0.7rem 0.1rem 0.35rem;
+  border: 1px solid var(--beta-blue);
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.beta-badge img {
+  width: 1.6em;
+  height: 1.6em;
+  object-fit: contain;
+}
+
+.beta-badge:not(:has(img)) {
+  padding-left: 0.7rem;
+}
+
+/* Beta testing achievements: blue, like the Beta tester badge */
+:root {
+  --beta-blue: #4A90D9;
+  --beta-blue-text: #8FC1EF;
+}
+
+.biome-meadow {
+  --beta-blue-text: #1F4E8C;    /* deeper on the light Meadow */
+}
+
+.achievement.is-event.is-beta {
+  border-color: var(--beta-blue);
+  color: var(--beta-blue-text);
+}
+
+/* (the info box is dark on every biome) */
+.achievement-tip-event.is-beta {
+  color: #8FC1EF;
+}

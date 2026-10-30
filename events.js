@@ -23,6 +23,14 @@ const ACTION_LINKS = {
   "hh-friendly-ghost": { href: "invite.html", text: "Invite friends" },
   "hh-bait-the-trap": { href: "feed.html", text: "Start a poll" },
   "hh-back-from-the-dead": { href: "profile.html", text: "Find your older reviews" },
+  "beta-make-it-yours": { href: "edit-profile.html", text: "Edit profile" },
+  "beta-first-impressions": { href: "reviews.html", text: "Write a review" },
+  "beta-say-hello": { href: "feed.html", text: "Go to the Community" },
+  "beta-join-the-conversation": { href: "feed.html", text: "Go to the Community" },
+  "beta-speak-up": { href: "modmail.html?new=feedback", text: "Send feedback" },
+  "beta-green-thumb": { href: "feed.html", text: "Find today's surprise" },
+  "beta-home-sweet-shelf": { href: "profile.html", text: "Go to your shelf" },
+  "beta-wall-of-text": { href: "feed.html", text: "Start a post" },
 };
 
 function achievementCard(a, ev, loggedIn) {
@@ -173,6 +181,114 @@ function eventSection(ev, loggedIn, shopItems) {
   return section;
 }
 
+// ---------- Beta Testing: Sugar and Spice ----------
+// Only beta testers get this (database/2026-12-08-beta-event.sql). Two
+// sides of tasks, each with a prize, and an heirloom for both.
+const BETA_SIDES = {
+  sugar: { icon: "🍬", name: "Sugar", about: "Using Byome as it's meant to be used." },
+  spice: { icon: "🌶️", name: "Spice", about: "Trying to break it." },
+};
+
+function betaTask(t, live) {
+  const done = t.earned || t.qualified;
+  const li = el("li", "beta-task" + (done ? " is-done" : ""));
+  const head = el("div", "beta-task-head");
+  head.appendChild(el("h4", "beta-task-name", t.name));
+  head.appendChild(el("span", "event-points", "+" + t.points));
+  li.appendChild(head);
+  if (t.how_to) li.appendChild(el("p", "beta-task-how", t.how_to));
+  let status = null;
+  if (done) status = el("p", "event-status is-earned", "✓ Done");
+  else if (t.need > 1) status = el("p", "event-status", Math.min(t.have, t.need) + " of " + t.need);
+  if (status) li.appendChild(status);
+  const link = ACTION_LINKS[t.key];
+  if (live && !done && link) {
+    const go = el("a", "inline-link event-go", link.text);
+    go.href = link.href;
+    li.appendChild(go);
+  }
+  return li;
+}
+
+function betaSide(key, tasks, live) {
+  const side = BETA_SIDES[key];
+  const prize = tasks.find((t) => t.is_prize);
+  const list = tasks.filter((t) => !t.is_prize);
+  const done = list.filter((t) => t.earned || t.qualified).length;
+  const box = el("section", "beta-side is-" + key);
+  const head = el("div", "beta-side-head");
+  head.appendChild(el("h3", "beta-side-name", side.icon + " " + side.name));
+  head.appendChild(el("span", "beta-side-count", done + " of " + list.length + " done"));
+  box.appendChild(head);
+  box.appendChild(el("p", "beta-side-about", side.about + " Finish any " + prize.need + " of the " + list.length + " for the " + side.name + " prize."));
+
+  // How close the prize is
+  const meter = el("div", "beta-meter");
+  meter.setAttribute("role", "progressbar");
+  meter.setAttribute("aria-label", side.name + " prize");
+  meter.setAttribute("aria-valuemin", "0");
+  meter.setAttribute("aria-valuemax", String(prize.need));
+  meter.setAttribute("aria-valuenow", String(Math.min(done, prize.need)));
+  const fill = el("span", "beta-meter-fill");
+  fill.style.width = Math.min(100, (done / prize.need) * 100) + "%";
+  meter.appendChild(fill);
+  box.appendChild(meter);
+
+  const ul = el("ul", "beta-tasks");
+  list.forEach((t) => ul.appendChild(betaTask(t, live)));
+  box.appendChild(ul);
+
+  const prizeList = el("ul", "event-achievements beta-prize");
+  prizeList.appendChild(achievementCard(Object.assign({}, prize, { progress: { have: done, need: prize.need } }), { status: "ended" }, true));
+  box.appendChild(prizeList);
+  return box;
+}
+
+function betaSection(ev) {
+  const live = ev.status === "live";
+  const section = el("section", "event-card is-beta" + (live ? " is-live" : ""));
+  const head = el("div", "event-head");
+  if (ev.badge_image) {
+    const badge = document.createElement("img");
+    badge.className = "event-badge";
+    badge.src = ev.badge_image;
+    badge.alt = "";
+    badge.addEventListener("error", () => badge.remove());
+    head.appendChild(badge);
+  }
+  const titles = el("div");
+  titles.appendChild(el("h2", "event-name", ev.name));
+  const when = el("p", "event-when");
+  when.append(el("span", "event-pill is-beta", "Beta testers only"), " ");
+  if (live) when.append(el("span", "event-pill is-live", "On now"), " ");
+  when.append(shortDate(ev.starts_at) + " – " + shortDate(ev.ends_at) + ", " + new Date(ev.ends_at).getFullYear());
+  titles.appendChild(when);
+  head.appendChild(titles);
+  section.appendChild(head);
+
+  if (ev.tagline) section.appendChild(el("p", "event-tagline", ev.tagline));
+  const note = el("p", "event-note");
+  const tab = el("a", "inline-link", "Beta Testing tab");
+  tab.href = "feed.html?tab=beta";
+  note.append("Only beta testers can see this event. Each task is worth 25 Byome points. Chat with other testers in the Community's ", tab, ".");
+  section.appendChild(note);
+
+  const tasks = ev.tasks || [];
+  const sides = el("div", "beta-sides");
+  ["sugar", "spice"].forEach((key) => sides.appendChild(betaSide(key, tasks.filter((t) => t.side === key), live)));
+  section.appendChild(sides);
+
+  const both = tasks.find((t) => t.side === "both");
+  if (both) {
+    const prizes = tasks.filter((t) => t.is_prize && t.side !== "both");
+    const have = prizes.filter((t) => t.earned || t.qualified).length;
+    const heirloom = el("ul", "event-achievements beta-heirloom");
+    heirloom.appendChild(achievementCard(Object.assign({}, both, { progress: { have: have, need: prizes.length } }), { status: "ended" }, true));
+    section.appendChild(heirloom);
+  }
+  return section;
+}
+
 // The next event's date and biome, if one is set and still to come
 async function nextEvent() {
   const { data } = await supabaseClient.from("site_settings").select("value").eq("key", "next_event").maybeSingle();
@@ -197,14 +313,21 @@ function teaserCard(next) {
   const { data: session } = await supabaseClient.auth.getSession();
   const loggedIn = Boolean(session.session);
 
-  // (banners come from database/2026-11-01-event-banner.sql; fine without)
+  // (banners come from database/2026-11-01-event-banner.sql, and beta-only
+  // events from database/2026-12-08-beta-event.sql; fine without)
   const list = (columns) => supabaseClient.from("events").select(columns).order("starts_at", { ascending: false });
-  let { data: events, error } = await list("key, starts_at, banner_image, banner_alt");
+  let { data: events, error } = await list("key, starts_at, banner_image, banner_alt, beta_only");
+  if (error) ({ data: events, error } = await list("key, starts_at, banner_image, banner_alt"));
   if (error) ({ data: events, error } = await list("key, starts_at"));
   if (error || !events || !events.length) {
     box.replaceChildren(el("p", "feed-empty", "No events yet. Check back soon!"));
     return;
   }
+  // Beta testers also see the beta event, on its own at the top
+  const betaEvents = events.filter((e) => e.beta_only);
+  events = events.filter((e) => !e.beta_only);
+  const betas = (await Promise.all(betaEvents.map(() => supabaseClient.rpc("beta_overview"))))
+    .map((res) => res.data).filter(Boolean);
   const overviews = (await Promise.all(events.map((e) => supabaseClient.rpc("event_overview", { p_event: e.key }))))
     .map((res, i) => res.data && Object.assign(res.data, { banner_image: events[i].banner_image, banner_alt: events[i].banner_alt }))
     .filter(Boolean);
@@ -213,6 +336,7 @@ function teaserCard(next) {
     .not("available_until", "is", null).lte("available_from", now).gte("available_until", now);
 
   box.replaceChildren();
+  betas.filter((ev) => ev.status !== "ended").forEach((ev) => box.appendChild(betaSection(ev)));
   const current = overviews.filter((ev) => ev.status !== "ended");
   const past = overviews.filter((ev) => ev.status === "ended");
   // Between events (nothing on or coming soon): "New event coming ..." in

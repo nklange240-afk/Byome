@@ -14,6 +14,9 @@ insert into auth.users (id, email, raw_user_meta_data) values
   ('00000000-0000-4000-8000-000000000002', 'tester-two@example.com', '{"username": "testertwo"}'),
   ('00000000-0000-4000-8000-000000000003', 'tester-mod@example.com', '{"username": "testermod"}');
 update public.profiles set is_moderator = true where id = '00000000-0000-4000-8000-000000000003';
+-- (member one is a beta tester, so the beta event's task counting runs
+-- alongside everything they do)
+insert into public.beta_testers (username) values ('testerone');
 -- (accounts a few days old, so new-account limits don't apply)
 update public.profiles set created_at = now() - interval '10 days';
 
