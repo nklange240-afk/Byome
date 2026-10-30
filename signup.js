@@ -62,6 +62,7 @@ signupForm.addEventListener("submit", async (event) => {
     invalid: "Usernames are 3–20 characters: letters, numbers, and _ . or - (no spaces).",
     taken: "That username is already taken — try another.",
     not_allowed: "That username isn't allowed. Please choose a different one.",
+    held: "Someone used that username until recently, so it's being kept for them for 7 days. Try another.",
   };
   const { data: usernameCheck } = await supabaseClient.rpc("check_username", { p_username: username });
   if (usernameCheck && USERNAME_PROBLEMS[usernameCheck]) {

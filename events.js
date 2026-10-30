@@ -30,7 +30,7 @@ const ACTION_LINKS = {
   "beta-speak-up": { href: "modmail.html?new=feedback", text: "Send feedback" },
   "beta-green-thumb": { href: "feed.html", text: "Find today's surprise" },
   "beta-home-sweet-shelf": { href: "profile.html", text: "Go to your shelf" },
-  "beta-wall-of-text": { href: "feed.html", text: "Start a post" },
+  "beta-shape-shifter": { href: "edit-profile.html", text: "Change your username" },
 };
 
 function achievementCard(a, ev, loggedIn) {
