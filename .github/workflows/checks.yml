@@ -1,0 +1,46 @@
+# Byome's automatic safety check. Runs on every pull request (and on main
+# after a merge), before anything reaches members:
+#  1. File checks: scripts parse, style.css has no unclosed { }, the
+#     Supabase key is only in supabase-client.js, every page loads the same
+#     ?v= version (tests/static-checks.js).
+#  2. Builds a brand-new test database from tests/base-schema.sql and every
+#     file in database/, in the order database/README.md lists them.
+#  3. Real members' everyday actions on it: post, poll, comment, like,
+#     review, review update, Helpful, suggesting a product and a shade,
+#     poll vote, daily surprise, mod mail, and a moderator approval
+#     (tests/everyday.sql). Nothing is switched off.
+# It never touches the real database or the live site.
+name: Safety check
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: test-only-password
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      PGHOST: localhost
+      PGUSER: postgres
+      PGPASSWORD: test-only-password
+      PGDATABASE: postgres
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: File checks
+        run: node tests/static-checks.js
+
+      - name: Build a fresh test database from every update file
+        run: tests/build-db.sh ""
+
+      - name: Everyday member actions
+        run: psql -v ON_ERROR_STOP=1 -f tests/everyday.sql
