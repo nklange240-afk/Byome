@@ -674,7 +674,9 @@ const UI = (function () {
               preview: { top: [255, 249, 238], deep: [235, 203, 152] } },
     tundra: { name: "Snowy tundra", symbol: "❄️", top: [84, 104, 124], deep: [14, 24, 42], particles: [["snow", 34]],
               throughContent: [["snow", 16]], // a little snow falls faintly over the posts too
-              shadeFrom: 0.15 }, // pale dusty blue, deepening to dark blue by the bottom
+              shadeFrom: 0.15, // pale dusty blue, deepening to dark blue by the bottom
+              // hand-drawn winter branches, berries and snowflakes down both sides
+              overlay: "biome-assets/overlay-tundra.webp" },
     // Autumn woodland: golden light at the top, deepening through rust to
     // maple red by the bottom of the page, with leaves drifting down, and
     // hand-drawn autumn branches down both sides
