@@ -6682,6 +6682,14 @@ a.ad-house > img {
   }
 }
 
+/* On the Community (above "Start a post…") and your own profile (above
+   your achievements) */
+.starter.is-inline {
+  width: 100%;
+  max-width: none;
+  margin: 0 0 1.25rem;
+}
+
 /* =========================================================
    BIOS (profile, Edit profile)
    ========================================================= */
