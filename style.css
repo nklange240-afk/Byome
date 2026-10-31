@@ -8519,3 +8519,12 @@ dialog.daily-dialog {
 .review-gifted-row input {
   margin-top: 0.2rem;
 }
+
+/* Moderators: "Edit product" on a product's page */
+.product-edit-btn {
+  margin: 0.6rem 0 0.2rem;
+}
+
+.product-edit-form {
+  margin: 0.6rem 0 1rem;
+}

@@ -390,6 +390,109 @@ function enhanceSelect(select) {
   return { refresh };
 }
 
+// ---------- Editing a listed product (moderators) ----------
+// Name, brand, category, photo and variations. Saving reloads the product
+// page; each edit goes in the moderation log.
+function buildProductEditForm(product, onSaved, onCancel) {
+  const form = el("form", "edit-form stacked-form product-edit-form");
+  const uid = "edit-product-" + product.id;
+
+  function field(labelText, key, value, attrs) {
+    const label = el("label", null, labelText);
+    label.htmlFor = uid + "-" + key;
+    const input = el("input");
+    input.id = uid + "-" + key;
+    input.value = value || "";
+    Object.assign(input, attrs || {});
+    form.append(label, input);
+    return input;
+  }
+  function choice(labelText, key, options, value) {
+    const label = el("label", null, labelText);
+    label.htmlFor = uid + "-" + key;
+    const select = el("select");
+    select.id = uid + "-" + key;
+    form.append(label, select);
+    fill(select, options, value);
+    return select;
+  }
+  function fill(select, options, value) {
+    select.replaceChildren();
+    options.forEach((o) => {
+      const opt = el("option", null, o || "(none)");
+      opt.value = o;
+      select.appendChild(opt);
+    });
+    // a value that isn't in the list (an older category) stays choosable
+    if (value && options.indexOf(value) === -1) {
+      const opt = el("option", null, value);
+      opt.value = value;
+      select.appendChild(opt);
+    }
+    select.value = value || "";
+  }
+
+  const nameInput = field("Product name", "name", product.name, { type: "text", required: true, maxLength: 200 });
+  const brandInput = field("Brand", "brand", product.brand, { type: "text", required: true, maxLength: 100 });
+  const categorySelect = choice("Category", "category", [""].concat(Object.keys(SUBCATEGORIES)), product.category);
+  const subcategorySelect = choice("Subcategory", "subcategory", [""].concat(SUBCATEGORIES[product.category] || []), product.subcategory);
+  categorySelect.addEventListener("change", () => fill(subcategorySelect, [""].concat(SUBCATEGORIES[categorySelect.value] || []), ""));
+  const photoInput = field("Photo URL (optional)", "photo", product.photo_url, { type: "url" });
+
+  const varLabel = el("label", null, "Shades, scents or finishes (separate with commas)");
+  varLabel.htmlFor = uid + "-variations";
+  const variationsInput = el("textarea");
+  variationsInput.id = uid + "-variations";
+  variationsInput.rows = 3;
+  variationsInput.value = (product.variations || []).join(", ");
+  form.append(varLabel, variationsInput,
+    el("p", "field-hint", "Sizes aren't variations, since reviews cover every size. Taking one out doesn't change the reviews that mention it."));
+
+  const message = el("p", "auth-message");
+  message.setAttribute("aria-live", "polite"); // read out by screen readers
+  const buttons = el("div", "edit-buttons");
+  const cancel = el("button", "action-btn", "Cancel");
+  cancel.type = "button";
+  cancel.addEventListener("click", onCancel);
+  const save = el("button", "btn btn-solid", "Save changes");
+  save.type = "submit";
+  buttons.append(save, cancel);
+  form.append(buttons, message);
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    // one of each (ignoring capitals and spaces), in the order typed
+    const seen = {};
+    const variations = variationsInput.value.split(",").map((v) => v.trim().replace(/\s+/g, " "))
+      .filter((v) => v && !seen[v.toLowerCase()] && (seen[v.toLowerCase()] = true));
+    const sizes = variations.filter(PRODUCT_MATCH.looksLikeSize);
+    if (sizes.length) {
+      message.textContent = "These look like sizes, which aren't variations: " + sizes.join(", ") + ". Please take them out.";
+      message.style.color = "#E07A5F";
+      return;
+    }
+    save.disabled = true;
+    message.textContent = "Saving...";
+    message.style.color = "var(--cream)";
+    const { data, error } = await supabaseClient.from("products").update({
+      name: nameInput.value.trim(),
+      brand: brandInput.value.trim(),
+      category: categorySelect.value || null,
+      subcategory: subcategorySelect.value || null,
+      photo_url: photoInput.value.trim() || null,
+      variations: variations,
+    }).eq("id", product.id).select("id");
+    if (error || !data || data.length === 0) {
+      message.textContent = error ? error.message : "Couldn't save. Are you a moderator?";
+      message.style.color = "#E07A5F";
+      save.disabled = false;
+      return;
+    }
+    onSaved();
+  });
+  return form;
+}
+
 // ---------- Product pages ----------
 
 // The summary at the top of a product page: photo, name, average leaves,
@@ -439,14 +542,31 @@ async function showProductPage() {
   head.appendChild(who);
   summary.appendChild(head);
 
+  // Moderators: edit the product (name, brand, category, photo, variations)
+  if (isModerator) {
+    const edit = el("button", "action-btn mod-btn product-edit-btn", "Edit product");
+    edit.type = "button";
+    edit.addEventListener("click", () => {
+      if (summary.querySelector(".product-edit-form")) return;
+      const form = buildProductEditForm(product, () => showProductPage(), () => { form.remove(); edit.hidden = false; edit.focus(); });
+      edit.hidden = true;
+      edit.after(form);
+      form.querySelector("input").focus();
+    });
+    summary.appendChild(edit);
+  }
+
   // Its shades or scents, and a way to suggest a new one (only for
-  // products that come in variations)
-  if (product.variations && product.variations.length) {
-    const shades = el("p", "product-variations");
-    shades.append(el("strong", null, "Comes in: "), document.createTextNode(product.variations.join(", ")));
-    summary.appendChild(shades);
+  // products that come in variations; moderators can add one to any)
+  if ((product.variations && product.variations.length) || isModerator) {
+    if (product.variations && product.variations.length) {
+      const shades = el("p", "product-variations");
+      shades.append(el("strong", null, "Comes in: "), document.createTextNode(product.variations.join(", ")));
+      summary.appendChild(shades);
+    }
     if (currentUser) {
-      const add = el("button", "link-btn", "Missing one? Suggest a new shade or scent");
+      // (a moderator's is added straight away: database/2026-12-13-moderator-limits.sql)
+      const add = el("button", "link-btn", isModerator ? "Add a shade or scent" : "Missing one? Suggest a new shade or scent");
       add.type = "button";
       add.addEventListener("click", () => {
         const form = UI.variationForm(product, () => { form.remove(); add.hidden = false; add.focus(); });
