@@ -991,6 +991,13 @@ async function showAchievements(profileId) {
   if (isMe) showPoints(profile.id, profile.is_moderator);
   showBiome(profile.id, isMe);
   showAchievements(profile.id);
+  // Your own profile: the starter checklist, just above your achievements
+  if (isMe) {
+    UI.starterChecklist((card) => {
+      card.classList.add("is-inline");
+      document.getElementById("achievements").before(card);
+    });
+  }
 
   loadContent(profile, isMe);
   if (isMe) showReturned(profile, isMe);

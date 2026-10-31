@@ -577,6 +577,83 @@ const UI = (function () {
     return text + " Central Time";
   }
 
+  // ---------- Starter checklist ----------
+  // A quiet card for new members: five first steps that tick themselves off
+  // as they're done. Finishing them all earns "Settled In" and 15 Byome
+  // points; "Hide" puts it away for good (everywhere). It shows on the home
+  // page, at the top of the Community and on your own profile. The database
+  // decides who sees it (database/2026-11-16-starter-checklist.sql).
+  // place(card) puts the card on the page.
+  const STARTER_STEPS = [
+    { key: "shelf", text: "Find your shelf", hint: "Your welcome sprout is waiting on your profile. Tap “Edit my shelf” to move things around.", href: "profile.html?shelf=edit" },
+    { key: "profile", text: "Add a profile picture or bio", hint: "Help others get to know you.", href: "edit-profile.html" },
+    { key: "review", text: "Write your first review", hint: "Something you love, or something you'd skip.", href: "reviews.html?write=1" },
+    { key: "post", text: "Say hi in the Community", hint: "Make a post, or comment on one.", href: "feed.html" },
+    { key: "shop", text: "Peek in the Byome Shop", hint: "See what your Byome points can grow.", href: "biome-shop.html" },
+  ];
+
+  async function starterChecklist(place) {
+    const { data, error } = await supabaseClient.rpc("my_starter_checklist");
+    if (error || !data || !data.show) return;
+
+    const card = el("section", "starter");
+    card.setAttribute("aria-labelledby", "starter-title");
+    const done = STARTER_STEPS.filter((s) => data.steps[s.key]).length;
+
+    const head = el("div", "starter-head");
+    const title = el("h2", "starter-title", data.just_finished ? "All settled in! \u{1F389}" : "Getting started \u{1F331}");
+    title.id = "starter-title";
+    head.appendChild(title);
+    const hide = el("button", "starter-hide", data.just_finished ? "Close" : "Hide");
+    hide.type = "button";
+    hide.setAttribute("aria-label", data.just_finished ? "Close" : "Hide the getting started checklist");
+    hide.addEventListener("click", () => {
+      card.remove();
+      if (!data.just_finished) supabaseClient.rpc("mark_starter_step", { p_step: "hidden" }).then(() => {}, () => {});
+    });
+    head.appendChild(hide);
+    card.appendChild(head);
+
+    if (data.just_finished) {
+      card.appendChild(el("p", "starter-sub", "You did all five first steps and earned Settled In, plus 15 Byome points. Make yourself at home!"));
+      checkAchievements();
+    } else {
+      card.appendChild(el("p", "starter-sub", "A few first steps, whenever you like. Do all five for 15 Byome points!"));
+      const bar = el("div", "starter-progress");
+      bar.setAttribute("role", "progressbar");
+      bar.setAttribute("aria-valuemin", "0");
+      bar.setAttribute("aria-valuemax", String(STARTER_STEPS.length));
+      bar.setAttribute("aria-valuenow", String(done));
+      bar.setAttribute("aria-label", done + " of " + STARTER_STEPS.length + " done");
+      const fill = el("span", "starter-progress-fill");
+      fill.style.width = (done / STARTER_STEPS.length * 100) + "%";
+      bar.appendChild(fill);
+      card.append(bar, el("p", "starter-count", done + " of " + STARTER_STEPS.length + " done"));
+    }
+
+    const list = el("ul", "starter-list");
+    STARTER_STEPS.forEach((step) => {
+      const isDone = Boolean(data.steps[step.key]);
+      const li = el("li", "starter-step" + (isDone ? " is-done" : ""));
+      const mark = el("span", "starter-mark", isDone ? "\u2713" : "");
+      mark.setAttribute("aria-hidden", "true");
+      const body = el("div", "starter-body");
+      if (isDone) {
+        body.appendChild(el("span", "starter-text", step.text));
+        body.appendChild(el("span", "visually-hidden", " (done)"));
+      } else {
+        const link = el("a", "starter-text inline-link", step.text);
+        link.href = step.href;
+        body.append(link, el("span", "starter-hint", step.hint));
+      }
+      li.append(mark, body);
+      list.appendChild(li);
+    });
+    card.appendChild(list);
+
+    place(card);
+  }
+
   // A long post or review shows its first 8 lines and a "Read more"
   // button. Returns the body and the button (if it needs one) to add to the
   // page together: article.append(...UI.readMore(bodyEl)).
@@ -1343,5 +1420,5 @@ const UI = (function () {
     if (document.body.dataset.biome) setBiome(document.body.dataset.biome);
   });
 
-  return { liveEvent, eventBanner, centralTime, readMore, giftedTag, iconOrLabel, reviewIcons, openAccessibility, REMOVAL_REASONS, removalReasonLabel, friendlyDate, timeTag, emptyState, celebrate, checkAchievements, sparkles, itemArt, soilImage, sizeName, sizeBadge, setBiome, biomeSymbol, memberBadge, biomeSwatch, biomeLook, biomePreview, openBiomePreview, previewOnHover, previewButton, startModSession, refreshLimits, variationForm, LEVELS, levelInfo, levelBadge };
+  return { liveEvent, eventBanner, centralTime, starterChecklist, readMore, giftedTag, iconOrLabel, reviewIcons, openAccessibility, REMOVAL_REASONS, removalReasonLabel, friendlyDate, timeTag, emptyState, celebrate, checkAchievements, sparkles, itemArt, soilImage, sizeName, sizeBadge, setBiome, biomeSymbol, memberBadge, biomeSwatch, biomeLook, biomePreview, openBiomePreview, previewOnHover, previewButton, startModSession, refreshLimits, variationForm, LEVELS, levelInfo, levelBadge };
 })();

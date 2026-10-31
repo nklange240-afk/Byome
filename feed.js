@@ -200,6 +200,11 @@ async function init() {
 
   UI.eventBanner(document.querySelector("main"), document.querySelector("main > h1"));
   DAILY.card(document.querySelector("main"), document.querySelector("main > h1"));
+  // The starter checklist, just above "Start a post…" (new members)
+  UI.starterChecklist((card) => {
+    card.classList.add("is-inline");
+    document.getElementById("post-starter").before(card);
+  });
   await setUpBeta();
   await setUpEvents();
   await REPORTS.loadMine(currentUser.id); // so flags you've used start red
