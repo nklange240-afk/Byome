@@ -118,7 +118,7 @@ function reviewUpdateBox(u, r, isMe, reload) {
     document.createTextNode(" \u00b7 " + describeGap(r.created_at, u.created_at) + " \u00b7 " + formatDate(u.created_at)));
   box.appendChild(label);
   if (u.held_at) box.appendChild(heldNotice());
-  box.appendChild(el("p", "review-update-body", u.body));
+  box.appendChild(UI.linkify(el("p", "review-update-body", u.body), contentByModerator));
   if (isMe) {
     const del = el("button", "action-btn", "Delete update");
     del.type = "button";
@@ -188,7 +188,7 @@ function buildPostCard(p, isMe, reload) {
   if (p.title) parts.push(el("h2", "post-title", p.title));
   parts.push(metaRow(p.created_at, p.edited_at));
   if (p.held_at) parts.push(heldNotice());
-  if (p.body) parts.push(...UI.readMore(el("p", "post-body", p.body)));
+  if (p.body) parts.push(...UI.readMore(UI.linkify(el("p", "post-body", p.body), contentByModerator)));
   // A poll: its options in one line (voting happens on Community)
   const poll = Array.isArray(p.polls) ? p.polls[0] : p.polls;
   if (poll && poll.poll_options) {
@@ -250,7 +250,7 @@ function buildReviewCard(r, isMe, reload) {
 
   article.appendChild(metaRow(r.created_at, r.edited_at));
   if (r.held_at) article.appendChild(heldNotice());
-  article.append(...UI.readMore(el("p", "post-body", r.body)));
+  article.append(...UI.readMore(UI.linkify(el("p", "post-body", r.body), contentByModerator)));
   (r.review_updates || []).slice().sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
     .forEach((u) => article.appendChild(reviewUpdateBox(u, r, isMe, reload)));
   const likes = r.review_likes ? r.review_likes.length : 0;
@@ -1140,8 +1140,13 @@ function returnedCard(item, names, profile, isMe) {
   return card;
 }
 
+// Whether the member whose posts and reviews are listed is a moderator
+// (their links are clickable: UI.linkify)
+let contentByModerator = false;
+
 // The member's reviews and posts. Reloaded after you edit or delete one.
 async function loadContent(profile, isMe) {
+  contentByModerator = Boolean(profile.is_moderator);
   const reviewsEl = document.getElementById("profile-reviews");
   const postsEl = document.getElementById("profile-posts");
   const reload = () => loadContent(profile, isMe);

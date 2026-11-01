@@ -1293,7 +1293,7 @@ function buildUpdate(u, r) {
   );
   box.append(label);
   if (u.held_at) box.appendChild(heldNotice());
-  box.append(el("p", "review-update-body", u.body));
+  box.append(UI.linkify(el("p", "review-update-body", u.body), Boolean(r.profiles && r.profiles.is_moderator)));
 
   if (currentUser && r.user_id === currentUser.id) {
     const del = actionButton("Delete update");
@@ -1426,7 +1426,7 @@ function buildReview(r) {
     tag.title = "Edited " + formatDate(r.edited_at);
     meta.appendChild(tag);
   }
-  const bodyEl = el("p", "post-body", r.body);
+  const bodyEl = UI.linkify(el("p", "post-body", r.body), Boolean(r.profiles && r.profiles.is_moderator));
   article.append(meta);
   if (r.held_at) article.appendChild(heldNotice());
   article.append(...UI.readMore(bodyEl));

@@ -368,7 +368,8 @@ async function showThread(id) {
     who.append(el("strong", null, m.mine ? "You" : m.sender || "Deleted member"));
     if (m.from_mods && t.as_mod && !m.mine) who.append(document.createTextNode(" (moderator)"));
     who.append(document.createTextNode(" · "), UI.timeTag(m.created_at));
-    const text = el("p", "modmail-text", m.body);
+    // (links from the moderators are clickable)
+    const text = UI.linkify(el("p", "modmail-text", m.body), Boolean(m.from_mods));
     msg.append(who, !m.mine && m.flags && m.flags.length
       ? hiddenBehind(text, "This message", m.flags, "Show message", t.as_mod) : text);
     list.appendChild(msg);
