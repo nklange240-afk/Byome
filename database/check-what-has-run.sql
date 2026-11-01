@@ -97,5 +97,6 @@ from (values
   ('2026-12-10-username-holds.sql',       exists (select 1 from tbl where name = 'username_history')),
   ('2026-12-11-username-automod.sql',     exists (select 1 from fn where name = 'username_is_flagged')),
   ('2026-12-12-gifted-reviews.sql',       exists (select 1 from col where t = 'reviews' and c = 'gifted')),
-  ('2026-12-13-moderator-limits.sql',     exists (select 1 from fn where name = 'rate_limit_new_row' and body like '%moderators have no limits%'))
+  ('2026-12-13-moderator-limits.sql',     exists (select 1 from fn where name = 'rate_limit_new_row' and body like '%moderators have no limits%')),
+  ('2026-12-14-site-numbers-daily.sql',   exists (select 1 from fn where name = 'site_numbers_daily'))
 ) as checks(file, ok);

@@ -21,6 +21,13 @@ function shortDate(day) {
   return new Date(day + "T12:00:00").toLocaleDateString(undefined, { month: "short", day: "numeric" });
 }
 
+// "Today", "Yesterday", then "Wed, Oct 29"
+function dayLabel(day, i) {
+  if (i === 0) return "Today";
+  if (i === 1) return "Yesterday";
+  return new Date(day + "T12:00:00").toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
+}
+
 // ---------- Building blocks ----------
 function section(title, note) {
   const s = el("section", "stats-section");
@@ -88,7 +95,7 @@ function hours(h) {
 }
 
 // ---------- The site ----------
-function renderSite(r) {
+function renderSite(r, daily) {
   section("Members", "Active means they did something: posted, commented, reviewed, liked, voted, opened the daily surprise, suggested something or visited the shop. Just reading isn't recorded, so it's a slight undercount.")
     .appendChild(tiles([
       ["Active today", num(r.active.today)],
@@ -106,6 +113,12 @@ function renderSite(r) {
     ["Helpful marks", num(r.activity.helpful)],
     ["Product and shade suggestions", num(r.activity.suggestions)],
   ]));
+
+  if (daily && daily.length) {
+    const days = section("Day by day", "The last 14 days, today first (Central time). Today keeps counting until midnight.");
+    days.appendChild(table("Day by day", ["Day", "Active", "Joined", "Reviews", "Posts", "Comments"],
+      daily.map((d, i) => [dayLabel(d.day, i), num(d.active), num(d.new), num(d.reviews), num(d.posts), num(d.comments)]), true));
+  }
 
   const weeks = section("Week by week", "The last 12 weeks, newest first.");
   weeks.appendChild(el("h3", "stats-subtitle", "Members"));
@@ -219,9 +232,11 @@ function renderSigns(report) {
 // ---------- Loading ----------
 async function load(days) {
   periods.querySelectorAll("[data-days]").forEach((b) => b.setAttribute("aria-pressed", String(+b.dataset.days === days)));
-  const [site, signs] = await Promise.all([
+  const [site, signs, daily] = await Promise.all([
     supabaseClient.rpc("site_numbers_report", { p_days: days }),
     supabaseClient.rpc("sign_stats_report", { p_days: days }),
+    // (day by day: database/2026-12-14-site-numbers-daily.sql; left out until it's run)
+    supabaseClient.rpc("site_numbers_daily", { p_days: 14 }),
   ]);
   const error = site.error || signs.error;
   if (error) {
@@ -232,9 +247,10 @@ async function load(days) {
     return;
   }
   periods.hidden = false;
-  box.replaceChildren(el("p", "stats-period",
-    shortDate(site.data.since) + " to " + shortDate(site.data.today) + " (Central time)"));
-  renderSite(site.data);
+  box.replaceChildren(el("p", "stats-period", days === 1
+    ? "Today, " + shortDate(site.data.today) + ", since midnight (Central time)"
+    : shortDate(site.data.since) + " to " + shortDate(site.data.today) + " (Central time)"));
+  renderSite(site.data, daily.error ? null : daily.data);
   renderSigns(signs.data);
 }
 
