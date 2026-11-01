@@ -1,0 +1,42 @@
+# Byome: rebuilds the product pages (p/) and sitemap.xml every night from
+# the public product and review data, so search engines can find every
+# product. Only commits when something changed. Can also be run by hand:
+# GitHub, Actions, "Product pages", Run workflow.
+name: Product pages
+
+on:
+  schedule:
+    - cron: "23 8 * * *"   # every night, around 2–3 am Central time
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: product-pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Build the product pages and sitemap
+        run: node scripts/product-pages.js
+
+      - name: Save them if anything changed
+        run: |
+          git add -A p sitemap.xml
+          if git diff --cached --quiet; then
+            echo "Nothing changed."
+            exit 0
+          fi
+          git config user.name "byome-pages-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Update product pages and sitemap"
+          git push

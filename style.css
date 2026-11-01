@@ -8528,3 +8528,44 @@ dialog.daily-dialog {
 .product-edit-form {
   margin: 0.6rem 0 1rem;
 }
+
+/* =========================================================
+   PRODUCT PAGES FOR SEARCH ENGINES (p/, made by
+   scripts/product-pages.js every night)
+   ========================================================= */
+.product-static-back {
+  margin-bottom: 0.75rem;
+  font-size: 0.9rem;
+}
+
+.product-static-score {
+  margin: 0.9rem 0 0.4rem;
+}
+
+.product-static-cta {
+  margin: 1rem 0 1.5rem;
+}
+
+.product-static-review {
+  margin-bottom: 1rem;
+}
+
+.product-static-rating,
+.product-static-by {
+  font-size: 0.88rem;
+  opacity: 0.85;
+  margin: 0.2rem 0 0.4rem;
+}
+
+.product-static-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1rem;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.product-static-count {
+  font-size: 0.85rem;
+  opacity: 0.75;
+}
