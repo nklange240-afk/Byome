@@ -1,12 +1,43 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- The public pages of Byome, for search engines -->
+<!-- Byome's public pages, for search engines. Made by scripts/product-pages.js every night. -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://byome.xyz/</loc><changefreq>daily</changefreq><priority>1.0</priority></url>
   <url><loc>https://byome.xyz/reviews.html</loc><changefreq>daily</changefreq><priority>0.9</priority></url>
+  <url><loc>https://byome.xyz/p/index.html</loc><changefreq>daily</changefreq><priority>0.8</priority></url>
   <url><loc>https://byome.xyz/about.html</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
   <url><loc>https://byome.xyz/faq.html</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
   <url><loc>https://byome.xyz/events.html</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://byome.xyz/signup.html</loc><changefreq>yearly</changefreq><priority>0.5</priority></url>
   <url><loc>https://byome.xyz/terms.html</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
   <url><loc>https://byome.xyz/privacy.html</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
+  <url><loc>https://byome.xyz/p/amika-hydro-rush-intense-moisture-leave-in-conditioner-with-hyaluronic-acid-129397b5.html</loc><lastmod>2026-10-12</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://byome.xyz/p/banu-deep-drench-moisturizer-e9710985.html</loc><lastmod>2026-10-16</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://byome.xyz/p/beekman-1802-goat-milk-hand-cream-61dbc9d8.html</loc><lastmod>2026-10-31</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://byome.xyz/p/beekman-1802-solar-milk-mineral-spf-40-pa-686acb16.html</loc><lastmod>2026-10-28</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://byome.xyz/p/byoma-milky-moisture-cleanser-af53080f.html</loc><lastmod>2026-10-12</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://byome.xyz/p/cocokind-ceramide-barrier-serum-48e80f4d.html</loc><lastmod>2026-10-12</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://byome.xyz/p/dae-cactus-fruit-3-in-1-styling-cream-dd01ccdc.html</loc><lastmod>2026-10-13</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://byome.xyz/p/drmtlgy-facialrx-brightening-eye-masks-e82c8103.html</loc><lastmod>2026-10-20</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://byome.xyz/p/drmtlgy-needle-less-4d-volumizing-lip-treatment-4d29b99f.html</loc><lastmod>2026-10-13</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://byome.xyz/p/drmtlgy-needle-less-serum-72a930b4.html</loc><lastmod>2026-10-22</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://byome.xyz/p/eadem-le-chouchou-softening-smoothing-peptide-daily-lip-balm-3e82f65c.html</loc><lastmod>2026-10-29</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://byome.xyz/p/emi-jay-aura-hair-body-mist-708adfc4.html</loc><lastmod>2026-10-20</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://byome.xyz/p/eos-cashmere-body-mist-4b982358.html</loc><lastmod>2026-10-13</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://byome.xyz/p/eos-shea-better-body-lotion-2d04a519.html</loc><lastmod>2026-10-13</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://byome.xyz/p/farmacy-honey-halo-ultra-hydrating-ceramide-moisturizer-46721b8f.html</loc><lastmod>2026-10-15</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://byome.xyz/p/farmacy-lip-smoothie-f4a3e024.html</loc><lastmod>2026-10-16</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://byome.xyz/p/future-society-base-scent-76032ab8.html</loc><lastmod>2026-10-16</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://byome.xyz/p/garnier-micellar-cleansing-water-70808066.html</loc><lastmod>2026-11-01</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://byome.xyz/p/glossier-creme-de-you-dry-touch-body-butter-ddfd6c1d.html</loc><lastmod>2026-09-30</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://byome.xyz/p/glossier-glossier-you-eau-de-parfum-d1d9e99e.html</loc><lastmod>2026-10-02</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://byome.xyz/p/lanolips-101-ointment-c37a8cc2.html</loc><lastmod>2026-10-31</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://byome.xyz/p/le-monde-gourmand-pumpkin-creme-eau-de-parfum-ddffa0ca.html</loc><lastmod>2026-10-29</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://byome.xyz/p/maison-margiela-replica-by-the-fireplace-eau-de-toilette-with-chestnut-vanilla-a-63410edd.html</loc><lastmod>2026-10-28</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://byome.xyz/p/odele-signature-hair-scent-647579d4.html</loc><lastmod>2026-10-29</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://byome.xyz/p/olaplex-no-7-bonding-frizz-reduction-and-heat-protectant-hair-oil-c55dccaa.html</loc><lastmod>2026-10-13</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://byome.xyz/p/ouai-detox-clarifying-shampoo-with-apple-cider-vinegar-c263ecc4.html</loc><lastmod>2026-10-13</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://byome.xyz/p/snif-crumb-couture-10e8023c.html</loc><lastmod>2026-10-29</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://byome.xyz/p/thayers-hydrating-milky-toner-b2e4afdd.html</loc><lastmod>2026-10-22</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://byome.xyz/p/the-ordinary-glycolic-acid-7-exfoliating-and-brightening-daily-toner-d6aa7ef6.html</loc><lastmod>2026-10-29</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://byome.xyz/p/tower-28-sos-recovery-cream-5c3c6125.html</loc><lastmod>2026-10-12</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
 </urlset>
