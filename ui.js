@@ -60,7 +60,7 @@ const UI = (function () {
     footer.appendChild(el("p", "footer-tagline", "Byome — built by the community, for the community."));
     const links = el("nav", "footer-links");
     links.setAttribute("aria-label", "About Byome");
-    const items = [["about.html", "About"], ["faq.html", "FAQ"], ["terms.html", "Terms"], ["privacy.html", "Privacy"]];
+    const items = [["about.html", "About"], ["faq.html", "FAQ"], ["p/index.html", "All products"], ["terms.html", "Terms"], ["privacy.html", "Privacy"]];
     if (CONTACT_EMAIL) items.push(["mailto:" + CONTACT_EMAIL, "Contact"]);
     // Feedback goes to the moderators' mod mail (modmail.html)
     items.push(["modmail.html?new=feedback", "Send feedback"]);

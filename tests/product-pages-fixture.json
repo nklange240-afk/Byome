@@ -1,0 +1,10 @@
+{"products":[
+ {"id":"1c03f1a4-d831-4165-bfaa-2af28af3fad7","name":"Perk Up Dry Shampoo","brand":"amika","category":"Hair Care","subcategory":"Styling","photo_url":"https://example.com/perk.jpg","variations":["Original","Talc-free"]},
+ {"id":"22222222-0000-0000-0000-000000000001","name":"Relief Sun: Rice + Probiotics","brand":"Beauty of Joseon","category":"Skincare","subcategory":"Sun Care","photo_url":null,"variations":[]},
+ {"id":"33333333-0000-0000-0000-000000000003","name":"Lip <Glow> \"Oil\"","brand":"Dior & Co","category":"Makeup","subcategory":"Lips","photo_url":"javascript:alert(1)","variations":null}
+],
+"reviews":[
+ {"product_id":"1c03f1a4-d831-4165-bfaa-2af28af3fad7","rating":5,"title":"My go-to","body":"Soaks up oil without the white cast. <b>Love it</b>.","created_at":"2026-10-30T15:00:00Z","would_repurchase":true,"holy_grail":true,"gifted":false,"profiles":{"username":"AliceB"}},
+ {"product_id":"1c03f1a4-d831-4165-bfaa-2af28af3fad7","rating":3,"title":"Okay","body":"Smells strong.","created_at":"2026-10-20T15:00:00Z","would_repurchase":false,"holy_grail":false,"gifted":true,"profiles":{"username":"deleted-member-abc"}},
+ {"product_id":"22222222-0000-0000-0000-000000000001","rating":4,"title":"Great SPF","body":"No white cast on me.","created_at":"2026-10-25T15:00:00Z","would_repurchase":null,"holy_grail":false,"profiles":{"username":"bobby"}}
+]}

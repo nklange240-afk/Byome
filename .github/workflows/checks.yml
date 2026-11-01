@@ -39,6 +39,9 @@ jobs:
       - name: File checks
         run: node tests/static-checks.js
 
+      - name: Product pages build (with test data)
+        run: BYOME_FIXTURE=tests/product-pages-fixture.json node scripts/product-pages.js
+
       - name: Build a fresh test database from every update file
         run: tests/build-db.sh ""
 
