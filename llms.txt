@@ -7,7 +7,7 @@
 - Reviews are rated from 1 to 5 leaves, and are rewarded for being detailed and thoughtful, whether they're positive or negative.
 - Reviewers tick "Gifted" when a brand gave them the product, paid them, or they're connected to the brand, and the review shows a "Gifted" tag.
 - Brands and advertisers have no say over what members write or which reviews are shown. Ads only appear in the Byome Shop, never on reviews or in the Community.
-- Byome is for adults (18+), moderated by people, with an automod, and members can't post links to other websites.
+- Byome is for adults (18+). That's to keep members and children safe, not because of what's on it: Byome doesn't and won't contain mature content. It's moderated by people, with an automod, and members can't post links to other websites.
 - The plants, pots and shelves on Byome are drawn by hand by its founder. No AI art.
 - Byome is free to join and use.
 
@@ -22,7 +22,7 @@
 
 ## Things Byome does not have
 
-Byome has no XP, no login rewards page, no blueprints, and no community-wide progress bars. Members earn Byome points for taking part (reviews, approved product suggestions, inviting friends, spotting bugs and typos) and spend them in the Byome Shop on pots, plants, shelves and profile backgrounds called biomes. There's a daily surprise (pick a seed packet once a day), member levels (Seed, Sprout, Sapling, Bloom, Evergreen) and seasonal events with achievements.
+Byome has no XP, no login rewards page and no blueprints. Members earn Byome points for taking part (reviews, approved product suggestions, inviting friends, spotting bugs and typos) and spend them in the Byome Shop on pots, plants, shelves and profile backgrounds called biomes. There's a daily surprise (pick a seed packet once a day), member levels (Seed, Sprout, Sapling, Bloom, Evergreen) and seasonal events with achievements.
 
 ## Contact
 
