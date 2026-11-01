@@ -77,6 +77,11 @@ function notBeta(query) {
   return canSeeBeta ? query.or('category.is.null,category.neq."' + BETA_CATEGORY + '"') : query;
 }
 
+// Whether a moderator wrote it (their links are clickable: UI.linkify)
+function byModerator(profile) {
+  return Boolean(profile && profile.is_moderator);
+}
+
 // Small helper: create an element with a class and text in one line.
 // It uses textContent, so user-written text can never inject HTML.
 function el(tag, className, text) {
@@ -382,7 +387,7 @@ function buildPost(post, pollResult) {
   }
   article.appendChild(buildMeta(post.profiles, post.created_at, post.edited_at));
   if (post.held_at) article.appendChild(heldNotice());
-  if (post.body) article.append(...UI.readMore(el("p", "post-body", post.body)));
+  if (post.body) article.append(...UI.readMore(UI.linkify(el("p", "post-body", post.body), byModerator(post.profiles))));
   let pollVotes = pollResult ? pollResult.total : 0;
   if (poll) {
     const pollBox = POLLS.render(post, pollResult);
@@ -542,7 +547,7 @@ function buildComment(comment, depth, postId, refresh) {
 
   wrap.appendChild(buildMeta(comment.profiles, comment.created_at, comment.edited_at));
   if (comment.held_at) wrap.appendChild(heldNotice());
-  const bodyEl = el("p", "comment-body", comment.body);
+  const bodyEl = UI.linkify(el("p", "comment-body", comment.body), byModerator(comment.profiles));
   wrap.appendChild(bodyEl);
 
   const replyHolder = el("div", "reply-holder");

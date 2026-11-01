@@ -654,6 +654,42 @@ const UI = (function () {
     place(card);
   }
 
+  // Links in a post, comment, review or mod mail message are clickable when
+  // a moderator wrote it (only moderators can post links:
+  // database/2026-12-09-no-links.sql). Links to byome.xyz are clickable
+  // for everyone. Anything else stays plain text. Turns the text already
+  // in the element into text and links, and returns the element.
+  const LINK_PATTERN = /\b(?:https?:\/\/|www\.)[^\s<>"]+/gi;
+  function isByome(host) {
+    return /(^|\.)byome\.xyz$/i.test(host);
+  }
+  function linkify(node, fromModerator) {
+    const text = node.textContent;
+    const parts = [];
+    let last = 0;
+    text.replace(LINK_PATTERN, (match, offset) => {
+      // a full stop or bracket after a link isn't part of it
+      const shown = match.replace(/[.,!?;:)\]'"]+$/, "");
+      let url = null;
+      try { url = new URL(/^https?:\/\//i.test(shown) ? shown : "https://" + shown); } catch (e) { /* not a link */ }
+      if (!url || !/^https?:$/.test(url.protocol) || !(fromModerator || isByome(url.hostname))) return match;
+      parts.push(text.slice(last, offset));
+      const a = el("a", "inline-link", shown);
+      a.href = url.href;
+      if (!isByome(url.hostname)) {
+        a.target = "_blank";
+        a.rel = "noopener noreferrer nofollow ugc";
+      }
+      parts.push(a);
+      last = offset + shown.length;
+      return match;
+    });
+    if (!parts.length) return node;
+    parts.push(text.slice(last));
+    node.replaceChildren(...parts);
+    return node;
+  }
+
   // A long post or review shows its first 8 lines and a "Read more"
   // button. Returns the body and the button (if it needs one) to add to the
   // page together: article.append(...UI.readMore(bodyEl)).
@@ -1420,5 +1456,5 @@ const UI = (function () {
     if (document.body.dataset.biome) setBiome(document.body.dataset.biome);
   });
 
-  return { liveEvent, eventBanner, centralTime, starterChecklist, readMore, giftedTag, iconOrLabel, reviewIcons, openAccessibility, REMOVAL_REASONS, removalReasonLabel, friendlyDate, timeTag, emptyState, celebrate, checkAchievements, sparkles, itemArt, soilImage, sizeName, sizeBadge, setBiome, biomeSymbol, memberBadge, biomeSwatch, biomeLook, biomePreview, openBiomePreview, previewOnHover, previewButton, startModSession, refreshLimits, variationForm, LEVELS, levelInfo, levelBadge };
+  return { liveEvent, eventBanner, centralTime, starterChecklist, linkify, readMore, giftedTag, iconOrLabel, reviewIcons, openAccessibility, REMOVAL_REASONS, removalReasonLabel, friendlyDate, timeTag, emptyState, celebrate, checkAchievements, sparkles, itemArt, soilImage, sizeName, sizeBadge, setBiome, biomeSymbol, memberBadge, biomeSwatch, biomeLook, biomePreview, openBiomePreview, previewOnHover, previewButton, startModSession, refreshLimits, variationForm, LEVELS, levelInfo, levelBadge };
 })();
