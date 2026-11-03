@@ -98,5 +98,7 @@ from (values
   ('2026-12-11-username-automod.sql',     exists (select 1 from fn where name = 'username_is_flagged')),
   ('2026-12-12-gifted-reviews.sql',       exists (select 1 from col where t = 'reviews' and c = 'gifted')),
   ('2026-12-13-moderator-limits.sql',     exists (select 1 from fn where name = 'rate_limit_new_row' and body like '%moderators have no limits%')),
-  ('2026-12-14-site-numbers-daily.sql',   exists (select 1 from fn where name = 'site_numbers_daily'))
+  ('2026-12-14-site-numbers-daily.sql',   exists (select 1 from fn where name = 'site_numbers_daily')),
+  ('2026-12-15-back-from-the-dead-any-review.sql', exists (select 1 from fn where name = 'event_on_review_update' and body not like '%interval ''3 days''%')),
+  ('2026-12-16-honey-bee.sql',            exists (select 1 from public.biome_items where key = 'honey-bee'))
 ) as checks(file, ok);
