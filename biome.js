@@ -87,6 +87,9 @@ const BIOME = (function () {
   // the same units as the bookcase: each plank is as wide as the bookcase's
   // opening, with the pots spaced exactly as they are in the bookcase.
   const PLANK = { image: "biome-assets/plank-wood.png", w: 1144, h: 86, floor: 0.21 };
+  // A shelf skin's plank (same canvas as the plain one); skins without
+  // their own plank yet use the plain wood
+  const PLANK_SKINS = { "painted-shelf": "biome-assets/plank-painted.png" };
   function layoutPlanks() {
     const w = OPENING.width;
     const plankH = (w * PLANK.h) / PLANK.w;
@@ -254,8 +257,8 @@ const BIOME = (function () {
     wrap.className = "biome-shelf" + (opts.editable ? " is-editable" : "") + (open ? " is-open" : "");
     wrap.setAttribute("role", "group");
 
-    // Open shelves are plain wooden planks for now: no shelf skins or
-    // decorations yet
+    // Open shelves use the shelf skin's plank where there is one (see
+    // PLANK_SKINS), and no shelf decorations yet
     const shelf = open ? null : items[shelfKey] || items["default-shelf"];
     wrap.setAttribute("aria-label", open ? "Plant shelves" : shelf ? "Plant shelf: " + shelf.name : "Plant shelf");
     if (shelf) wrap.appendChild(img("biome-shelf-img", shelf.image, ""));
@@ -269,7 +272,7 @@ const BIOME = (function () {
       layoutPlanks().forEach((row) => {
         const rowEl = el("div", "biome-plank-row");
         rowEl.style.aspectRatio = row.w.toFixed(1) + " / " + row.h.toFixed(1);
-        const board = img("biome-plank", PLANK.image, "");
+        const board = img("biome-plank", PLANK_SKINS[shelfKey] || PLANK.image, "");
         board.style.top = ((row.headroom / row.h) * 100).toFixed(3) + "%";
         rowEl.appendChild(board);
         wrap.appendChild(rowEl);
