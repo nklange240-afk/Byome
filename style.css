@@ -2150,6 +2150,14 @@ button.biome-slot {
   top: -2.148%;
 }
 
+/* The trick-or-treat candy heap is wider than the teapot's opening, so in
+   the teapot it's shown at 88%, its bottom still sitting in the opening */
+.pot-chai-teapot ~ .biome-plant.plant-candy {
+  width: 88%;
+  left: 6%;
+  top: -57.92%;
+}
+
 /* A companion (like the swallowtail) visiting a pot: its canvas is as wide
    as the pot's and taller, bottoms lined up, so it sits up among the
    plant's leaves, in front of everything */
