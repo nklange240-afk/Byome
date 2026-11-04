@@ -269,14 +269,27 @@ const BIOME = (function () {
     // Where each spot goes: on the bookcase, or on its plank
     const entries = [];
     if (open) {
-      layoutPlanks().forEach((row) => {
+      // On computers the three planks run down the middle column. While
+      // arranging, the columns either side show open spots where more
+      // planks could go one day (see style.css; phones show just the three).
+      layoutPlanks().forEach((row, r) => {
         const rowEl = el("div", "biome-plank-row");
         rowEl.style.aspectRatio = row.w.toFixed(1) + " / " + row.h.toFixed(1);
+        rowEl.style.gridRow = String(r + 1);
         const board = img("biome-plank", PLANK_SKINS[shelfKey] || PLANK.image, "");
         board.style.top = ((row.headroom / row.h) * 100).toFixed(3) + "%";
         rowEl.appendChild(board);
         wrap.appendChild(rowEl);
         row.slots.forEach((s) => entries.push({ s, row, rowEl }));
+        if (opts.editable) {
+          ["left", "right"].forEach((side) => {
+            const spare = el("div", "biome-plank-open is-" + side);
+            spare.style.gridRow = String(r + 1);
+            spare.setAttribute("aria-hidden", "true");
+            spare.appendChild(el("span", null, "Open"));
+            wrap.appendChild(spare);
+          });
+        }
       });
     } else {
       layoutSlots().forEach((s) => entries.push({ s }));
