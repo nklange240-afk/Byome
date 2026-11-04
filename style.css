@@ -2138,6 +2138,18 @@ button.biome-slot {
   z-index: 3;
 }
 
+/* The Chai teapot is wider than other pots (a 562 x 512 canvas, so the
+   spout and handle stick out): its rim is centred where a normal pot's is
+   and its foot lines up with theirs, so plants sit in it as usual */
+.biome-pot.pot-chai-teapot,
+.biome-pot-front.pot-chai-teapot {
+  width: 109.766%;
+  max-width: none;
+  height: 100%;
+  left: -10.352%;
+  top: -2.148%;
+}
+
 /* A companion (like the swallowtail) visiting a pot: its canvas is as wide
    as the pot's and taller, bottoms lined up, so it sits up among the
    plant's leaves, in front of everything */
