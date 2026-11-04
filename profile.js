@@ -715,13 +715,42 @@ async function showBiome(profileId, isMe) {
     editorEl.appendChild(more);
   }
 
+  // Trying out open shelves: each visitor picks how shelves look to them
+  // (Bookcase or Open shelves), remembered on this device only. The spots
+  // are the same either way, so nothing about anyone's shelf changes.
+  const STYLE_KEY = "byome-shelf-style";
+  let shelfStyle = "bookcase";
+  try { if (localStorage.getItem(STYLE_KEY) === "open") shelfStyle = "open"; } catch (e) { /* fine */ }
+  let styleBar = document.getElementById("shelf-style");
+  if (!styleBar) {
+    styleBar = el("div", "shelf-style");
+    styleBar.id = "shelf-style";
+    styleBar.setAttribute("role", "group");
+    styleBar.setAttribute("aria-label", "Shelf style");
+    styleBar.appendChild(el("span", null, "Shelf style:"));
+    [["bookcase", "Bookcase"], ["open", "Open shelves (new!)"]].forEach(([key, label]) => {
+      const b = el("button", "category-chip", label);
+      b.type = "button";
+      b.dataset.style = key;
+      b.addEventListener("click", () => {
+        shelfStyle = key;
+        try { localStorage.setItem(STYLE_KEY, key); } catch (e) { /* fine */ }
+        render();
+      });
+      styleBar.appendChild(b);
+    });
+    shelfEl.before(styleBar);
+  }
+
   function render() {
+    styleBar.querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.style === shelfStyle)));
     shelfEl.replaceChildren(BIOME.build(items, shelfKey, placed, editing ? {
       editable: true,
       selected: selected,
       onSelect: (slot) => { selected = slot; message = ""; render(); },
       overlay: overlayKey,
-    } : { overlay: overlayKey }));
+      open: shelfStyle === "open",
+    } : { overlay: overlayKey, open: shelfStyle === "open" }));
 
     const empty = Object.keys(placed).length === 0;
     hintEl.hidden = editing || !empty;

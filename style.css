@@ -2072,6 +2072,48 @@ select:focus-visible {
   height: auto;
 }
 
+/* Open shelves (a trial): the same three rows as wall planks, over the
+   biome. Stacked on phones; side by side on computers, where they're given
+   more room than the rest of the page. biome.js places the pots. */
+.biome-shelf.is-open {
+  max-width: none;
+  display: grid;
+  grid-template-columns: 1fr;
+  align-items: end;
+  gap: 1.25rem 2.5rem;
+  margin-top: 1rem;
+}
+
+@media (min-width: 901px) {
+  .biome-shelf.is-open {
+    grid-template-columns: repeat(3, 1fr);
+    width: min(1080px, calc(100vw - 4rem));
+    margin-left: calc(50% - min(540px, 50vw - 2rem));
+  }
+}
+
+.biome-plank-row {
+  position: relative;
+}
+
+.biome-plank {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: auto;
+  pointer-events: none;
+}
+
+/* Shelf style switch (Bookcase / Open shelves) */
+.shelf-style {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0.6rem 0 0;
+  font-size: 0.85rem;
+}
+
 /* A shelf decoration (like the cobwebs): drawn on the shelf's own canvas,
    over everything on the shelf (pots, plants and companions). Taps go
    through it to the pot underneath. */

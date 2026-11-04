@@ -82,6 +82,44 @@ const BIOME = (function () {
     return slots;
   }
 
+  // Open shelves (a trial, see profile.js): the same three rows and spots,
+  // each row drawn as a wall plank instead of a bookcase shelf. Measured in
+  // the same units as the bookcase: each plank is as wide as the bookcase's
+  // opening, with the pots spaced exactly as they are in the bookcase.
+  const PLANK = { image: "biome-assets/plank-wood.png", w: 1144, h: 86, floor: 0.21 };
+  // A shelf skin's plank (same canvas as the plain one); skins without
+  // their own plank yet use the plain wood
+  const PLANK_SKINS = { "painted-shelf": "biome-assets/plank-painted.png" };
+  function layoutPlanks() {
+    const w = OPENING.width;
+    const plankH = (w * PLANK.h) / PLANK.w;
+    const rows = [];
+    let index = 0;
+    ROWS.forEach((row) => {
+      const artWidth = ART_WIDTH[row.size];
+      const scale = artWidth / ART.width;
+      const gap = (w - row.count * artWidth) / (row.count + 1);
+      // Room above the plank for the tallest plants
+      const headroom = (ART.bottom + (PLANT_BASE_Y - POT_SEAT_Y)) * scale * 0.85;
+      const h = headroom + plankH;
+      const floor = headroom + plankH * PLANK.floor;
+      const slots = [];
+      for (let i = 0; i < row.count; i++) {
+        slots.push({
+          slot: index++,
+          size: row.size,
+          label: "Spot " + (i + 1) + " on the " + row.name,
+          // in plank units; turned into percentages of the plank's box below
+          x: gap + i * (artWidth + gap) - ART.left * scale,
+          y: floor - ART.bottom * scale,
+          cw: ART.canvas * scale,
+        });
+      }
+      rows.push({ w, h, headroom, slots });
+    });
+    return rows;
+  }
+
   function img(className, path, alt) {
     const i = document.createElement("img");
     i.className = className;
@@ -214,18 +252,37 @@ const BIOME = (function () {
   //          shelf, and overlay: a shelf decoration's key (like the cobwebs)
   function build(items, shelfKey, placed, options) {
     const opts = options || {};
+    const open = !!opts.open;
     const wrap = document.createElement("div");
-    wrap.className = "biome-shelf" + (opts.editable ? " is-editable" : "");
+    wrap.className = "biome-shelf" + (opts.editable ? " is-editable" : "") + (open ? " is-open" : "");
     wrap.setAttribute("role", "group");
 
-    const shelf = items[shelfKey] || items["default-shelf"];
-    wrap.setAttribute("aria-label", shelf ? "Plant shelf: " + shelf.name : "Plant shelf");
+    // Open shelves use the shelf skin's plank where there is one (see
+    // PLANK_SKINS), and no shelf decorations yet
+    const shelf = open ? null : items[shelfKey] || items["default-shelf"];
+    wrap.setAttribute("aria-label", open ? "Plant shelves" : shelf ? "Plant shelf: " + shelf.name : "Plant shelf");
     if (shelf) wrap.appendChild(img("biome-shelf-img", shelf.image, ""));
     // A shelf decoration covers the whole shelf (same canvas), behind the pots
-    const overlay = opts.overlay && items[opts.overlay];
+    const overlay = !open && opts.overlay && items[opts.overlay];
     if (shelf && overlay) wrap.appendChild(img("biome-shelf-overlay", overlay.image, ""));
 
-    layoutSlots().forEach((s) => {
+    // Where each spot goes: on the bookcase, or on its plank
+    const entries = [];
+    if (open) {
+      layoutPlanks().forEach((row) => {
+        const rowEl = el("div", "biome-plank-row");
+        rowEl.style.aspectRatio = row.w.toFixed(1) + " / " + row.h.toFixed(1);
+        const board = img("biome-plank", PLANK_SKINS[shelfKey] || PLANK.image, "");
+        board.style.top = ((row.headroom / row.h) * 100).toFixed(3) + "%";
+        rowEl.appendChild(board);
+        wrap.appendChild(rowEl);
+        row.slots.forEach((s) => entries.push({ s, row, rowEl }));
+      });
+    } else {
+      layoutSlots().forEach((s) => entries.push({ s }));
+    }
+
+    entries.forEach(({ s, row, rowEl }) => {
       const here = (placed && placed[s.slot]) || {};
       const pot = here.pot && items[here.pot];
       const plant = here.plant && items[here.plant];
@@ -234,15 +291,29 @@ const BIOME = (function () {
 
       const spot = document.createElement(opts.editable ? "button" : "div");
       spot.className = "biome-slot biome-slot-" + s.size + (pot ? "" : " is-empty");
-      let { left, top, width } = s;
-      // A small pot on the bottom shelf keeps its own (small) size, centred
-      // in the spot and standing on the same shelf
-      if (pot && pot.size === "small" && s.size === "medium") {
-        const f = ART_WIDTH.small / ART_WIDTH.medium;
-        const widthPx = (width / 100) * CANVAS.w;
-        top += ((ART.bottom / ART.canvas) * widthPx * (1 - f) / CANVAS.h) * 100;
-        left += (width * (1 - f)) / 2;
-        width *= f;
+      let left, top, width;
+      const shrink = pot && pot.size === "small" && s.size === "medium";
+      const f = ART_WIDTH.small / ART_WIDTH.medium;
+      if (open) {
+        let { x, y, cw } = s;
+        if (shrink) {
+          y += (ART.bottom / ART.canvas) * cw * (1 - f);
+          x += (cw * (1 - f)) / 2;
+          cw *= f;
+        }
+        left = (x / row.w) * 100;
+        top = (y / row.h) * 100;
+        width = (cw / row.w) * 100;
+      } else {
+        ({ left, top, width } = s);
+        // A small pot on the bottom shelf keeps its own (small) size, centred
+        // in the spot and standing on the same shelf
+        if (shrink) {
+          const widthPx = (width / 100) * CANVAS.w;
+          top += ((ART.bottom / ART.canvas) * widthPx * (1 - f) / CANVAS.h) * 100;
+          left += (width * (1 - f)) / 2;
+          width *= f;
+        }
       }
       spot.style.left = left.toFixed(3) + "%";
       spot.style.top = top.toFixed(3) + "%";
@@ -294,11 +365,11 @@ const BIOME = (function () {
       if (!opts.editable && typeof UI !== "undefined" && pot && (pot.rarity === "rare" || pot.rarity === "heirloom")) {
         UI.sparkles(spot, pot.rarity);
       }
-      wrap.appendChild(spot);
+      (rowEl || wrap).appendChild(spot);
     });
 
     if (!opts.editable) {
-      wrap.tabIndex = 0; // focusing the shelf itself shows the shelf's info
+      if (shelf) wrap.tabIndex = 0; // focusing the shelf itself shows the shelf's info
       addInfoBox(wrap, shelf, overlay);
     }
     return wrap;
