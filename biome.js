@@ -267,7 +267,7 @@ const BIOME = (function () {
         spot._companion = companion;
       }
 
-      if (pot) spot.appendChild(img("biome-pot", pot.image, ""));
+      if (pot) spot.appendChild(img("biome-pot pot-" + here.pot, pot.image, ""));
       if (pot && plant) {
         // Most plants sit inside the pot (pot, plant, pot front). Plants whose
         // leaves spill over the rim, like the African violet, are marked
@@ -276,11 +276,11 @@ const BIOME = (function () {
         const soil = typeof UI !== "undefined" && UI.soilImage ? UI.soilImage(plant) : null;
         if (soil) spot.appendChild(img("biome-plant biome-soil plant-" + plant.key, soil, ""));
         if (plant.over_pot) {
-          spot.appendChild(img("biome-pot-front", frontOf(pot.image), ""));
+          spot.appendChild(img("biome-pot-front pot-" + here.pot, frontOf(pot.image), ""));
           spot.appendChild(img("biome-plant is-over-pot plant-" + plant.key, plant.image, ""));
         } else {
           spot.appendChild(img("biome-plant plant-" + plant.key, plant.image, ""));
-          spot.appendChild(img("biome-pot-front", frontOf(pot.image), ""));
+          spot.appendChild(img("biome-pot-front pot-" + here.pot, frontOf(pot.image), ""));
         }
       }
       // A companion visits the pot: its canvas is as wide as the pot's (and
