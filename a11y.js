@@ -10,7 +10,7 @@
 // The settings panel itself is in ui.js (UI.openAccessibility).
 const A11Y = (function () {
   const KEY = "byome-a11y";
-  const DEFAULTS = { motion: "device", text: "default", contrast: "default", background: "full", font: "default" };
+  const DEFAULTS = { motion: "device", text: "default", contrast: "default", background: "full", font: "default", catch: "moving" };
   // Atkinson Hyperlegible, a free font designed for low vision; only
   // downloaded for people who choose it
   const READABLE_FONT = "https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap";
