@@ -10,7 +10,7 @@
 (function () {
   const NEXT_KEY = "byome-drift-next"; // when this device may next ask, shared by every page and tab
   const FIRST_WAIT = [20, 90];         // seconds on a page before the first look
-  const GAP = [10, 20];                // minutes between looks
+  const GAP = [2, 5];                  // minutes between looks
   const CROSSING = 13;                 // seconds a moving leaf takes to cross the screen
 
   function rand(a, b) { return a + Math.random() * (b - a); }

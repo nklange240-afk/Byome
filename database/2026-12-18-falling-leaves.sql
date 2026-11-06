@@ -13,7 +13,8 @@
 --     and not already caught, then draws the prize here.
 --
 -- The first drifter: the Falling leaf, from Nov 2 until the Christmas event
--- begins (Nov 27), at most 3 caught a day (Central time). Its prizes start
+-- begins (Nov 27), at most 3 caught a day (Central time), with at least
+-- 2 minutes between leaves (the page looks every 2 to 5 minutes). Its prizes start
 -- as Byome points only; add items once their art is ready:
 --   insert into drifter_prizes (drifter_key, item_key, weight)
 --   values ('falling-leaf', 'item-key', 10);
@@ -38,7 +39,7 @@ create table if not exists public.drifters (
   starts_at timestamptz not null,
   ends_at timestamptz not null,
   daily_cap integer not null default 3,       -- catches per member per day
-  min_gap_minutes integer not null default 10, -- at least this long between appearances
+  min_gap_minutes integer not null default 2, -- at least this long between appearances
   catch_seconds integer not null default 60   -- how long a member has to catch it
 );
 alter table public.drifters enable row level security;
@@ -84,7 +85,7 @@ alter table public.biome_inventory add constraint biome_inventory_source_check
 -- The first one: the Falling leaf, between Haunted Harvest and Christmas
 insert into public.drifters (key, name, image, starts_at, ends_at, daily_cap, min_gap_minutes, catch_seconds)
 values ('falling-leaf', 'falling leaf', 'biome-assets/drifter-falling-leaf.png',
-        '2026-11-02 06:00+00', '2026-11-27 06:00+00', 3, 10, 60)
+        '2026-11-02 06:00+00', '2026-11-27 06:00+00', 3, 2, 60)
 on conflict (key) do nothing;
 insert into public.drifter_prizes (drifter_key, points, weight)
 select 'falling-leaf', p, w from (values (5, 50), (10, 35), (15, 15)) as v(p, w)
