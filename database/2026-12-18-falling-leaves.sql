@@ -18,8 +18,10 @@
 --   insert into drifter_prizes (drifter_key, item_key, weight)
 --   values ('falling-leaf', 'item-key', 10);
 -- (an item a member already owns is skipped for them, so they get points
--- instead). Weights are relative: with the points prizes below adding up
--- to 100, an item with weight 10 comes up about 1 catch in 11.
+-- instead). Weights are relative: the points prizes are 5 (weight 50),
+-- 10 (35) and 15 (15), adding up to 100, so an item with weight 10 comes up
+-- about 1 catch in 11. Only caught leaves count towards the daily limit;
+-- one that drifts past uncaught doesn't.
 -- Other handy changes:
 --   update drifters set daily_cap = 4 where key = 'falling-leaf';
 --   update drifters set ends_at = '2026-11-27 06:00+00' where key = 'falling-leaf';
@@ -85,7 +87,7 @@ values ('falling-leaf', 'falling leaf', 'biome-assets/drifter-falling-leaf.png',
         '2026-11-02 06:00+00', '2026-11-27 06:00+00', 3, 10, 60)
 on conflict (key) do nothing;
 insert into public.drifter_prizes (drifter_key, points, weight)
-select 'falling-leaf', p, w from (values (5, 45), (10, 30), (15, 15), (25, 7), (50, 3)) as v(p, w)
+select 'falling-leaf', p, w from (values (5, 50), (10, 35), (15, 15)) as v(p, w)
 where not exists (select 1 from public.drifter_prizes where drifter_key = 'falling-leaf');
 
 -- Should one drift by now? Returns what to show, or null
