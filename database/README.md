@@ -106,3 +106,4 @@ byome's database lives in Supabase. These files are a backup and a history of ch
 - `2026-12-20-large-pastel-pots.sql`: **large** buttercup, lilac and blush pots in the Byome Shop, common, 50 Byome points each. Can run any time.
 - `2026-12-21-large-blue-speckled-pot.sql`: a **large** Blue speckled pot in the Byome Shop, common, 50 Byome points. Can run any time.
 - `2026-12-22-update-ratings.sql`: **changing your rating in a review update**. An update can give a new rating (optional); the newest one becomes the review's rating and is the one that counts everywhere, and the first rating is kept and shown small as "Originally". A held update's rating counts once it's approved; deleting an update puts the rating back. **Run it before merging the site update that came with it.**
+- `2026-12-23-barrel-cactus.sql`: the **Barrel cactus** in the Byome Shop: a common small plant, 60 Byome points. Can run any time.
