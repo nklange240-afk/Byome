@@ -102,5 +102,6 @@ from (values
   ('2026-12-15-back-from-the-dead-any-review.sql', exists (select 1 from fn where name = 'event_on_review_update' and body not like '%interval ''3 days''%')),
   ('2026-12-16-honey-bee.sql',            exists (select 1 from public.biome_items where key = 'honey-bee')),
   ('2026-12-17-chai-teapot.sql',          exists (select 1 from public.biome_items where key = 'chai-teapot')),
-  ('2026-12-18-falling-leaves.sql',       exists (select 1 from tbl where name = 'drifters'))
+  ('2026-12-18-falling-leaves.sql',       exists (select 1 from tbl where name = 'drifters')),
+  ('2026-12-19-snake-plant.sql',          exists (select 1 from public.biome_items where key = 'snake-plant'))
 ) as checks(file, ok);
