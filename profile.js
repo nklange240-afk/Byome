@@ -118,6 +118,8 @@ function reviewUpdateBox(u, r, isMe, reload) {
     document.createTextNode(" \u00b7 " + describeGap(r.created_at, u.created_at) + " \u00b7 " + formatDate(u.created_at)));
   box.appendChild(label);
   if (u.held_at) box.appendChild(heldNotice());
+  const newRating = EDIT_FORMS.updateRating(u);
+  if (newRating) box.appendChild(newRating);
   box.appendChild(UI.linkify(el("p", "review-update-body", u.body), contentByModerator));
   if (isMe) {
     const del = el("button", "action-btn", "Delete update");
@@ -153,15 +155,17 @@ function reviewUpdateForm(r, onSaved, onCancel) {
   submit.type = "submit";
   buttons.append(cancel, submit);
   footer.append(message, buttons);
-  form.append(textarea, footer);
+  const picker = EDIT_FORMS.ratingPicker(r.rating);
+  form.append(textarea, picker.el, footer);
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
     const body = textarea.value.trim();
     if (!body) return;
     submit.disabled = true;
+    const newRating = picker.value();
     const { data } = await supabaseClient.auth.getSession();
     const { error } = await supabaseClient.from("review_updates")
-      .insert({ review_id: r.id, user_id: data.session.user.id, body: body });
+      .insert({ review_id: r.id, user_id: data.session.user.id, body: body, ...(newRating ? { rating: newRating } : {}) });
     if (error) {
       message.textContent = error.message;
       message.style.color = "#E07A5F";
@@ -230,6 +234,8 @@ function buildReviewCard(r, isMe, reload) {
   rating.setAttribute("role", "img");
   rating.setAttribute("aria-label", r.rating + " out of 5");
   article.appendChild(rating);
+  const original = EDIT_FORMS.originalRating(r);
+  if (original) article.appendChild(original);
 
   const tags = el("div", "review-tags");
   // (one review has at most one standout: a single record, not a list)
@@ -1182,7 +1188,7 @@ async function loadContent(profile, isMe) {
 
   // (the event columns come from database/2026-10-29-events-halloween.sql)
   const reviewQuery = (extra) => supabaseClient.from("reviews")
-    .select("id, rating, title, body, variation, would_repurchase, holy_grail, " + extra + "created_at, edited_at, held_at, products!product_id(name, brand), review_likes(user_id), review_standouts(review_id), review_updates(id, body, created_at, held_at)", { count: "exact" })
+    .select("id, rating, original_rating, title, body, variation, would_repurchase, holy_grail, " + extra + "created_at, edited_at, held_at, products!product_id(name, brand), review_likes(user_id), review_standouts(review_id), review_updates(id, body, rating, created_at, held_at)", { count: "exact" })
     .eq("user_id", profile.id).order("created_at", { ascending: false }).limit(30);
   const [reviewsRes, postsRes] = await Promise.all([
     reviewQuery("no_longer_using, seasonal, gifted, ").then((res) => (res.error ? reviewQuery("") : res)),

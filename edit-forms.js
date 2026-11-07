@@ -2,6 +2,11 @@
 // and profile pages, so editing works the same everywhere.
 //   EDIT_FORMS.post(post, onSaved, onCancel)
 //   EDIT_FORMS.review(review, productText, onSaved, onCancel)
+// and the pieces for changing a rating in a review update
+// (database/2026-12-22-update-ratings.sql):
+//   EDIT_FORMS.ratingPicker(currentRating)  optional new rating, in "Add update"
+//   EDIT_FORMS.originalRating(review)       "Originally" and the first rating, small
+//   EDIT_FORMS.updateRating(update)         the new rating an update gave
 const EDIT_FORMS = (function () {
   const RATING_LABELS = { 1: "Didn't work for me", 2: "Not great", 3: "It's okay", 4: "Really good", 5: "Love it" };
 
@@ -44,6 +49,71 @@ const EDIT_FORMS = (function () {
     path.setAttribute("d", "M12 2c.7 5.6 3.9 9.3 10 10-6.1.7-9.3 4.4-10 10-.7-5.6-3.9-9.3-10-10 6.1-.7 9.3-4.4 10-10z");
     svg.appendChild(path);
     return svg;
+  }
+
+  // Five small leaves showing a rating (not clickable)
+  function staticLeaves(n, extraClass) {
+    const box = el("span", "review-rating" + (extraClass ? " " + extraClass : ""));
+    for (let i = 1; i <= 5; i++) {
+      const leaf = el("span", "rating-leaf static" + (i <= n ? " on" : ""));
+      leaf.appendChild(leafIcon());
+      box.appendChild(leaf);
+    }
+    return box;
+  }
+
+  // Under a review whose rating an update changed: its first rating, small
+  function originalRating(r) {
+    if (r.original_rating === null || r.original_rating === undefined || r.original_rating === r.rating) return null;
+    const line = el("p", "review-original-rating");
+    line.setAttribute("role", "img");
+    line.setAttribute("aria-label", "Originally rated " + r.original_rating + " out of 5");
+    line.append(el("span", null, "Originally"), staticLeaves(r.original_rating, "is-small"));
+    return line;
+  }
+
+  // In an update that changed the rating: the new rating
+  function updateRating(u) {
+    if (!u.rating) return null;
+    const line = el("p", "review-update-rating");
+    line.setAttribute("role", "img");
+    line.setAttribute("aria-label", "Changed the rating to " + u.rating + " out of 5");
+    line.append(el("span", null, "New rating"), staticLeaves(u.rating, "is-small"));
+    return line;
+  }
+
+  // "Add update": an optional new rating. Nothing chosen (or the same
+  // rating again) keeps the current one. value() is the new rating or null.
+  function ratingPicker(current) {
+    let chosen = null;
+    const box = el("div", "update-rating");
+    box.appendChild(el("p", "field-label", "New rating (optional)"));
+    const leaves = el("div", "rating-leaves");
+    const label = el("p", "rating-label");
+    const buttons = [];
+    for (let n = 1; n <= 5; n++) {
+      const btn = el("button", "rating-leaf");
+      btn.type = "button";
+      btn.appendChild(leafIcon());
+      btn.setAttribute("aria-label", n + " out of 5: " + RATING_LABELS[n]);
+      btn.addEventListener("click", () => { chosen = chosen === n ? null : n; paint(); });
+      buttons.push(btn);
+      leaves.appendChild(btn);
+    }
+    function paint() {
+      const shown = chosen || current;
+      buttons.forEach((btn, i) => {
+        btn.classList.toggle("on", i < shown);
+        btn.classList.toggle("is-current", !chosen);
+        btn.setAttribute("aria-pressed", String(i + 1 === chosen));
+      });
+      label.textContent = chosen && chosen !== current
+        ? RATING_LABELS[chosen] + " (was " + current + (current === 1 ? " leaf" : " leaves") + ")"
+        : "Keeping your rating of " + current + (current === 1 ? " leaf" : " leaves") + ". Tap a leaf to change it.";
+    }
+    box.append(leaves, label);
+    paint();
+    return { el: box, value: () => (chosen && chosen !== current ? chosen : null) };
   }
 
   // Edit your own post's heading and text
@@ -111,6 +181,9 @@ const EDIT_FORMS = (function () {
 
     form.appendChild(el("p", "review-product", productText));
 
+    // Once an update has changed the rating, only another update can
+    // change it (database/2026-12-22-update-ratings.sql)
+    const ratingFromUpdate = r.original_rating !== null && r.original_rating !== undefined;
     form.appendChild(el("p", "field-label", "Rating"));
     const leavesBox = el("div", "rating-leaves");
     const ratingLabel = el("p", "rating-label");
@@ -124,7 +197,12 @@ const EDIT_FORMS = (function () {
       leafBtns.push(btn);
       leavesBox.appendChild(btn);
     }
-    form.append(leavesBox, ratingLabel);
+    if (ratingFromUpdate) {
+      form.append(staticLeaves(rating), el("p", "rating-label",
+        "Your rating comes from your latest update. To change it, add a new update with a new rating."));
+    } else {
+      form.append(leavesBox, ratingLabel);
+    }
 
     const extras = el("div", "extras");
     const repField = el("fieldset", "extras-field");
@@ -159,7 +237,7 @@ const EDIT_FORMS = (function () {
         btn.classList.toggle("on", i < rating);
         btn.setAttribute("aria-pressed", String(i + 1 === rating));
       });
-      ratingLabel.textContent = RATING_LABELS[rating];
+      if (!ratingFromUpdate) ratingLabel.textContent = RATING_LABELS[rating];
       if (rating !== 5) grail = false;
       grailBtn.disabled = rating !== 5;
       grailBtn.setAttribute("aria-pressed", String(grail));
@@ -207,7 +285,7 @@ const EDIT_FORMS = (function () {
       const { data, error } = await supabaseClient
         .from("reviews")
         .update({
-          rating: rating,
+          ...(ratingFromUpdate ? {} : { rating: rating }),
           title: title,
           body: body,
           would_repurchase: repurchase,
@@ -231,5 +309,5 @@ const EDIT_FORMS = (function () {
     return form;
   }
 
-  return { post: buildPostEditForm, review: buildReviewEditForm };
+  return { post: buildPostEditForm, review: buildReviewEditForm, ratingPicker, originalRating, updateRating };
 })();
