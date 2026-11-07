@@ -107,6 +107,8 @@ const UI = (function () {
       note: "Calm hides the biome art and the drifting specks, keeping just the colors. Easier on busy minds, tired eyes and older phones." },
     { name: "font", legend: "Font", options: [["default", "Standard"], ["readable", "Easy-reading"]],
       note: "Easy-reading uses Atkinson Hyperlegible, a font designed so similar letters are easy to tell apart." },
+    { name: "catch", legend: "Catchable leaves", options: [["moving", "Drifting"], ["still", "As a button"], ["off", "Off"]],
+      note: "Now and then something drifts across the screen to catch for a prize. \u201cAs a button\u201d shows it in a corner instead, with time to catch it (this is also used when motion is reduced). \u201cOff\u201d hides it." },
   ];
 
   function openAccessibility() {
