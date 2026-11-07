@@ -4,7 +4,7 @@
 // appear and draws the prize (database/2026-12-18-falling-leaves.sql);
 // this file only shows it.
 //
-// Loaded on the Community, Reviews, profile and shop pages. Follows the
+// Loaded on the Community, Reviews, profile, shop and Events pages. Follows the
 // "Catchable leaves" accessibility setting: moving, a still button (also
 // used whenever motion is reduced), or off.
 (function () {
@@ -90,12 +90,25 @@
     done();
     if (res.error) { toast(res.error.message); return; }
     const r = res.data;
-    const more = r.left_today > 0 ? " (" + r.left_today + " more to catch today)" : " That's all for today!";
-    if (r.item && typeof UI !== "undefined") {
+    const more = r.left_today > 0
+      ? "Keep an eye out: " + r.left_today + " more to catch today."
+      : "That's all for today. More will drift by tomorrow!";
+    if (typeof UI === "undefined") {
+      toast("You caught a " + r.name + "! +" + r.points + " Byome points.");
+      return;
+    }
+    // The same pop-up as an achievement
+    if (r.item) {
       UI.celebrate({ label: "You caught a " + r.name + "!", item: r.item, heading: r.item.name,
-                     text: "It's yours to keep." + (r.left_today > 0 ? "" : more) });
+                     text: "A lucky find, and it's yours to keep. " + more });
     } else {
-      toast("You caught a " + r.name + "! +" + r.points + " Byome points." + more);
+      const art = el("div", "celebrate-art");
+      const pic = el("img", "celebrate-grow");
+      pic.src = d.image;
+      pic.alt = "";
+      art.appendChild(pic);
+      UI.celebrate({ label: "You caught a " + r.name + "!", art, plain: true,
+                     heading: "+" + r.points + " Byome points", text: more });
     }
   }
 

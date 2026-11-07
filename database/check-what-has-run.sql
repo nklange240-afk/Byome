@@ -108,5 +108,6 @@ from (values
   ('2026-12-21-large-blue-speckled-pot.sql', exists (select 1 from public.biome_items where key = 'blue-speckled-medium')),
   ('2026-12-22-update-ratings.sql',       exists (select 1 from col where t = 'reviews' and c = 'original_rating')),
   ('2026-12-23-barrel-cactus.sql',        exists (select 1 from public.biome_items where key = 'barrel-cactus')),
-  ('2026-12-24-falling-leaves-pot.sql',   exists (select 1 from public.biome_items where key = 'falling-leaves-pot'))
+  ('2026-12-24-falling-leaves-pot.sql',   exists (select 1 from public.biome_items where key = 'falling-leaves-pot')),
+  ('2026-12-25-autumn-blaze-pot.sql',     exists (select 1 from public.biome_items where key = 'autumn-blaze-pot'))
 ) as checks(file, ok);

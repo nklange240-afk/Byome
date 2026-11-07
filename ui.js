@@ -396,6 +396,7 @@ const UI = (function () {
 
   // options: { label, heading, text, item, placed, notice }
   // notice: a friendly heads-up rather than a celebration (no shelf links)
+  // plain: a celebration with just its button (no shelf links)
   function celebrate(options) {
     queue.push(options);
     if (!showing) showNext();
@@ -427,7 +428,7 @@ const UI = (function () {
       const a = el("a", "btn btn-ghost", options.link.text);
       a.href = options.link.href;
       actions.appendChild(a);
-    } else if (options.notice) {
+    } else if (options.notice || options.plain) {
       // just the button
     } else if (options.item && options.item.kind === "biome") {
       const choose = el("a", "btn btn-ghost", "Choose my biome");
