@@ -109,3 +109,4 @@ byome's database lives in Supabase. These files are a backup and a history of ch
 - `2026-12-23-barrel-cactus.sql`: the **Barrel cactus** in the Byome Shop: a common small plant, 60 Byome points. Can run any time.
 - `2026-12-24-falling-leaves-pot.sql`: the **Falling leaves pot**, a large uncommon pot and the first item prize for catching falling leaves (about 1 catch in 9, once per member). Needs `2026-12-18-falling-leaves.sql` first.
 - `2026-12-25-autumn-blaze-pot.sql`: the **Autumn blaze pot**, a small common pot and the second item prize for catching falling leaves (about 1 catch in 8, once per member). Needs `2026-12-18-falling-leaves.sql` first.
+- `2026-12-26-garden-snail.sql`: the **Garden snail**, an uncommon companion that rests on large pots, and the third item prize for catching falling leaves (about 1 catch in 14, once per member). Needs `2026-12-18-falling-leaves.sql` first.
