@@ -8796,3 +8796,58 @@ dialog.daily-dialog {
 .drifter-toast.is-leaving {
   opacity: 0;
 }
+
+/* =========================================================
+   Changing a rating in a review update
+   (database/2026-12-22-update-ratings.sql)
+   ========================================================= */
+/* "Originally" and the first rating, small and quiet under the current one */
+.review-original-rating {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: -0.15rem 0 0.4rem;
+  font-size: 0.75rem;
+  color: var(--cream);
+  opacity: 0.7;
+}
+
+.review-rating.is-small {
+  gap: 0.1rem;
+  margin: 0;
+}
+
+.review-rating.is-small .rating-leaf.static .leaf-icon {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+/* In an update: "New rating" and its leaves */
+.review-update-rating {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0 0 0.3rem;
+  font-size: 0.8rem;
+  color: var(--gold-text);
+}
+
+.review-update-rating .review-rating.is-small .rating-leaf.static .leaf-icon {
+  width: 0.9rem;
+  height: 0.9rem;
+}
+
+/* The optional new rating in "Add an update" */
+.update-rating {
+  margin-top: 0.6rem;
+}
+
+.update-rating .rating-leaf .leaf-icon {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+/* Before a new rating is chosen, the current one shows faintly */
+.update-rating .rating-leaf.on.is-current {
+  opacity: 0.45;
+}
