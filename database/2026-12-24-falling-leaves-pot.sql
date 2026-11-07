@@ -3,10 +3,10 @@
 -- leaves (2026-12-18-falling-leaves.sql). A large pot (for the bottom
 -- shelf's large plants), uncommon, and only from catching leaves, not the
 -- shop; one per member.
--- Its chance: weight 8, next to the points prizes' 100, so about 1 catch in
--- 14 gives it, until a member has it (then they get points instead).
+-- Its chance: weight 12, next to the points prizes' 100, so about 1 catch
+-- in 9 gives it, until a member has it (then they get points instead).
 -- Change the chance later with, for example:
---   update drifter_prizes set weight = 12 where item_key = 'falling-leaves-pot';
+--   update drifter_prizes set weight = 20 where item_key = 'falling-leaves-pot';
 -- Run in the Supabase SQL Editor. Safe to run again. Paste the whole file
 -- with nothing highlighted. Needs 2026-12-18-falling-leaves.sql first.
 -- =========================================================
@@ -18,5 +18,5 @@ values ('falling-leaves-pot', 'pot', 'medium', 'Falling leaves pot',
 on conflict (key) do nothing;
 
 insert into public.drifter_prizes (drifter_key, item_key, weight)
-select 'falling-leaf', 'falling-leaves-pot', 8
+select 'falling-leaf', 'falling-leaves-pot', 12
 where not exists (select 1 from public.drifter_prizes where item_key = 'falling-leaves-pot');
