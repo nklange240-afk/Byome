@@ -2116,13 +2116,54 @@ select:focus-visible {
     aspect-ratio: 1144 / 86;
     border: 2px dashed var(--moss);
     border-radius: 6px;
+    position: relative;
+    padding: 0;
+    background: none;
     color: var(--cream);
+    font: inherit;
     font-size: 0.75rem;
+    cursor: help;
+  }
+
+  .biome-plank-open-label {
     opacity: 0.7;
   }
 
   .biome-plank-open.is-left { grid-column: 1; }
   .biome-plank-open.is-right { grid-column: 3; }
+
+  .biome-plank-open:focus-visible {
+    outline: 2px solid var(--gold);
+    outline-offset: 2px;
+  }
+
+  /* The message, above the spot: on hover, focus or a tap */
+  .biome-plank-open-note {
+    position: absolute;
+    left: 50%;
+    bottom: calc(100% + 8px);
+    z-index: 5;
+    width: max-content;
+    max-width: 240px;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--moss);
+    border-radius: 10px;
+    background: var(--forest-mid);
+    color: var(--cream);
+    font-size: 0.85rem;
+    line-height: 1.35;
+    text-align: center;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
+    transform: translateX(-50%);
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  .biome-plank-open:hover .biome-plank-open-note,
+  .biome-plank-open:focus-visible .biome-plank-open-note,
+  .biome-plank-open.is-showing .biome-plank-open-note {
+    visibility: visible;
+  }
 }
 
 .biome-plank {

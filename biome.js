@@ -283,10 +283,23 @@ const BIOME = (function () {
         row.slots.forEach((s) => entries.push({ s, row, rowEl }));
         if (opts.editable) {
           ["left", "right"].forEach((side) => {
-            const spare = el("div", "biome-plank-open is-" + side);
+            // Hover, tap or focus one to see what it's for
+            const spare = el("button", "biome-plank-open is-" + side);
+            spare.type = "button";
             spare.style.gridRow = String(r + 1);
-            spare.setAttribute("aria-hidden", "true");
-            spare.appendChild(el("span", null, "Open"));
+            const note = el("span", "biome-plank-open-note",
+              "More shelves could go here in the future, if open shelves become a permanent part of Byome.");
+            note.id = "plank-open-" + side + "-" + r + "-" + Math.random().toString(36).slice(2, 7);
+            note.setAttribute("role", "tooltip");
+            spare.setAttribute("aria-describedby", note.id);
+            spare.append(el("span", "biome-plank-open-label", "Open"), note);
+            spare.addEventListener("click", (e) => {
+              e.stopPropagation();
+              const showing = spare.classList.toggle("is-showing");
+              wrap.querySelectorAll(".biome-plank-open.is-showing").forEach((o) => { if (o !== spare) o.classList.remove("is-showing"); });
+              if (showing) document.addEventListener("click", () => spare.classList.remove("is-showing"), { once: true });
+            });
+            spare.addEventListener("mouseleave", () => spare.classList.remove("is-showing"));
             wrap.appendChild(spare);
           });
         }
