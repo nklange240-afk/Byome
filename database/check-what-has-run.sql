@@ -103,5 +103,6 @@ from (values
   ('2026-12-16-honey-bee.sql',            exists (select 1 from public.biome_items where key = 'honey-bee')),
   ('2026-12-17-chai-teapot.sql',          exists (select 1 from public.biome_items where key = 'chai-teapot')),
   ('2026-12-18-falling-leaves.sql',       exists (select 1 from tbl where name = 'drifters')),
-  ('2026-12-19-snake-plant.sql',          exists (select 1 from public.biome_items where key = 'snake-plant'))
+  ('2026-12-19-snake-plant.sql',          exists (select 1 from public.biome_items where key = 'snake-plant')),
+  ('2026-12-20-large-pastel-pots.sql',    (select count(*) = 3 from public.biome_items where key in ('buttercup-medium', 'lilac-medium', 'blush-medium')))
 ) as checks(file, ok);
