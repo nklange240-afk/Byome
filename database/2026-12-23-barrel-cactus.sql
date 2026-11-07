@@ -9,6 +9,6 @@
 
 insert into public.biome_items (key, kind, size, name, description, rarity, price, image, sort_order)
 values ('barrel-cactus', 'plant', 'small', 'Barrel cactus',
-        'Round, golden-spined and very much a "look, don''t touch" kind of friend. Needs sun and not much else.',
+        'Round, pale-spined and very much a "look, don''t touch" kind of friend. Needs sun and not much else.',
         'common', 60, 'biome-assets/plant-barrel-cactus.png', 6)
 on conflict (key) do nothing;
