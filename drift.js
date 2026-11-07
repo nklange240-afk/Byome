@@ -100,7 +100,7 @@
     // The same pop-up as an achievement
     if (r.item) {
       UI.celebrate({ label: "You caught a " + r.name + "!", item: r.item, heading: r.item.name,
-                     text: "A lucky find, and it's yours to keep. " + more });
+                     text: (r.again ? "Another one for your collection! " : "A lucky find, and it's yours to keep. ") + more });
     } else {
       const art = el("div", "celebrate-art");
       const pic = el("img", "celebrate-grow");
