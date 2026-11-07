@@ -540,6 +540,14 @@ async function showBiome(profileId, isMe) {
     return (owned[key] || 0) - used;
   }
 
+  // Why a companion can't visit this pot (it only visits pots of one size)
+  const COMPANION_MISFITS = {
+    "garden-snail": "This snail needs lots of room to stretch out! Place it on a larger pot.",
+  };
+  function companionMisfit(it) {
+    return COMPANION_MISFITS[it.key] || ("The " + it.name.toLowerCase() + " only visits " + UI.sizeName(it.size).toLowerCase() + " pots.");
+  }
+
   function tile(label, meta, image, pressed, onClick) {
     const btn = el("button", "biome-tile");
     btn.type = "button";
@@ -685,23 +693,29 @@ async function showBiome(profileId, isMe) {
       editorEl.appendChild(pots);
 
       // Companions visit a pot. Only shown once you have one. Some only
-      // visit pots of one size (the ladybug: small pots).
+      // visit pots of one size (the ladybug: small pots; the snail: large
+      // ones); on a pot of the other size they show greyed out, and
+      // tapping one says why.
       const owners = Object.values(items).filter((it) => it.kind === "companion" && owned[it.key]);
-      const companions = owners.filter((it) => !it.size || (pot && it.size === pot.size));
+      const fitsHere = (it) => !it.size || (pot && it.size === pot.size);
       if (owners.length) {
         editorEl.appendChild(el("h3", null, "Companion"));
         if (!here.pot) {
           editorEl.appendChild(el("p", "feed-empty", "Put a pot here first, then a companion can visit it."));
-        } else if (!companions.length) {
-          editorEl.appendChild(el("p", "feed-empty", owners.map((it) => "The " + it.name.toLowerCase() + " only visits " + word(it.size) + " pots.").join(" ")));
         } else {
           const visitors = el("div", "biome-tiles");
           visitors.appendChild(tile("None", null, null, !here.companion, () => setCompanion(selected, null)));
-          companions.forEach((it) => {
+          owners.filter(fitsHere).concat(owners.filter((it) => !fitsHere(it))).forEach((it) => {
+            const ok = fitsHere(it);
             const elsewhere = Object.keys(placed).find((n) => Number(n) !== selected && placed[n].companion === it.key);
             const meta = it.key === here.companion ? "In this spot" : (elsewhere !== undefined ? "Moves here" : "");
-            visitors.appendChild(tile(it.name, meta, it.image.replace(/\.png$/, "-icon.png"), it.key === here.companion,
-              () => setCompanion(selected, it.key)));
+            const t = tile(it.name, meta, it.image.replace(/\.png$/, "-icon.png"), it.key === here.companion, () => {
+              if (ok) setCompanion(selected, it.key);
+              else UI.celebrate({ heading: "Uh oh!", text: companionMisfit(it), item: it, notice: true });
+            });
+            if (it.size) t.appendChild(UI.sizeBadge(it.size));
+            if (!ok) t.classList.add("is-misfit");
+            visitors.appendChild(t);
           });
           editorEl.appendChild(visitors);
         }
