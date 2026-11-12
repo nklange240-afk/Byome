@@ -1520,14 +1520,23 @@ function nextLevelCard(data) {
     card.appendChild(el("p", "next-level-breakdown",
       s.reviews + (s.reviews === 1 ? " review" : " reviews") + " \u00b7 " +
       s.posts + (s.posts === 1 ? " post others enjoyed" : " posts others enjoyed") + " \u00b7 " +
-      s.products + (s.products === 1 ? " approved product suggestion" : " approved product suggestions")));
-    card.appendChild(el("p", "next-level-note", "Posts count once someone else likes, comments or votes on them."));
+      s.products + (s.products === 1 ? " approved product suggestion" : " approved product suggestions") +
+      (s.quick_contributions ? " \u00b7 " + s.quick_contributions + " from quick questions" : "")));
+    card.appendChild(el("p", "next-level-note", "Posts count once someone else likes, comments or votes on them. " +
+      "Every 4 products you answer quick questions about count as 1 review (up to 5)."));
   } else if (next === 4) {
     if (data.bloom_waiting) {
       card.appendChild(el("p", "next-level-note", "Your reviews are being looked at by our team \u{1F338} You'll get a notification as soon as you bloom!"));
     } else {
-      card.appendChild(bar(s.reviews, 100, "Published reviews"));
-      card.appendChild(el("p", "next-level-note", "At 100, our moderators take a look through your reviews, and then you bloom."));
+      // (bloom_reviews: written reviews, plus up to 20 from quick questions)
+      const counted = s.bloom_reviews !== undefined ? s.bloom_reviews : s.reviews;
+      card.appendChild(bar(counted, 100, "Published reviews"));
+      if (s.quick_reviews) {
+        card.appendChild(el("p", "next-level-breakdown",
+          s.reviews + (s.reviews === 1 ? " written review" : " written reviews") + " + " + s.quick_reviews + " from quick questions"));
+      }
+      card.appendChild(el("p", "next-level-note", "At 100, our moderators take a look through your reviews, and then you bloom. " +
+        "Every 4 products you answer quick questions about count as 1 review (up to 20)."));
     }
   } else {
     const ul = el("ul", "next-level-checks");

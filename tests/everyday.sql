@@ -66,6 +66,8 @@ select pg_temp.try('suggest a shade', $q$select suggest_variation('00000000-0000
 select pg_temp.try('poll vote', $q$select vote_poll(o.post_id, o.id) from poll_options o join posts p on p.id = o.post_id where p.user_id <> auth.uid() limit 1$q$);
 select pg_temp.try('daily surprise', $q$select claim_daily_gift()$q$);
 select pg_temp.try('catch a falling leaf', $q$select drifter_catch((drifter_appear() ->> 'id')::uuid)$q$);
+select pg_temp.try('answer quick questions', $q$select save_quick_answers('00000000-0000-4000-9000-000000000002', '{"mk-apply": true, "mk-wear": true, "mk-scent": true, "mk-scent-like": false, "mk-value": true}')$q$);
+select pg_temp.try('see quick question totals', $q$select quick_answer_stats('00000000-0000-4000-9000-000000000002')$q$);
 select pg_temp.try('mod mail', $q$select modmail_start('message', 'A question', 'How do I change my shelf?')$q$);
 select pg_temp.try('feedback', $q$select modmail_start('feedback', 'An idea', 'It would be lovely to sort reviews by rating.')$q$);
 reset role;
@@ -83,12 +85,18 @@ declare refused text;
 begin
   select string_agg(label || ' (' || outcome || ')', '; ') into refused from results where outcome <> 'ok';
   if refused is not null then raise exception 'Some everyday actions were refused: %', refused; end if;
-  if (select count(*) from results) < 18 then raise exception 'Some actions didn''t run'; end if;
+  if (select count(*) from results) < 20 then raise exception 'Some actions didn''t run'; end if;
   -- (the falling leaf really paid out: points, or an item, for member one)
   if not exists (select 1 from drifter_sightings where user_id = '00000000-0000-4000-8000-000000000001' and caught_at is not null
                  and (item_key is not null or exists (select 1 from point_ledger l where l.action = 'drifter_catch'
                                                       and l.ref_id = drifter_sightings.id))) then
     raise exception 'The falling leaf didn''t give a prize';
+  end if;
+  -- (the quick answers were saved, and earned their 3 points)
+  if (select count(*) from quick_answers where user_id = '00000000-0000-4000-8000-000000000001') <> 5
+     or not exists (select 1 from point_ledger where user_id = '00000000-0000-4000-8000-000000000001'
+                    and action = 'quick_answers' and revoked_at is null) then
+    raise exception 'The quick answers weren''t saved';
   end if;
   -- (a refused update changes nothing without an error, so check the result)
   if not exists (select 1 from products where name = 'Test Cleanser' and status = 'approved') then

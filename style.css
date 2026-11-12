@@ -5094,6 +5094,217 @@ dialog.biome-preview-dialog {
   opacity: 0.8;
 }
 
+/* Quick questions (quick-questions.js): optional Yes / No questions in the
+   review form and on a product page, and "At a glance" totals */
+.page-head-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.qt {
+  margin: 1rem 0 0.9rem;
+  border: 1px solid var(--moss);
+  border-radius: 12px;
+  padding: 0.8rem 0.9rem;
+  background-color: rgba(255, 255, 255, 0.03);
+}
+
+.qt-panel {
+  margin: 0 0 1.25rem;
+}
+
+.qt-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.qt-head h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-family: var(--font-heading);
+}
+
+.qt-skip {
+  background: none;
+  border: 1px solid var(--moss);
+  color: var(--cream);
+  border-radius: 999px;
+  padding: 0.3rem 0.8rem;
+  font: inherit;
+  font-size: 0.82rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.qt-note {
+  margin: 0.25rem 0 0.6rem;
+  font-size: 0.8rem;
+  opacity: 0.8;
+}
+
+.qt-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  padding: 0.42rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.qt-row:first-child {
+  border-top: none;
+}
+
+.qt-row p {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.3;
+}
+
+.qt-row.is-follow {
+  padding-left: 1rem;
+}
+
+.qt-row.is-follow p {
+  font-size: 0.85rem;
+  opacity: 0.9;
+}
+
+.qt-yn {
+  display: flex;
+  gap: 0.3rem;
+  flex-shrink: 0;
+}
+
+.qt-yn button {
+  min-width: 2.9rem;
+  padding: 0.3rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid var(--moss);
+  background: none;
+  color: var(--cream);
+  font: inherit;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.qt-yn button[aria-pressed="true"] {
+  background-color: var(--leaf);
+  border-color: var(--leaf);
+  color: var(--forest-dark);
+  font-weight: 600;
+}
+
+.qt.is-collapsed {
+  padding: 0.6rem 0.9rem;
+}
+
+.qt-collapsed {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.qt-collapsed .muted {
+  opacity: 0.75;
+  font-size: 0.82rem;
+}
+
+.qt-show {
+  background: none;
+  border: none;
+  color: var(--gold-text);
+  font: inherit;
+  font-size: 0.88rem;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.qt-points {
+  font-size: 0.78rem;
+  opacity: 0.75;
+  margin: 0.55rem 0 0;
+}
+
+.qt-message {
+  font-size: 0.85rem;
+  margin: 0.5rem 0 0;
+}
+
+.qt .composer-footer {
+  margin-top: 0.6rem;
+}
+
+.glance {
+  margin: 0 0 1.1rem;
+}
+
+.glance-title {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+  font-family: var(--font-heading);
+}
+
+.glance-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 0.65rem;
+}
+
+.glance-row {
+  display: grid;
+  gap: 0.25rem;
+  font-size: 0.88rem;
+}
+
+.glance-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.6rem;
+}
+
+.glance-row.is-follow {
+  padding-left: 1rem;
+}
+
+.glance-track {
+  height: 0.55rem;
+  border-radius: 999px;
+  background-color: var(--forest-dark);
+  overflow: hidden;
+}
+
+.glance-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background-color: var(--gold);
+}
+
+.glance-count {
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.glance-tally {
+  font-size: 0.75rem;
+  opacity: 0.75;
+}
+
+.glance-note {
+  font-size: 0.75rem;
+  opacity: 0.7;
+  margin: 0.45rem 0 0;
+}
+
 .skin-chips {
   align-items: center;
   margin: 0;

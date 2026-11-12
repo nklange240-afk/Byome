@@ -464,6 +464,8 @@ function buildLevelItem(q) {
   const facts = el("ul", "level-facts");
   [
     ["Published reviews", s.reviews],
+    // (every 4 products answered count as 1 review, up to 20: database/2026-12-28-quick-questions.sql)
+    ...(s.quick_reviews ? [["Counted from quick questions", s.quick_reviews + " (" + s.quick + " products answered)"]] : []),
     ["Standout reviews", s.standouts],
     ["Member for", s.days + (s.days === 1 ? " day" : " days")],
     ["Found their reviews helpful", s.helpful + (s.helpful === 1 ? " person" : " people") + " (" + s.helpful_marks + " marks)"],
