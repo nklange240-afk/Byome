@@ -24,8 +24,8 @@
   <meta name="twitter:card" content="summary_large_image" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=187" />
-  <script src="a11y.js?v=187"></script>
+  <link rel="stylesheet" href="style.css?v=188" />
+  <script src="a11y.js?v=188"></script>
 </head>
 <body data-biome="forest" data-beta-banner>
   <header class="site-header">
@@ -42,7 +42,9 @@
     <a href="reviews.html" id="product-back" class="back-link" hidden>&larr; All reviews</a>
     <div class="page-head">
       <h1>Reviews</h1>
-      <button type="button" id="write-review-toggle" class="btn btn-solid" aria-expanded="false" aria-controls="review-form">Write a review</button>
+      <div class="page-head-actions">
+        <button type="button" id="write-review-toggle" class="btn btn-solid" aria-expanded="false" aria-controls="review-form">Write a review</button>
+      </div>
     </div>
     <form id="review-form" class="composer" hidden>
       <label for="review-brand" class="field-label">Brand</label>
@@ -114,6 +116,8 @@
         <label class="check-row"><input type="checkbox" id="review-no-longer-using" /> I no longer use this.</label>
         <label class="check-row"><input type="checkbox" id="review-seasonal" /> This is a fall or seasonal product.</label>
       </fieldset>
+      <!-- Quick questions for the chosen product (quick-questions.js) -->
+      <div id="quick-slot"></div>
       <label for="review-title" class="visually-hidden">Review heading</label>
       <input type="text" id="review-title" class="composer-title" maxlength="100" required placeholder="Heading" />
       <label for="review-body" class="visually-hidden">Your review</label>
@@ -164,14 +168,15 @@
     </section>
   </main>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase-client.js?v=187"></script>
-  <script src="profile-fields.js?v=187"></script>
-  <script src="nav-menu.js?v=187"></script>
-  <script src="ui.js?v=187"></script>
-  <script src="drift.js?v=187"></script>
-  <script src="edit-forms.js?v=187"></script>
-  <script src="report.js?v=187"></script>
-  <script src="product-match.js?v=187"></script>
-  <script src="reviews.js?v=187"></script>
+  <script src="supabase-client.js?v=188"></script>
+  <script src="profile-fields.js?v=188"></script>
+  <script src="nav-menu.js?v=188"></script>
+  <script src="ui.js?v=188"></script>
+  <script src="drift.js?v=188"></script>
+  <script src="edit-forms.js?v=188"></script>
+  <script src="report.js?v=188"></script>
+  <script src="product-match.js?v=188"></script>
+  <script src="quick-questions.js?v=188"></script>
+  <script src="reviews.js?v=188"></script>
 </body>
 </html>

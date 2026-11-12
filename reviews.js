@@ -101,6 +101,7 @@ function eventChoices() {
 }
 
 function setWriting(open) {
+  if (open && closeQuickPanel) closeQuickPanel();
   form.hidden = !open;
   writeToggle.setAttribute("aria-expanded", String(open));
   writeToggle.textContent = open ? "Close" : "Write a review";
@@ -580,6 +581,12 @@ async function showProductPage() {
 
   const statsBox = el("div", "product-stats");
   summary.appendChild(statsBox);
+  // Quick question totals (database/2026-12-28-quick-questions.sql)
+  const glanceSlot = el("div");
+  glanceSlot.id = "glance-slot";
+  summary.appendChild(glanceSlot);
+  refreshGlance(product.id);
+  if (currentUser && !closeQuickPanel) addQuickButton(product); // (once, though the summary can be redrawn)
 
   // Skin type pills: everyone, or one skin type (your own is marked)
   let mySkin = null;
@@ -875,7 +882,99 @@ productSelect.addEventListener("change", () => {
     variationField.hidden = true;
   }
   variationDropdown.refresh();
+  showQuickInForm();
 });
+
+// ---------- Quick questions ----------
+// In the form: the chosen product's questions, with your earlier answers
+// filled in (answering first and reviewing later is fine). Not for a
+// product that isn't on Byome yet. Saved after the review posts.
+const quickSlot = document.getElementById("quick-slot");
+let quickForm = null; // { productId, mine, block }
+let quickToken = 0;
+async function showQuickInForm() {
+  const token = ++quickToken;
+  quickSlot.replaceChildren();
+  quickForm = null;
+  const id = productSelect.value;
+  if (!currentUser || addingProduct || !id) return;
+  const { questions, mine } = await QUICK.load(id);
+  if (token !== quickToken || !questions.length) return;
+  const block = QUICK.block(questions, mine, { collapsible: true });
+  quickForm = { productId: id, mine, block };
+  quickSlot.appendChild(block.node);
+}
+
+// On a product page: "Answer quick questions" on their own, without writing
+// a review
+let closeQuickPanel = null;
+async function addQuickButton(product) {
+  closeQuickPanel = () => {};
+  let { questions, mine } = await QUICK.load(product.id);
+  if (!questions.length || !writeToggle.isConnected) return;
+  const btn = el("button", "btn btn-ghost", "Answer quick questions");
+  btn.type = "button";
+  btn.setAttribute("aria-expanded", "false");
+  writeToggle.after(btn);
+  let panel = null;
+  closeQuickPanel = () => {
+    if (!panel) return;
+    panel.remove();
+    panel = null;
+    btn.setAttribute("aria-expanded", "false");
+    btn.textContent = "Answer quick questions";
+  };
+  btn.addEventListener("click", () => {
+    if (panel) { closeQuickPanel(); btn.focus(); return; }
+    setWriting(false);
+    messageEl.textContent = "";
+    const block = QUICK.block(questions, mine, { points: true });
+    panel = block.node;
+    panel.classList.add("qt-panel");
+    const note = el("p", "qt-message");
+    note.setAttribute("aria-live", "polite");
+    const footer = el("div", "composer-footer is-end");
+    const cancel = el("button", "btn btn-ghost", "Cancel");
+    cancel.type = "button";
+    cancel.addEventListener("click", () => { closeQuickPanel(); btn.focus(); });
+    const save = el("button", "btn btn-solid", "Save answers");
+    save.type = "button";
+    save.addEventListener("click", async () => {
+      const answers = block.answers();
+      save.disabled = true;
+      note.textContent = "Saving...";
+      const { data, error } = await QUICK.save(product.id, answers);
+      save.disabled = false;
+      if (error) { note.textContent = error.message; return; }
+      mine = answers;
+      closeQuickPanel();
+      btn.focus();
+      messageEl.style.color = "var(--gold)";
+      messageEl.textContent = data.earned
+        ? "Thanks! Your answers are saved, and you earned 3 Byome points."
+        : data.answered === 0 ? "Your answers are cleared."
+        : data.has_points ? "Thanks! Your answers are saved."
+        : "Thanks! Your answers are saved. Answer 3 or more for 3 Byome points.";
+      refreshGlance(product.id);
+    });
+    footer.append(cancel, save);
+    panel.append(note, footer);
+    document.querySelector(".page-head").after(panel);
+    btn.setAttribute("aria-expanded", "true");
+    btn.textContent = "Close questions";
+    const first = panel.querySelector(".qt-yn button");
+    if (first) first.focus();
+  });
+}
+
+// "At a glance" on a product page (only once 3 or more people answer)
+async function refreshGlance(productId) {
+  const slot = document.getElementById("glance-slot");
+  if (!slot) return;
+  const box = await QUICK.glance(productId);
+  slot.replaceChildren();
+  if (box) slot.appendChild(box);
+}
 
 // ---------- Adding a product that isn't on Byome yet ----------
 // "Add it with your review" swaps the brand and product pickers for a few
@@ -906,6 +1005,7 @@ function setAddingProduct(on, brandText) {
   productSelect.required = !on;
   if (on) {
     variationField.hidden = true;
+    showQuickInForm(); // (none for a product that isn't on Byome yet)
     if (brandText !== undefined) npBrand.value = brandText;
     (npBrand.value ? npName : npBrand).focus();
     showNewProductMatches();
@@ -1524,6 +1624,16 @@ form.addEventListener("submit", async (event) => {
       : error.message);
     return;
   }
+  // The quick questions, saved alongside (only if they changed)
+  let quickNote = "";
+  if (!newProduct && quickForm && quickForm.productId === productId) {
+    const answers = quickForm.block.answers();
+    if (!QUICK.same(answers, quickForm.mine)) {
+      const { data: q, error: qError } = await QUICK.save(productId, answers);
+      if (qError) quickNote = " (Your quick answers couldn't be saved: " + qError.message + ")";
+      else if (q && q.earned) quickNote = " Your quick answers earned 3 Byome points too.";
+    }
+  }
   if (newProduct) {
     messageEl.textContent = "Thanks! A moderator will check the new product soon, usually within a day. " +
       "Your review goes live as soon as it's approved, and we'll let you know.";
@@ -1532,13 +1642,18 @@ form.addEventListener("submit", async (event) => {
     setAddingProduct(false);
     loadMyPendingProducts();
   } else if (saved && saved.held_at) {
-    messageEl.textContent = "Thanks! Your review is waiting for a quick check by a moderator before everyone can see it.";
+    messageEl.textContent = "Thanks! Your review is waiting for a quick check by a moderator before everyone can see it." + quickNote;
     messageEl.style.color = "var(--gold)";
   } else {
-    messageEl.textContent = "";
+    messageEl.textContent = quickNote ? "Thanks for your review!" + quickNote : "";
+    messageEl.style.color = "var(--gold)";
   }
   form.reset();
   variationField.hidden = true;
+  quickToken++;
+  quickSlot.replaceChildren();
+  quickForm = null;
+  if (productParam) refreshGlance(productParam);
   setWriting(false);
   loadReviews();
 });
