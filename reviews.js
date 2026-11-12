@@ -1626,11 +1626,12 @@ form.addEventListener("submit", async (event) => {
   }
   // The quick questions, saved alongside (only if they changed)
   let quickNote = "";
+  let quickError = "";
   if (!newProduct && quickForm && quickForm.productId === productId) {
     const answers = quickForm.block.answers();
     if (!QUICK.same(answers, quickForm.mine)) {
       const { data: q, error: qError } = await QUICK.save(productId, answers);
-      if (qError) quickNote = " (Your quick answers couldn't be saved: " + qError.message + ")";
+      if (qError) quickError = "Your review is posted, but your quick answers couldn't be saved: " + qError.message;
       else if (q && q.earned) quickNote = " Your quick answers earned 3 Byome points too.";
     }
   }
@@ -1647,6 +1648,11 @@ form.addEventListener("submit", async (event) => {
   } else {
     messageEl.textContent = quickNote ? "Thanks for your review!" + quickNote : "";
     messageEl.style.color = "var(--gold)";
+  }
+  if (quickError) {
+    // (in red, so it isn't missed as the form closes)
+    messageEl.textContent = quickError;
+    messageEl.style.color = "#E07A5F";
   }
   form.reset();
   variationField.hidden = true;

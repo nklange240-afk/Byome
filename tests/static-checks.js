@@ -6,6 +6,8 @@
 //  - the Supabase project key isn't in exactly one file (supabase-client.js)
 //  - the pages don't all load the same ?v= version (browsers would mix old
 //    and new files)
+//  - a database function deletes or updates without a "where" (Supabase
+//    refuses those for the site's requests: "DELETE requires a WHERE clause")
 const fs = require("fs");
 const path = require("path");
 const vm = require("vm");
@@ -63,6 +65,17 @@ for (const f of files.filter((f) => f.endsWith(".js"))) {
   const found = Object.keys(versions);
   if (found.length > 1) {
     problems.push("Pages load different versions: " + found.map((v) => `v=${v} (${[...versions[v]].join(", ")})`).join("; "));
+  }
+}
+
+// Every delete and update inside a database function has a "where"
+for (const f of fs.readdirSync(path.join(root, "database")).filter((f) => /^\d.*\.sql$/.test(f))) {
+  const text = fs.readFileSync(path.join(root, "database", f), "utf8").replace(/--[^\n]*/g, "");
+  const bodies = text.split("$$").filter((_, i) => i % 2 === 1);
+  for (const body of bodies) {
+    for (const m of body.matchAll(/\b(?:delete\s+from|update\s+[\w.]+\s+(?:\w+\s+)?set)\b[^;]*;/gi)) {
+      if (!/\bwhere\b/i.test(m[0])) problems.push(`database/${f}: "${m[0].split("\n")[0].trim()}" has no "where" (Supabase refuses it)`);
+    }
   }
 }
 

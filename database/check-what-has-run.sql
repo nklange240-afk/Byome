@@ -112,5 +112,6 @@ from (values
   ('2026-12-25-autumn-blaze-pot.sql',     exists (select 1 from public.biome_items where key = 'autumn-blaze-pot')),
   ('2026-12-26-garden-snail.sql',         exists (select 1 from public.biome_items where key = 'garden-snail')),
   ('2026-12-27-leaf-pots-repeat.sql',     exists (select 1 from fn where name = 'drifter_catch' and body like '%max_per_member%')),
-  ('2026-12-28-quick-questions.sql',      exists (select 1 from fn where name = 'save_quick_answers'))
+  ('2026-12-28-quick-questions.sql',      exists (select 1 from fn where name = 'save_quick_answers')),
+  ('2026-12-29-quick-answers-save-fix.sql', exists (select 1 from fn where name = 'save_quick_answers' and body not like '%pg_temp%'))
 ) as checks(file, ok);

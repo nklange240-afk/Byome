@@ -1202,7 +1202,7 @@ async function loadContent(profile, isMe) {
 
   // (the event columns come from database/2026-10-29-events-halloween.sql)
   const reviewQuery = (extra) => supabaseClient.from("reviews")
-    .select("id, rating, original_rating, title, body, variation, would_repurchase, holy_grail, " + extra + "created_at, edited_at, held_at, products!product_id(name, brand), review_likes(user_id), review_standouts(review_id), review_updates(id, body, rating, created_at, held_at)", { count: "exact" })
+    .select("id, product_id, rating, original_rating, title, body, variation, would_repurchase, holy_grail, " + extra + "created_at, edited_at, held_at, products!product_id(name, brand), review_likes(user_id), review_standouts(review_id), review_updates(id, body, rating, created_at, held_at)", { count: "exact" })
     .eq("user_id", profile.id).order("created_at", { ascending: false }).limit(30);
   const [reviewsRes, postsRes] = await Promise.all([
     reviewQuery("no_longer_using, seasonal, gifted, ").then((res) => (res.error ? reviewQuery("") : res)),
