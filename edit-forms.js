@@ -171,8 +171,9 @@ const EDIT_FORMS = (function () {
     return form;
   }
 
-  // Edit your own review: rating, heading, text, repurchase and holy grail.
-  // (The product can't be changed, and updates are added separately.)
+  // Edit your own review: rating, heading, text, repurchase, holy grail and
+  // your quick questions. (The product can't be changed, and updates are
+  // added separately.)
   function buildReviewEditForm(r, productText, onSaved, onCancel) {
     const form = el("form", "edit-form");
     let rating = r.rating;
@@ -230,6 +231,20 @@ const EDIT_FORMS = (function () {
       text.append(el("strong", null, "Gifted:"), " a brand gave me this product, paid me, or I'm connected to the brand in another way.");
       row.append(giftedBox, text);
       form.appendChild(row);
+    }
+
+    // Your quick questions for this product, with your answers filled in
+    // (quick-questions.js; filled in once they've loaded)
+    const quickSlot = el("div");
+    form.appendChild(quickSlot);
+    let quick = null; // { mine, block }
+    if (typeof QUICK !== "undefined" && r.product_id) {
+      QUICK.load(r.product_id).then(({ questions, mine }) => {
+        if (!questions.length) return;
+        const block = QUICK.block(questions, mine, { collapsible: true });
+        quick = { mine, block };
+        quickSlot.appendChild(block.node);
+      }).catch(() => { /* the review can still be edited */ });
     }
 
     function paint() {
@@ -301,6 +316,21 @@ const EDIT_FORMS = (function () {
         message.style.color = "#E07A5F";
         save.disabled = false;
         return;
+      }
+      // The quick questions, if they changed. If they can't be saved, the
+      // form stays open to say why.
+      if (quick) {
+        const answers = quick.block.answers();
+        if (!QUICK.same(answers, quick.mine)) {
+          const { error: qError } = await QUICK.save(r.product_id, answers);
+          if (qError) {
+            message.textContent = "Your review is saved, but your quick answers couldn't be: " + qError.message;
+            message.style.color = "#E07A5F";
+            save.disabled = false;
+            return;
+          }
+          quick.mine = answers;
+        }
       }
       onSaved();
     });

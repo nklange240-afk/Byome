@@ -168,6 +168,7 @@ declare
   answered integer;
   earned boolean := false;
   had_points boolean;
+  clean jsonb;
 begin
   if me is null then raise exception 'Please log in first'; end if;
   if not exists (select 1 from profiles where id = me and deleted_at is null) then raise exception 'Please log in first'; end if;
@@ -180,19 +181,17 @@ begin
   perform pg_advisory_xact_lock(hashtext('quick-answers'), hashtext(me::text));
 
   -- Keep only real yes/no answers to this product's questions; a follow-up
-  -- only counts after a Yes to the question it follows
-  create temp table if not exists pg_temp.qa_new (key text primary key, answer boolean) on commit drop;
-  delete from pg_temp.qa_new;
-  insert into pg_temp.qa_new
-  select q.key, (p_answers ->> q.key)::boolean
+  -- only counts after a Yes to the question it follows. (No scratch table:
+  -- the site's requests refuse a delete without a where.)
+  select coalesce(jsonb_object_agg(q.key, p_answers -> q.key), '{}'::jsonb) into clean
   from quick_questions_for(p_product) q
   where jsonb_typeof(p_answers -> q.key) = 'boolean'
     and (q.parent_key is null or (p_answers ->> q.parent_key) = 'true');
 
   delete from quick_answers a where a.user_id = me and a.product_id = p_product
-    and not exists (select 1 from pg_temp.qa_new n where n.key = a.question_key);
+    and not (clean ? a.question_key);
   insert into quick_answers (user_id, product_id, question_key, answer, updated_at)
-  select me, p_product, n.key, n.answer, now() from pg_temp.qa_new n
+  select me, p_product, e.key, e.value::boolean, now() from jsonb_each_text(clean) e
   on conflict (user_id, product_id, question_key) do update
     set answer = excluded.answer,
         updated_at = case when quick_answers.answer is distinct from excluded.answer then now() else quick_answers.updated_at end;
