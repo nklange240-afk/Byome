@@ -164,7 +164,7 @@ const QUICK = (function () {
     data.forEach((s) => {
       const li = el("li", "glance-row" + (s.parent_key ? " is-follow" : ""));
       const top = el("div", "glance-top");
-      top.append(el("span", "glance-label", s.label),
+      top.append(el("span", "glance-label", (s.parent_key ? "\u21B3 " : "") + s.label),
         el("span", "glance-count", Math.round((s.yes / s.answers) * 100) + "% said yes"));
       const track = el("span", "glance-track");
       const fill = el("span", "glance-fill");
