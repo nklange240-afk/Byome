@@ -104,6 +104,7 @@ Introduced by Making a List, Checking It Twice, and kept after the event.
 | One ornament overlay per tree theme | 640 × 640, transparent, lined up with the tree |
 | Plants (snowdrop, poinsettia) | 512 × 512 (small) or 640 × 640 (medium) |
 | Pots (cable knit, hot cocoa, disco ball) | the same as existing pots, plus the front overlay |
+| Icicle pot | the same as existing pots, plus the front overlay (small or medium, to decide) |
 | Garland and stockings (one per theme, if themed) | 1500 × 2000, like the cobwebs |
 | Snowy shelf and other shelves | the same as existing shelves |
 | Event badge | like the Halloween badge |
