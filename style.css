@@ -5240,6 +5240,14 @@ dialog.biome-preview-dialog {
   margin-top: 0.6rem;
 }
 
+.qt-update {
+  margin: 0.5rem 0 0.25rem;
+}
+
+.qt-update .qt {
+  margin: 0.4rem 0 0.5rem;
+}
+
 .glance {
   margin: 0 0 1.1rem;
 }

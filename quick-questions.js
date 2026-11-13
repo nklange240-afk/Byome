@@ -8,6 +8,7 @@
 //   QUICK.block(questions, mine, o)  -> { node, answers(), count() }
 //   QUICK.save(productId, answers)   -> { data, error }
 //   QUICK.glance(productId)          -> a node for the product page, or null
+//   QUICK.updatePrompt(productId)    -> { node, save() } for a review update
 const QUICK = (function () {
   const COLLAPSED_KEY = "byome-quick-collapsed";
 
@@ -179,5 +180,44 @@ const QUICK = (function () {
     return box;
   }
 
-  return { load, block, save, same, glance };
+  // For a review update: a button asking whether to update your answers.
+  // The questions stay closed unless it's tapped. save() returns an error,
+  // or null (also when nothing changed or the questions were never opened).
+  function updatePrompt(productId) {
+    const node = el("div", "qt-update");
+    const btn = el("button", "link-btn", "Want to update your quick answers?");
+    btn.type = "button";
+    btn.setAttribute("aria-expanded", "false");
+    node.appendChild(btn);
+    let loaded = null; // { questions, mine }
+    let open = null;   // { mine, block }
+    const ready = load(productId).then((data) => {
+      loaded = data;
+      if (!data.questions.length) { node.remove(); return; }
+      if (!Object.keys(data.mine).length) btn.textContent = "Want to answer a few quick questions too?";
+    }).catch(() => node.remove());
+    btn.addEventListener("click", async () => {
+      btn.disabled = true;
+      await ready;
+      if (!loaded || !loaded.questions.length) return;
+      const b = block(loaded.questions, loaded.mine, {});
+      open = { mine: loaded.mine, block: b };
+      btn.remove();
+      node.appendChild(b.node);
+      const first = b.node.querySelector(".qt-yn button");
+      if (first) first.focus();
+    });
+    async function saveAnswers() {
+      if (!open) return null;
+      const answers = open.block.answers();
+      if (same(answers, open.mine)) return null;
+      const { error } = await save(productId, answers);
+      if (error) return error;
+      open.mine = answers;
+      return null;
+    }
+    return { node, save: saveAnswers };
+  }
+
+  return { load, block, save, same, glance, updatePrompt };
 })();
