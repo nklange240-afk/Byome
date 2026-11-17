@@ -23,13 +23,18 @@
 --   - At most one support message a day per member; moderators are told
 --     every time.
 --   - For moderators' sake, what was written is shown behind its own
---     warning on the Moderate page and in mod mail.
+--     warning on the Moderate page and in mod mail: a calm one for broad
+--     phrases that are often said casually (likely a false alarm), and a
+--     red, serious one for direct language or a specific method. The
+--     notifications and email say which.
 --
 -- Managing the phrase list (SQL Editor). Letters and spaces only; leave out
 -- apostrophes ("dont", not "don't"). Capitals, repeated letters, number
 -- swaps ("su1c1dal"), apostrophes and dots or dashes between letters are
--- all handled when matching:
---   insert into crisis_phrases (phrase) values ('new phrase');
+-- all handled when matching. Each phrase is 'broad' (often casual, likely
+-- a false alarm) or 'direct' (serious):
+--   insert into crisis_phrases (phrase, level) values ('new phrase', 'direct');
+--   update crisis_phrases set level = 'broad' where phrase = 'some phrase';
 --   delete from crisis_phrases where phrase = 'some phrase';
 --   select phrase from crisis_phrases order by phrase;
 -- Changing the message's subject:
@@ -41,35 +46,70 @@
 -- =========================================================
 
 -- ---------- The phrases ----------
+-- Two levels, so moderators can tell them apart at a glance:
+--   broad   often said casually ("kms", "I want to die, this shade..."),
+--           so likely a false alarm
+--   direct  direct language about suicide or self-harm, or a specific
+--           method: treated as serious
 create table if not exists public.crisis_phrases (
   phrase text primary key check (phrase ~ '^[a-z]+( [a-z]+)*$'),
   added_at timestamptz not null default now()
 );
+alter table public.crisis_phrases add column if not exists level text not null default 'broad';
+alter table public.crisis_phrases drop constraint if exists crisis_phrases_level_check;
+alter table public.crisis_phrases add constraint crisis_phrases_level_check check (level in ('broad', 'direct'));
 alter table public.crisis_phrases enable row level security;
 drop policy if exists "Moderators can read the crisis phrases" on public.crisis_phrases;
 create policy "Moderators can read the crisis phrases" on public.crisis_phrases
   for select to authenticated using ((select public.is_moderator()));
 
-insert into public.crisis_phrases (phrase) values
-  -- clear
-  ('kms'), ('kill myself'), ('killing myself'), ('end my life'), ('ending my life'),
-  ('take my own life'), ('taking my own life'), ('want to die'), ('wanna die'),
-  ('wish i was dead'), ('wish i were dead'), ('suicidal'),
-  ('commit suicide'), ('committing suicide'), ('thinking about suicide'), ('thoughts of suicide'),
-  ('considering suicide'), ('attempt suicide'), ('attempted suicide'), ('suicide attempt'),
-  ('hurt myself'), ('hurting myself'), ('self harm'), ('self harming'), ('selfharm'),
-  ('cut myself'), ('cutting myself'), ('better off dead'), ('better off without me'),
-  ('dont want to live'), ('dont want to be alive'), ('no reason to live'), ('nothing to live for'),
-  -- coded ("unalive" only about yourself; "unalive yourself" is in automod's harmful list)
-  ('unalive myself'), ('unaliving myself'), ('want to unalive'), ('wanna unalive'),
-  ('going to unalive'), ('gonna unalive'), ('thinking about unaliving'),
-  ('sewer slide'), ('sewerslide'), ('self delete'), ('self deleting'), ('toaster bath'),
-  -- broader
-  ('dont want to be here anymore'), ('dont want to be here any more'),
-  ('whats the point of living'), ('whats the point of anything'), ('cant go on'),
-  ('want to disappear forever'), ('wish id never been born'), ('wish i had never been born'),
-  ('wish i was never born'), ('dont want to wake up')
-on conflict (phrase) do nothing;
+insert into public.crisis_phrases (phrase, level) values
+  -- direct
+  ('kill myself', 'direct'), ('killing myself', 'direct'), ('end my life', 'direct'), ('ending my life', 'direct'),
+  ('take my own life', 'direct'), ('taking my own life', 'direct'), ('suicidal', 'direct'),
+  ('commit suicide', 'direct'), ('committing suicide', 'direct'), ('thinking about suicide', 'direct'),
+  ('thoughts of suicide', 'direct'), ('considering suicide', 'direct'), ('attempt suicide', 'direct'),
+  ('attempted suicide', 'direct'), ('suicide attempt', 'direct'),
+  ('self harm', 'direct'), ('self harming', 'direct'), ('selfharm', 'direct'),
+  ('cut myself', 'direct'), ('cutting myself', 'direct'), ('better off without me', 'direct'),
+  ('dont want to live', 'direct'), ('dont want to be alive', 'direct'), ('no reason to live', 'direct'),
+  ('nothing to live for', 'direct'),
+  -- direct, coded ("unalive" only about yourself; "unalive yourself" is in automod's harmful list)
+  ('unalive myself', 'direct'), ('unaliving myself', 'direct'), ('want to unalive', 'direct'),
+  ('wanna unalive', 'direct'), ('going to unalive', 'direct'), ('gonna unalive', 'direct'),
+  ('thinking about unaliving', 'direct'), ('sewer slide', 'direct'), ('sewerslide', 'direct'),
+  ('self delete', 'direct'), ('self deleting', 'direct'), ('toaster bath', 'direct'),
+  -- direct, methods
+  ('slit my wrists', 'direct'), ('slit my wrist', 'direct'), ('slitting my wrists', 'direct'),
+  ('cut my wrists', 'direct'), ('cutting my wrists', 'direct'), ('slash my wrists', 'direct'),
+  ('hang myself', 'direct'), ('hanging myself', 'direct'), ('noose', 'direct'),
+  ('shoot myself', 'direct'), ('shooting myself', 'direct'), ('gun to my head', 'direct'),
+  ('drown myself', 'direct'), ('drowning myself', 'direct'), ('poison myself', 'direct'),
+  ('overdose on pills', 'direct'), ('going to overdose', 'direct'), ('gonna overdose', 'direct'),
+  ('want to overdose', 'direct'), ('planning to overdose', 'direct'),
+  ('take all my pills', 'direct'), ('take all of my pills', 'direct'),
+  ('swallow all my pills', 'direct'), ('swallow all of my pills', 'direct'),
+  ('down a bottle of pills', 'direct'), ('downing a bottle of pills', 'direct'),
+  ('take a bottle of pills', 'direct'), ('swallow a bottle of pills', 'direct'),
+  ('jump off a bridge', 'direct'), ('jump off of a bridge', 'direct'), ('jump off the bridge', 'direct'),
+  ('jumping off a bridge', 'direct'), ('jumping off of a bridge', 'direct'),
+  ('jump off a building', 'direct'), ('jump off the roof', 'direct'), ('throw myself off', 'direct'),
+  ('jump in front of a train', 'direct'), ('step in front of a train', 'direct'),
+  ('drive off a cliff', 'direct'), ('crash my car on purpose', 'direct'), ('starve myself to death', 'direct'),
+  -- broad (often casual)
+  ('kms', 'broad'), ('want to die', 'broad'), ('wanna die', 'broad'),
+  ('wish i was dead', 'broad'), ('wish i were dead', 'broad'), ('better off dead', 'broad'),
+  ('hurt myself', 'broad'), ('hurting myself', 'broad'), ('walk into traffic', 'broad'),
+  ('dont want to be here anymore', 'broad'), ('dont want to be here any more', 'broad'),
+  ('whats the point of living', 'broad'), ('whats the point of anything', 'broad'), ('cant go on', 'broad'),
+  ('want to disappear forever', 'broad'), ('wish id never been born', 'broad'), ('wish i had never been born', 'broad'),
+  ('wish i was never born', 'broad'), ('dont want to wake up', 'broad')
+on conflict (phrase) do update set level = excluded.level;
+
+-- Said TO someone, it's harassment, not a crisis: automod's harmful list
+insert into public.moderation_words (word, category) values
+  ('slit your wrists', 'harmful'), ('slit ur wrists', 'harmful')
+on conflict (word) do update set category = excluded.category;
 
 -- The subject of the support message
 create table if not exists public.crisis_settings (
@@ -79,29 +119,43 @@ create table if not exists public.crisis_settings (
 insert into public.crisis_settings (id) values (true) on conflict (id) do nothing;
 alter table public.crisis_settings enable row level security;
 
--- Does this text contain a crisis phrase?
-create or replace function public.text_is_crisis(p_text text) returns boolean
+-- How serious a crisis phrase in this text is: 'direct', 'broad', or
+-- null if there's none
+create or replace function public.text_crisis_level(p_text text) returns text
 language plpgsql stable security definer set search_path to public as $$
 declare
   t text;
-  w text;
+  w record;
   pattern text;
+  found text;
 begin
-  if p_text is null or p_text = '' then return false; end if;
+  if p_text is null or p_text = '' then return null; end if;
   -- lowercase, undo number swaps like automod does, and drop apostrophes
   t := regexp_replace(translate(lower(p_text), '013457@$', 'oieastas'), '[''`’‘]', '', 'g');
-  for w in select phrase from crisis_phrases loop
+  for w in select phrase, level from crisis_phrases order by (level = 'direct') desc loop
+    continue when found is not null and w.level <> 'direct';
     -- letters may repeat or have dots, dashes or stars between them;
     -- words may have spaces, dashes or dots between them
     select '\m' || string_agg(case when c = ' ' then '[\s._*-]+' else c || '+' end,
                              '[._*-]*' order by n) || '\M'
       into pattern
-      from regexp_split_to_table(w, '') with ordinality as x(c, n);
+      from regexp_split_to_table(w.phrase, '') with ordinality as x(c, n);
     pattern := replace(pattern, '[._*-]*[\s._*-]+[._*-]*', '[\s._*-]+');
-    if t ~ pattern then return true; end if;
+    if t ~ pattern then
+      if w.level = 'direct' then return 'direct'; end if;
+      found := 'broad';
+      exit;
+    end if;
   end loop;
-  return false;
+  return found;
 end $$;
+revoke execute on function public.text_crisis_level(text) from public, anon, authenticated;
+
+-- Does this text contain a crisis phrase?
+create or replace function public.text_is_crisis(p_text text) returns boolean
+language sql stable security definer set search_path to public as $$
+  select text_crisis_level(p_text) is not null
+$$;
 revoke execute on function public.text_is_crisis(text) from public, anon, authenticated;
 
 
@@ -144,8 +198,8 @@ begin
 end $$;
 revoke execute on function public.text_is_flagged(text) from public, anon, authenticated;
 
--- (the same as in 2026-11-25-modmail-automod.sql, plus "crisis", listed
--- first, so mod mail hides it behind its own warning)
+-- (the same as in 2026-11-25-modmail-automod.sql, plus "crisis_serious"
+-- or "crisis", listed first, so mod mail hides it behind its own warning)
 create or replace function public.text_flag_reasons(p_text text) returns text[]
 language plpgsql stable security definer set search_path to public as $$
 declare
@@ -171,9 +225,10 @@ begin
     end if;
     if t ~ pattern then found := found || w.category; end if;
   end loop;
-  if text_is_crisis(p_text) then found := found || 'crisis'::text; end if;
+  -- (a direct crisis phrase is 'crisis_serious', a broad one 'crisis')
+  found := found || case text_crisis_level(p_text) when 'direct' then 'crisis_serious' when 'broad' then 'crisis' end;
 
-  return array(select c from unnest(array['crisis', 'offensive', 'harmful', 'explicit', 'strong']) with ordinality as o(c, n)
+  return array(select c from unnest(array['crisis_serious', 'crisis', 'offensive', 'harmful', 'explicit', 'strong']) with ordinality as o(c, n)
                where c = any(found) order by n);
 end $$;
 revoke execute on function public.text_flag_reasons(text) from public, anon, authenticated;
@@ -192,6 +247,9 @@ create table if not exists public.crisis_alerts (
   message_sent boolean not null default false,
   created_at timestamptz not null default now()
 );
+alter table public.crisis_alerts add column if not exists level text not null default 'broad';
+alter table public.crisis_alerts drop constraint if exists crisis_alerts_level_check;
+alter table public.crisis_alerts add constraint crisis_alerts_level_check check (level in ('broad', 'direct'));
 create index if not exists crisis_alerts_user on public.crisis_alerts (user_id, created_at desc);
 create index if not exists crisis_alerts_ref on public.crisis_alerts (ref_id);
 alter table public.crisis_alerts enable row level security;
@@ -221,8 +279,10 @@ language sql immutable set search_path to public as $$
 $$;
 
 -- Send the support (or, if it was sent in the last day, just tell the
--- moderators again). Never stops the post or message from saving.
-create or replace function public.crisis_respond(p_user uuid, p_kind text, p_ref uuid) returns void
+-- moderators again). p_level is 'direct' or 'broad'. Never stops the post
+-- or message from saving.
+drop function if exists public.crisis_respond(uuid, text, uuid);
+create or replace function public.crisis_respond(p_user uuid, p_kind text, p_ref uuid, p_level text) returns void
 language plpgsql security definer set search_path to public as $$
 declare
   name text;
@@ -231,6 +291,7 @@ declare
   what text := case p_kind when 'review_update' then 'a review update' when 'bio' then 'their bio'
                            when 'modmail' then 'mod mail' else 'a ' || p_kind end;
   sent boolean := false;
+  serious boolean := p_level = 'direct';
   result text;
 begin
   if p_user is null then return; end if;
@@ -265,19 +326,31 @@ begin
     update modmail_threads set urgent = true, status = 'open', updated_at = now(), last_from = 'member' where id = t;
   end if;
 
-  insert into crisis_alerts (user_id, kind, ref_id, thread_id, message_sent) values (p_user, p_kind, p_ref, t, sent);
+  insert into crisis_alerts (user_id, kind, ref_id, thread_id, message_sent, level)
+  values (p_user, p_kind, p_ref, t, sent, case when serious then 'direct' else 'broad' end);
 
-  perform notify_modmail(null, t, 'Urgent: automod caught a possible crisis in ' || what || ' from ' || name || '. '
+  perform notify_modmail(null, t,
+    case when serious
+      -- (worded so the notification itself doesn't trip the crisis list)
+      then 'Serious: automod caught direct language about suicide or self-injury in ' || what || ' from ' || name || '. '
+      else 'Urgent, but often a false alarm: automod caught a phrase that can mean someone is struggling in ' || what || ' from ' || name || '. ' end
     || case when sent then 'Support resources were sent to them.' else 'Support resources were already sent today.' end);
 
-  -- Email the inbox (same daily limits as urgent mod mail). Never what they wrote.
+  -- Email the inbox (same daily limits as urgent mod mail, except that a
+  -- serious one isn't held back by the 3-a-day limit for one member).
+  -- Never what they wrote.
   if (select count(*) from modmail_threads where urgent_emailed_at > now() - interval '1 day') < 20
-     and (select count(*) from modmail_threads where urgent_emailed_at > now() - interval '1 day' and user_id = p_user) < 3 then
-    result := email_byome_inbox('Urgent: possible crisis on Byome',
-      'Automod caught words that can mean someone is in a mental health crisis, in ' || what || ' from ' || name || '.' || E'\n\n'
+     and (serious or (select count(*) from modmail_threads where urgent_emailed_at > now() - interval '1 day' and user_id = p_user) < 3) then
+    result := email_byome_inbox(
+      case when serious then 'SERIOUS: possible crisis on Byome' else 'Possible crisis on Byome (often a false alarm)' end,
+      case when serious
+        then 'Automod caught direct language about suicide, self-harm or a specific method, in ' || what || ' from ' || name || '. '
+             || 'Please treat this as serious.'
+        else 'Automod caught a phrase that can mean someone is struggling, in ' || what || ' from ' || name || '. '
+             || 'Phrases like this are often said casually, so this is likely a false alarm, but it may be someone who is really struggling.' end
+      || E'\n\n'
       || case when sent then 'They were sent support resources in mod mail.' else 'They were already sent support resources today.' end
       || case when p_kind not in ('modmail') then ' What they wrote is held until a moderator reviews it.' else '' end || E'\n\n'
-      || 'The filter is broad, so this is often a false alarm, but it may be someone who is really struggling. '
       || 'What they wrote isn''t included here. Read it on Byome only if you''re prepared to:' || E'\n'
       || 'https://byome.xyz/modmail.html?thread=' || t || E'\n\n'
       || 'If someone may be in immediate danger, contact emergency services.');
@@ -287,7 +360,7 @@ exception when others then
   -- (support is a bonus: never block what the member wrote)
   raise warning 'crisis_respond: %', sqlerrm;
 end $$;
-revoke execute on function public.crisis_respond(uuid, text, uuid) from public, anon, authenticated;
+revoke execute on function public.crisis_respond(uuid, text, uuid, text) from public, anon, authenticated;
 
 
 -- ---------- Watching posts, comments, reviews, updates and mod mail ----------
@@ -297,12 +370,14 @@ declare
   content text := coalesce(to_jsonb(new)->>'title', '') || ' ' || coalesce(to_jsonb(new)->>'body', '');
   kind text := case tg_table_name when 'posts' then 'post' when 'comments' then 'comment'
                                   when 'reviews' then 'review' else 'review_update' end;
+  level text;
 begin
   if new.held_at is null then return null; end if;
   if tg_op = 'UPDATE' and content = coalesce(to_jsonb(old)->>'title', '') || ' ' || coalesce(to_jsonb(old)->>'body', '') then
     return null;  -- nothing new written
   end if;
-  if text_is_crisis(content) then perform crisis_respond(new.user_id, kind, new.id); end if;
+  level := text_crisis_level(content);
+  if level is not null then perform crisis_respond(new.user_id, kind, new.id, level); end if;
   return null;
 end $$;
 
@@ -321,9 +396,12 @@ create trigger review_updates_crisis after insert or update on public.review_upd
 
 create or replace function public.crisis_check_modmail() returns trigger
 language plpgsql security definer set search_path to public as $$
+declare level text;
 begin
-  if not new.from_mods and new.sender_id is not null and text_is_crisis(new.body) then
-    perform crisis_respond(new.sender_id, 'modmail', new.thread_id);
+  if new.from_mods or new.sender_id is null then return null; end if;
+  level := text_crisis_level(new.body);
+  if level is not null then
+    perform crisis_respond(new.sender_id, 'modmail', new.thread_id, level);
   end if;
   return null;
 end $$;
@@ -359,7 +437,7 @@ begin
   if clean is not null and text_is_flagged(clean) then
     insert into held_bios (user_id, bio, held_at) values (me, clean, now())
     on conflict (user_id) do update set bio = excluded.bio, held_at = now();
-    if text_is_crisis(clean) then perform crisis_respond(me, 'bio', me); end if;
+    if text_is_crisis(clean) then perform crisis_respond(me, 'bio', me, text_crisis_level(clean)); end if;
     return 'held';
   end if;
   delete from held_bios where user_id = me;

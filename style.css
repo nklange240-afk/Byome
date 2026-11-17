@@ -9091,9 +9091,32 @@ dialog.daily-dialog {
   color: var(--gold-text);
 }
 
+/* Direct language or a specific method: serious, and looks it */
+.crisis-warning.is-serious {
+  border: 2px solid #E07A5F;
+  background-color: rgba(224, 122, 95, 0.16);
+  padding: 0.85rem 0.95rem;
+}
+
+.crisis-warning.is-serious .crisis-warning-title {
+  color: #F4A48E;
+  font-size: 1.02rem;
+}
+
+.crisis-warning-kind {
+  font-weight: 600;
+}
+
 .review-tag.is-crisis {
   background-color: var(--gold);
   color: var(--forest-dark);
+}
+
+.review-tag.is-crisis.is-serious {
+  background-color: #E07A5F;
+  border-color: #E07A5F;
+  color: #1E2B22;
+  font-weight: 700;
 }
 
 .held-notice.is-gentle {

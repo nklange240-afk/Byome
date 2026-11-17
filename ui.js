@@ -1480,6 +1480,25 @@ const UI = (function () {
   async function heldForCrisis(id) {
     return (await crisisRefs(true)).has(id);
   }
+  // The warnings moderators see before reading something that may be
+  // someone in crisis (Moderate page and mod mail). [class, text] pairs.
+  const CRISIS_WARNING = {
+    broad: [
+      ["crisis-warning-title", "Possible crisis, often a false alarm"],
+      [null, "Automod caught a phrase that\u2019s often said casually (like \u201ckms\u201d or \u201cI want to die, this shade is so good\u201d), " +
+        "so this is likely a false alarm. Still, it could be someone who is struggling."],
+      [null, "They\u2019ve already been sent support resources. If you\u2019d rather not read it right now, it\u2019s fine to leave it for another moderator."],
+    ],
+    direct: [
+      ["crisis-warning-title", "\u26A0\uFE0F Serious: possible crisis. Read only if you\u2019re prepared to"],
+      [null, "Automod caught direct language about suicide or self-harm, or a specific method. Treat this as serious: " +
+        "it may be someone in real danger."],
+      [null, "They\u2019ve already been sent support resources and emergency numbers in mod mail. " +
+        "Check whether they\u2019ve replied, and reply yourself if you feel able to."],
+      ["crisis-warning-kind", "Only open it if you feel ready to read something distressing. It\u2019s completely fine to leave it for another moderator."],
+    ],
+  };
+
   // Just after posting something held as a possible crisis
   function crisisPostedText(what) {
     return "Your " + what + " is paused while a moderator checks in. You're not in trouble. " +
@@ -1501,5 +1520,5 @@ const UI = (function () {
     return note;
   }
 
-  return { liveEvent, eventBanner, heldNotice, heldForCrisis, crisisPostedText, centralTime, starterChecklist, linkify, readMore, giftedTag, iconOrLabel, reviewIcons, openAccessibility, REMOVAL_REASONS, removalReasonLabel, friendlyDate, timeTag, emptyState, celebrate, checkAchievements, sparkles, itemArt, soilImage, sizeName, sizeBadge, setBiome, biomeSymbol, memberBadge, biomeSwatch, biomeLook, biomePreview, openBiomePreview, previewOnHover, previewButton, startModSession, refreshLimits, variationForm, LEVELS, levelInfo, levelBadge };
+  return { liveEvent, eventBanner, heldNotice, heldForCrisis, crisisPostedText, CRISIS_WARNING, centralTime, starterChecklist, linkify, readMore, giftedTag, iconOrLabel, reviewIcons, openAccessibility, REMOVAL_REASONS, removalReasonLabel, friendlyDate, timeTag, emptyState, celebrate, checkAchievements, sparkles, itemArt, soilImage, sizeName, sizeBadge, setBiome, biomeSymbol, memberBadge, biomeSwatch, biomeLook, biomePreview, openBiomePreview, previewOnHover, previewButton, startModSession, refreshLimits, variationForm, LEVELS, levelInfo, levelBadge };
 })();

@@ -840,9 +840,14 @@ async function loadHeld() {
   // crisis (database/2026-12-30-crisis-support.sql; left out until it's run)
   const [bios, crisis] = await Promise.all([
     supabaseClient.from("held_bios").select("user_id, bio, held_at, profiles!user_id(username)").order("held_at", { ascending: true }),
-    supabaseClient.from("crisis_alerts").select("kind, ref_id"),
+    supabaseClient.from("crisis_alerts").select("kind, ref_id, level"),
   ]);
-  const crisisKeys = new Set((crisis.data || []).map((c) => c.kind + ":" + c.ref_id));
+  // kind:id -> 'direct' or 'broad' (direct wins)
+  const crisisLevels = new Map();
+  (crisis.data || []).forEach((c) => {
+    const key = c.kind + ":" + c.ref_id;
+    if (crisisLevels.get(key) !== "direct") crisisLevels.set(key, c.level || "broad");
+  });
 
   heldEl.innerHTML = "";
   const failed = [posts, comments, reviews, updates].find((res) => res.error);
@@ -864,7 +869,7 @@ async function loadHeld() {
     (bios.data || []).map((b) => ({ kind: "bio", label: "Bio", id: b.user_id, body: b.bio, held_at: b.held_at, author: b.profiles,
       context: "A new bio. Until it's approved, their profile shows their previous one." }))
   ).sort((a, b) => new Date(a.held_at) - new Date(b.held_at));
-  items.forEach((item) => { item.crisis = crisisKeys.has(item.kind + ":" + item.id); });
+  items.forEach((item) => { item.crisis = crisisLevels.get(item.kind + ":" + item.id) || null; });
 
   if (items.length === 0) {
     heldEl.appendChild(el("p", "feed-empty", "Nothing held right now."));
@@ -942,15 +947,12 @@ function pollList(options) {
 }
 
 // What may be someone in crisis opens behind its own warning, so
-// moderators can choose whether they're ready to read it
-function crisisWarning(content) {
-  const box = el("div", "crisis-warning");
-  box.appendChild(el("p", "crisis-warning-title", "Possible crisis: read only if you're prepared to"));
-  box.appendChild(el("p", null, "Automod caught words that can mean someone is in a mental health crisis. " +
-    "The filter is broad, so this is often a false alarm (like \u201cI want to die, this shade is so good\u201d), " +
-    "but it may be someone who is really struggling. They've already been sent support resources in mod mail."));
-  box.appendChild(el("p", null, "Only open it if you feel ready to read something like that. " +
-    "It's completely fine to leave it for another moderator."));
+// moderators can choose whether they're ready to read it. Two kinds:
+// 'broad' (often said casually, likely a false alarm) and 'direct'
+// (direct language or a specific method: serious). Shared with mod mail.
+function crisisWarning(content, level) {
+  const box = el("div", "crisis-warning" + (level === "direct" ? " is-serious" : ""));
+  UI.CRISIS_WARNING[level === "direct" ? "direct" : "broad"].forEach(([cls, text]) => box.appendChild(el("p", cls, text)));
   const show = el("button", "action-btn mod-btn", "Show it");
   show.type = "button";
   show.addEventListener("click", () => {
@@ -967,7 +969,9 @@ function buildHeldItem(item) {
   const meta = el("div", "post-meta");
   meta.append(
     el("span", "review-tag", item.label),
-    ...(item.crisis ? [el("span", "review-tag is-crisis", "Possible crisis")] : []),
+    ...(item.crisis ? [item.crisis === "direct"
+      ? el("span", "review-tag is-crisis is-serious", "Serious: possible crisis")
+      : el("span", "review-tag is-crisis", "Possible crisis (often a false alarm)")] : []),
     el("span", "post-author", item.author ? item.author.username : "Unknown"),
     el("span", null, "held " + formatDate(item.held_at))
   );
@@ -977,7 +981,7 @@ function buildHeldItem(item) {
   if (item.title) content.push(el("h3", "post-title", item.title));
   if (item.body) content.push(el("p", "post-body", item.body));
   if (item.options) content.push(pollList(item.options));
-  if (item.crisis) article.appendChild(crisisWarning(content));
+  if (item.crisis) article.appendChild(crisisWarning(content, item.crisis));
   else article.append(...content);
 
   const actions = el("div", "post-actions");

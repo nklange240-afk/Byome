@@ -105,6 +105,10 @@ begin
                     where a.user_id = '00000000-0000-4000-8000-000000000001' and a.message_sent) then
     raise exception 'The crisis support message wasn''t sent';
   end if;
+  -- (moderators were told plainly, not with a "hidden here" note)
+  if not exists (select 1 from notifications where type = 'modmail' and message like '%automod caught%testerone%') then
+    raise exception 'Moderators weren''t told about the crisis post';
+  end if;
   -- (a refused update changes nothing without an error, so check the result)
   if not exists (select 1 from products where name = 'Test Cleanser' and status = 'approved') then
     raise exception 'The moderator''s approval didn''t take effect';
