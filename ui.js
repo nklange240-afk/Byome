@@ -1485,8 +1485,8 @@ const UI = (function () {
   const CRISIS_WARNING = {
     broad: [
       ["crisis-warning-title", "Possible crisis, often a false alarm"],
-      [null, "Automod caught a phrase that\u2019s often said casually (like \u201ckms\u201d or \u201cI want to die, this shade is so good\u201d), " +
-        "so this is likely a false alarm. Still, it could be someone who is struggling."],
+      [null, "Automod caught a phrase that\u2019s often said casually, so this is likely a false alarm. " +
+        "Still, it could be someone who is struggling."],
       [null, "They\u2019ve already been sent support resources. If you\u2019d rather not read it right now, it\u2019s fine to leave it for another moderator."],
     ],
     direct: [
