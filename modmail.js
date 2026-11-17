@@ -58,6 +58,8 @@ const FLAG_MEANINGS = {
   explicit: "sexual words",
   offensive: "slurs or hateful words",
   harmful: "threats, self-harm or abuse",
+  crisis: "words that can mean someone is in crisis",
+  crisis_serious: "direct language about suicide or self-harm",
 };
 
 // {offensive,strong} -> "may contain offensive and strong language
@@ -72,6 +74,20 @@ function flagPhrase(flags) {
 // reminded they can leave it for someone else.
 function hiddenBehind(content, what, flags, buttonText, forMods) {
   const wrap = el("div", "flagged-hidden");
+  // A possible crisis has its own warning: a calm one for broad phrases,
+  // a serious one for direct language (database/2026-12-30-crisis-support.sql)
+  const crisisLevel = !forMods || !flags ? null
+    : flags.includes("crisis_serious") ? "direct" : flags.includes("crisis") ? "broad" : null;
+  if (crisisLevel) {
+    wrap.classList.add("crisis-warning");
+    if (crisisLevel === "direct") wrap.classList.add("is-serious");
+    UI.CRISIS_WARNING[crisisLevel].forEach(([cls, text]) => wrap.appendChild(el("p", cls, text)));
+    const showIt = el("button", "btn btn-ghost flagged-show", buttonText);
+    showIt.type = "button";
+    showIt.addEventListener("click", () => { wrap.replaceWith(content); });
+    wrap.appendChild(showIt);
+    return wrap;
+  }
   const note = el("p", "flagged-note", what + " " + flagPhrase(flags) + ".");
   wrap.appendChild(note);
   if (forMods) {

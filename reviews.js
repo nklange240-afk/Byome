@@ -1364,9 +1364,7 @@ function authorLink(profile) {
 }
 
 // Shown (to the author and moderators only) on anything automod is holding
-function heldNotice() {
-  return el("p", "held-notice", "Waiting for a moderator to review. Only you and moderators can see this for now.");
-}
+// (the held note: UI.heldNotice, which is gentler for a possible crisis)
 
 function actionButton(label) {
   const btn = el("button", "action-btn", label);
@@ -1392,7 +1390,7 @@ function buildUpdate(u, r) {
     document.createTextNode(" · " + describeGap(r.created_at, u.created_at) + " · " + formatDate(u.created_at))
   );
   box.append(label);
-  if (u.held_at) box.appendChild(heldNotice());
+  if (u.held_at) box.appendChild(UI.heldNotice(u.id));
   const newRating = EDIT_FORMS.updateRating(u);
   if (newRating) box.appendChild(newRating);
   box.append(UI.linkify(el("p", "review-update-body", u.body), Boolean(r.profiles && r.profiles.is_moderator)));
@@ -1431,13 +1429,23 @@ function buildUpdateForm(r, onSaved, onCancel) {
   submit.type = "submit";
   buttons.append(cancel, submit);
   footer.append(message, buttons);
-  form.append(textarea, picker.el, footer);
+  // "Want to update your quick answers?" (closed unless tapped)
+  const quick = typeof QUICK !== "undefined" && r.product_id ? QUICK.updatePrompt(r.product_id) : null;
+  form.append(textarea, picker.el, ...(quick ? [quick.node] : []), footer);
 
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
     const body = textarea.value.trim();
     if (!body) return;
     submit.disabled = true;
+    // Your quick answers first, so a failure posts nothing twice
+    const quickError = quick ? await quick.save() : null;
+    if (quickError) {
+      message.textContent = "Your quick answers couldn't be saved: " + quickError.message;
+      message.style.color = "#E07A5F";
+      submit.disabled = false;
+      return;
+    }
     const newRating = picker.value();
     const { error } = await supabaseClient
       .from("review_updates")
@@ -1534,7 +1542,7 @@ function buildReview(r) {
   }
   const bodyEl = UI.linkify(el("p", "post-body", r.body), Boolean(r.profiles && r.profiles.is_moderator));
   article.append(meta);
-  if (r.held_at) article.appendChild(heldNotice());
+  if (r.held_at) article.appendChild(UI.heldNotice(r.id));
   article.append(...UI.readMore(bodyEl));
 
   // Follow-up updates, oldest first
@@ -1615,7 +1623,7 @@ form.addEventListener("submit", async (event) => {
     ...eventChoices(),
     // (database/2026-12-12-gifted-reviews.sql)
     ...(document.getElementById("review-gifted").checked ? { gifted: true } : {}),
-  }).select("held_at").single();
+  }).select("id, held_at").single();
 
   if (error) {
     showFormError(newProduct
@@ -1643,7 +1651,9 @@ form.addEventListener("submit", async (event) => {
     setAddingProduct(false);
     loadMyPendingProducts();
   } else if (saved && saved.held_at) {
-    messageEl.textContent = "Thanks! Your review is waiting for a quick check by a moderator before everyone can see it." + quickNote;
+    messageEl.textContent = (await UI.heldForCrisis(saved.id)
+      ? UI.crisisPostedText("review")
+      : "Thanks! Your review is waiting for a quick check by a moderator before everyone can see it.") + quickNote;
     messageEl.style.color = "var(--gold)";
   } else {
     messageEl.textContent = quickNote ? "Thanks for your review!" + quickNote : "";

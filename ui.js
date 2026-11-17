@@ -1459,5 +1459,66 @@ const UI = (function () {
     if (document.body.dataset.biome) setBiome(document.body.dataset.biome);
   });
 
-  return { liveEvent, eventBanner, centralTime, starterChecklist, linkify, readMore, giftedTag, iconOrLabel, reviewIcons, openAccessibility, REMOVAL_REASONS, removalReasonLabel, friendlyDate, timeTag, emptyState, celebrate, checkAchievements, sparkles, itemArt, soilImage, sizeName, sizeBadge, setBiome, biomeSymbol, memberBadge, biomeSwatch, biomeLook, biomePreview, openBiomePreview, previewOnHover, previewButton, startModSession, refreshLimits, variationForm, LEVELS, levelInfo, levelBadge };
+  // ---------- Held by automod ----------
+  // The note on something of yours that automod is holding. If it was held
+  // because it sounded like you might be in crisis, a gentler note instead
+  // (database/2026-12-30-crisis-support.sql).
+  const HELD_TEXT = "Waiting for a moderator to review. Only you and moderators can see this for now.";
+  const CRISIS_HELD_TEXT = "Paused while a moderator checks in. You're not in trouble.";
+  let myCrisisRefs = null;
+  let crisisRefsAt = 0;
+  function crisisRefs(refresh) {
+    if (!myCrisisRefs || refresh) {
+      crisisRefsAt = Date.now();
+      myCrisisRefs = supabaseClient.from("crisis_alerts").select("ref_id")
+        .then((res) => new Set((res.data || []).map((r) => r.ref_id)))
+        .catch(() => new Set());
+    }
+    return myCrisisRefs;
+  }
+  // Whether one of your things was held as a possible crisis
+  async function heldForCrisis(id) {
+    return (await crisisRefs(true)).has(id);
+  }
+  // The warnings moderators see before reading something that may be
+  // someone in crisis (Moderate page and mod mail). [class, text] pairs.
+  const CRISIS_WARNING = {
+    broad: [
+      ["crisis-warning-title", "Possible crisis, often a false alarm"],
+      [null, "Automod caught a phrase that\u2019s often said casually, so this is likely a false alarm. " +
+        "Still, it could be someone who is struggling."],
+      [null, "They\u2019ve already been sent support resources. If you\u2019d rather not read it right now, it\u2019s fine to leave it for another moderator."],
+    ],
+    direct: [
+      ["crisis-warning-title", "\u26A0\uFE0F Serious: possible crisis. Read only if you\u2019re prepared to"],
+      [null, "Automod caught direct language about suicide or self-harm, or a specific method. Treat this as serious: " +
+        "it may be someone in real danger."],
+      [null, "They\u2019ve already been sent support resources and emergency numbers in mod mail. " +
+        "Check whether they\u2019ve replied, and reply yourself if you feel able to."],
+      ["crisis-warning-kind", "Only open it if you feel ready to read something distressing. It\u2019s completely fine to leave it for another moderator."],
+    ],
+  };
+
+  // Just after posting something held as a possible crisis
+  function crisisPostedText(what) {
+    return "Your " + what + " is paused while a moderator checks in. You're not in trouble. " +
+      "We've sent you a message with some support, in case you need it. You'll find it in Mod mail.";
+  }
+  function heldNotice(id) {
+    const note = document.createElement("p");
+    note.className = "held-notice";
+    note.textContent = HELD_TEXT;
+    if (id) {
+      // (something just posted may not be in the list yet: look again,
+      // at most every few seconds)
+      crisisRefs()
+        .then((refs) => (refs.has(id) || Date.now() - crisisRefsAt < 3000 ? refs : crisisRefs(true)))
+        .then((refs) => {
+          if (refs.has(id)) { note.textContent = CRISIS_HELD_TEXT; note.classList.add("is-gentle"); }
+        });
+    }
+    return note;
+  }
+
+  return { liveEvent, eventBanner, heldNotice, heldForCrisis, crisisPostedText, CRISIS_WARNING, centralTime, starterChecklist, linkify, readMore, giftedTag, iconOrLabel, reviewIcons, openAccessibility, REMOVAL_REASONS, removalReasonLabel, friendlyDate, timeTag, emptyState, celebrate, checkAchievements, sparkles, itemArt, soilImage, sizeName, sizeBadge, setBiome, biomeSymbol, memberBadge, biomeSwatch, biomeLook, biomePreview, openBiomePreview, previewOnHover, previewButton, startModSession, refreshLimits, variationForm, LEVELS, levelInfo, levelBadge };
 })();
