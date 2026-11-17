@@ -9122,3 +9122,14 @@ dialog.daily-dialog {
 .held-notice.is-gentle {
   color: var(--leaf-text);
 }
+
+/* "Heads up": words automod will flag, shown while writing (ui.js) */
+.automod-note {
+  margin: 0.35rem 0 0.6rem;
+  padding: 0.55rem 0.75rem;
+  border-left: 3px solid var(--gold);
+  border-radius: 6px;
+  background-color: rgba(224, 168, 62, 0.08);
+  font-size: 0.85rem;
+  line-height: 1.4;
+}

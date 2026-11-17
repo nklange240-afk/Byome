@@ -146,6 +146,7 @@ const EDIT_FORMS = (function () {
     buttons.append(cancel, save);
     footer.append(message, buttons);
     form.append(titleInput, bodyInput, footer);
+    UI.automodWatch([titleInput, bodyInput], { what: "post", verb: "save" });
 
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
@@ -289,6 +290,7 @@ const EDIT_FORMS = (function () {
     buttons.append(cancel, save);
     footer.append(message, buttons);
     form.append(titleInput, bodyInput, footer);
+    UI.automodWatch([titleInput, bodyInput], { what: "review", verb: "save" });
 
     form.addEventListener("submit", async (event) => {
       event.preventDefault();

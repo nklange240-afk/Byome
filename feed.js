@@ -4,6 +4,8 @@ const postTitle = document.getElementById("post-title");
 const postBody = document.getElementById("post-body");
 const postMessage = document.getElementById("post-message");
 const postCategory = document.getElementById("post-category");
+// A heads-up while writing if automod will flag any words (ui.js)
+UI.automodWatch([postTitle, postBody], { what: "post", verb: "post" });
 const categoryFilter = document.getElementById("category-filter");
 
 // After this many levels of replies, deeper replies stop indenting
@@ -629,6 +631,7 @@ function buildCommentEditForm(comment, refresh, onCancel) {
   buttons.append(cancel, save);
   footer.append(message, buttons);
   form.append(textarea, footer);
+  UI.automodWatch([textarea], { what: "comment", verb: "save" });
 
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -670,6 +673,7 @@ function buildCommentForm(postId, parentId, placeholder, submitLabel, refresh) {
   footer.append(message, submit);
 
   form.append(textarea, footer);
+  UI.automodWatch([textarea], { what: "comment", verb: "post" });
 
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
