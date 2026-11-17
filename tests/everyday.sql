@@ -114,6 +114,13 @@ begin
   if not text_is_flagged('f*ck') or not text_is_flagged('eff you') or text_is_flagged('effortless glow') then
     raise exception 'Automod''s star and new-word matching is off';
   end if;
+  -- (tricks: "!" for i, spaced letters, accents, hidden characters; but not
+  -- two ordinary words that happen to spell one, or beauty words)
+  if not text_is_flagged('sh!t') or not text_is_flagged('c u n t') or not text_is_flagged('fück')
+     or not text_is_flagged(E'fu\u200Bck') or not text_is_flagged('cheese pizza')
+     or text_is_flagged('owner''s picks so far') or text_is_flagged('a bloody good nude shade, like Orgasm') then
+    raise exception 'Automod''s sweep matching is off';
+  end if;
   perform set_config('request.jwt.claims', json_build_object('sub', '00000000-0000-4000-8000-000000000001')::text, true);
   if automod_check('no sh*t, the best') <> array['sh*t'] or cardinality(automod_check('I want to die, this is so good')) <> 0 then
     raise exception 'The automod heads-up is off';
