@@ -1361,6 +1361,60 @@ const UI = (function () {
     if (netNote && !netNote.dataset.stuck) { netNote.remove(); netNote = null; }
   });
 
+  // ---------- Automod heads-up while writing ----------
+  // As a member writes, says which of their words automod will flag, so
+  // they can change them, or post anyway if it's fine (a product or shade
+  // name, say) and a moderator will check it. Only their own words come
+  // back, never the list; crisis phrases are left out on purpose
+  // (database/2026-12-31-automod-stars-and-preview.sql).
+  //   UI.automodWatch([titleInput, bodyInput], { what: "post", verb: "post" })
+  function quoteList(words) {
+    const q = words.map((w) => "\u201c" + w + "\u201d");
+    return q.length === 1 ? q[0] : q.slice(0, -1).join(", ") + " and " + q[q.length - 1];
+  }
+  function automodWatch(fields, opts) {
+    fields = (fields || []).filter(Boolean);
+    if (!fields.length || typeof supabaseClient === "undefined") return null;
+    opts = opts || {};
+    const what = opts.what || "post";
+    const verb = opts.verb || "post";
+    const note = el("p", "automod-note");
+    note.setAttribute("role", "status");
+    note.hidden = true;
+    let timer = null;
+    let token = 0;
+    function place() {
+      // under the last box (and its character counter)
+      const last = fields[fields.length - 1];
+      const anchor = last.nextElementSibling && last.nextElementSibling.classList.contains("limit-count")
+        ? last.nextElementSibling : last;
+      if (anchor.nextElementSibling !== note) anchor.after(note);
+    }
+    async function check() {
+      const text = fields.map((f) => f.value).join("\n");
+      const mine = ++token;
+      if (!text.trim()) { note.hidden = true; return; }
+      let res = null;
+      try { res = await supabaseClient.rpc("automod_check", { p_text: text }); } catch (e) { return; }
+      if (mine !== token) return; // they've typed more since
+      const words = res && !res.error && Array.isArray(res.data) ? res.data : [];
+      if (!words.length) { note.hidden = true; return; }
+      note.textContent = "Heads up: your " + what + " includes " + quoteList(words) +
+        ", which Byome\u2019s automod will flag. If that\u2019s a mistake (say it\u2019s part of a product or shade name), " +
+        "or you\u2019re not using it in a harmful way, you can still " + verb + " it as is. " +
+        "A moderator will review it before it goes live.";
+      place();
+      note.hidden = false;
+    }
+    fields.forEach((f) => {
+      f.addEventListener("input", () => { clearTimeout(timer); timer = setTimeout(check, 700); });
+      if (f.form) f.form.addEventListener("reset", () => { token++; clearTimeout(timer); note.hidden = true; });
+    });
+    // (an edit form starts with words already in it)
+    if (fields.some((f) => f.value.trim())) check();
+    return { check, note };
+  }
+
   // ---------- Text limits ----------
   // Every text box with a limit gets a counter underneath ("120 / 2000").
   // Browsers count each line break as two characters toward maxlength, so
@@ -1520,5 +1574,5 @@ const UI = (function () {
     return note;
   }
 
-  return { liveEvent, eventBanner, heldNotice, heldForCrisis, crisisPostedText, CRISIS_WARNING, centralTime, starterChecklist, linkify, readMore, giftedTag, iconOrLabel, reviewIcons, openAccessibility, REMOVAL_REASONS, removalReasonLabel, friendlyDate, timeTag, emptyState, celebrate, checkAchievements, sparkles, itemArt, soilImage, sizeName, sizeBadge, setBiome, biomeSymbol, memberBadge, biomeSwatch, biomeLook, biomePreview, openBiomePreview, previewOnHover, previewButton, startModSession, refreshLimits, variationForm, LEVELS, levelInfo, levelBadge };
+  return { liveEvent, eventBanner, heldNotice, heldForCrisis, crisisPostedText, CRISIS_WARNING, automodWatch, centralTime, starterChecklist, linkify, readMore, giftedTag, iconOrLabel, reviewIcons, openAccessibility, REMOVAL_REASONS, removalReasonLabel, friendlyDate, timeTag, emptyState, celebrate, checkAchievements, sparkles, itemArt, soilImage, sizeName, sizeBadge, setBiome, biomeSymbol, memberBadge, biomeSwatch, biomeLook, biomePreview, openBiomePreview, previewOnHover, previewButton, startModSession, refreshLimits, variationForm, LEVELS, levelInfo, levelBadge };
 })();

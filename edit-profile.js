@@ -209,6 +209,8 @@ const BIO_PROBLEMS = {
 };
 
 const bioInput = document.getElementById("bio");
+// A heads-up while writing if automod will flag any words (ui.js)
+if (bioInput) UI.automodWatch([bioInput], { what: "bio", verb: "save" });
 // A new bio automod flagged waits for a moderator; until then the profile
 // shows the old one (database/2026-12-30-crisis-support.sql)
 let heldBio = null;

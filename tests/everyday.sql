@@ -69,6 +69,7 @@ select pg_temp.try('catch a falling leaf', $q$select drifter_catch((drifter_appe
 select pg_temp.try('answer quick questions', $q$select save_quick_answers('00000000-0000-4000-9000-000000000002', '{"mk-apply": true, "mk-wear": true, "mk-scent": true, "mk-scent-like": false, "mk-value": true}')$q$);
 select pg_temp.try('see quick question totals', $q$select quick_answer_stats('00000000-0000-4000-9000-000000000002')$q$);
 select pg_temp.try('post that may need support', $q$insert into posts (title, body, category, user_id) values ('A hard day', 'Honestly I don''t want to be here anymore.', 'Skincare', auth.uid())$q$);
+select pg_temp.try('automod heads-up while writing', $q$select automod_check('This serum is no sh*t the best')$q$);
 select pg_temp.try('mod mail', $q$select modmail_start('message', 'A question', 'How do I change my shelf?')$q$);
 select pg_temp.try('feedback', $q$select modmail_start('feedback', 'An idea', 'It would be lovely to sort reviews by rating.')$q$);
 reset role;
@@ -86,7 +87,7 @@ declare refused text;
 begin
   select string_agg(label || ' (' || outcome || ')', '; ') into refused from results where outcome <> 'ok';
   if refused is not null then raise exception 'Some everyday actions were refused: %', refused; end if;
-  if (select count(*) from results) < 21 then raise exception 'Some actions didn''t run'; end if;
+  if (select count(*) from results) < 22 then raise exception 'Some actions didn''t run'; end if;
   -- (the falling leaf really paid out: points, or an item, for member one)
   if not exists (select 1 from drifter_sightings where user_id = '00000000-0000-4000-8000-000000000001' and caught_at is not null
                  and (item_key is not null or exists (select 1 from point_ledger l where l.action = 'drifter_catch'
@@ -108,6 +109,14 @@ begin
   -- (moderators were told plainly, not with a "hidden here" note)
   if not exists (select 1 from notifications where type = 'modmail' and message like '%automod caught%testerone%') then
     raise exception 'Moderators weren''t told about the crisis post';
+  end if;
+  -- (a star in place of a letter is caught; the heads-up names it, and never a crisis phrase)
+  if not text_is_flagged('f*ck') or not text_is_flagged('eff you') or text_is_flagged('effortless glow') then
+    raise exception 'Automod''s star and new-word matching is off';
+  end if;
+  perform set_config('request.jwt.claims', json_build_object('sub', '00000000-0000-4000-8000-000000000001')::text, true);
+  if automod_check('no sh*t, the best') <> array['sh*t'] or cardinality(automod_check('I want to die, this is so good')) <> 0 then
+    raise exception 'The automod heads-up is off';
   end if;
   -- (a refused update changes nothing without an error, so check the result)
   if not exists (select 1 from products where name = 'Test Cleanser' and status = 'approved') then
