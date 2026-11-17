@@ -359,7 +359,7 @@ declare
   t text := btrim(coalesce(p_text, ''), E' \t\r\n');
   emojis int;
 begin
-  t := regexp_replace(t, '[️‍\U0001F3FB-\U0001F3FF\U000E0020-\U000E007F]', '', 'g');
+  t := regexp_replace(t, '[\uFE0F\u200D\U0001F3FB-\U0001F3FF\U000E0020-\U000E007F]', '', 'g');
   emojis := length(t) - length(regexp_replace(t, '[\U0001F000-\U0001FAFF☀-➿⌀-⏿⬀-⯿]', '', 'g'));
   return length(t) - emojis + least(emojis, 2);
 end $$;

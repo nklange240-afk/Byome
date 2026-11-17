@@ -115,7 +115,7 @@ on conflict (word) do update set category = excluded.category;
 create or replace function public.automod_normalize(p_text text) returns text
 language sql immutable set search_path to public as $$
   select translate(
-    regexp_replace(lower(p_text), '[​-‍⁠﻿­]', '', 'g'),
+    regexp_replace(lower(p_text), '[\u200B-\u200D\u2060\uFEFF\u00AD]', '', 'g'),
     '013457@$!|àáâãäåāèéêëēìíîïīòóôõöøōùúûüūýÿñçßаеорсухіјѕһԁӏԝɡοαικντυρ',
     'oieastasilaaaaaaaeeeeeiiiiiooooooouuuuuyyncsaeopcyxijshdlwgoaikvtup')
 $$;

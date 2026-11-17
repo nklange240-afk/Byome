@@ -8,6 +8,8 @@
 //    and new files)
 //  - a database function deletes or updates without a "where" (Supabase
 //    refuses those for the site's requests: "DELETE requires a WHERE clause")
+//  - a database file has invisible characters (they get lost when the SQL
+//    is copied from a phone, quietly changing what it does)
 const fs = require("fs");
 const path = require("path");
 const vm = require("vm");
@@ -77,6 +79,14 @@ for (const f of fs.readdirSync(path.join(root, "database")).filter((f) => /^\d.*
       if (!/\bwhere\b/i.test(m[0])) problems.push(`database/${f}: "${m[0].split("\n")[0].trim()}" has no "where" (Supabase refuses it)`);
     }
   }
+}
+
+// No invisible characters in database files (write them as \u200B etc.)
+for (const f of fs.readdirSync(path.join(root, "database")).filter((f) => f.endsWith(".sql"))) {
+  const lines = fs.readFileSync(path.join(root, "database", f), "utf8").split("\n");
+  lines.forEach((line, i) => {
+    if (/[\u200B-\u200F\u2060\uFEFF\u00AD]/.test(line)) problems.push(`database/${f}, line ${i + 1}: an invisible character (write it as \\u200B or similar)`);
+  });
 }
 
 if (problems.length) {
