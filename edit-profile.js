@@ -209,6 +209,22 @@ const BIO_PROBLEMS = {
 };
 
 const bioInput = document.getElementById("bio");
+// A new bio automod flagged waits for a moderator; until then the profile
+// shows the old one (database/2026-12-30-crisis-support.sql)
+let heldBio = null;
+function showHeldBio(gentle) {
+  let note = document.getElementById("bio-held");
+  if (heldBio === null) { if (note) note.remove(); return; }
+  if (!note) {
+    note = document.createElement("p");
+    note.id = "bio-held";
+    note.className = "held-notice";
+    (document.getElementById("bio-hint") || bioInput).after(note);
+  }
+  note.textContent = gentle
+    ? "Your new bio is paused while a moderator checks in. You're not in trouble. For now, your profile shows your previous bio."
+    : "Your new bio is waiting for a moderator to review. For now, your profile shows your previous bio.";
+}
 
 document.getElementById("profile-form").addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -229,16 +245,29 @@ document.getElementById("profile-form").addEventListener("submit", async (event)
   if (result !== "ok") { say("profile-message", USERNAME_PROBLEMS[result] || "Couldn't save.", false); return; }
   // The bio is saved on its own (database/2026-11-16-starter-checklist.sql)
   const bio = bioInput.value.trim();
-  if (bio !== (profile.bio || "")) {
+  let bioNote = null;
+  if (bio !== (heldBio !== null ? heldBio : profile.bio || "")) {
     const { data: bioResult, error: bioError } = await supabaseClient.rpc("set_my_bio", { p_bio: bio });
     if (bioError) { say("profile-message", "Couldn't save your bio: " + bioError.message, false); return; }
-    if (bioResult !== "ok") { say("profile-message", BIO_PROBLEMS[bioResult] || "Couldn't save your bio.", false); return; }
-    profile.bio = bio;
+    if (bioResult === "held") {
+      heldBio = bio;
+      const gentle = await UI.heldForCrisis(me);
+      showHeldBio(gentle);
+      bioNote = gentle ? UI.crisisPostedText("new bio")
+        : "Saved! Your new bio is waiting for a moderator to review, because automod flagged some of its words.";
+    } else if (bioResult !== "ok") {
+      say("profile-message", BIO_PROBLEMS[bioResult] || "Couldn't save your bio.", false);
+      return;
+    } else {
+      profile.bio = bio;
+      heldBio = null;
+      showHeldBio(false);
+    }
   }
   profile.username = username;
   const menuName = document.getElementById("header-username");
   if (menuName) menuName.textContent = username;
-  say("profile-message", "Saved!", true);
+  say("profile-message", bioNote || "Saved!", true);
 });
 
 // ---------- Delete account ----------
@@ -295,7 +324,17 @@ deleteBtn.addEventListener("click", async () => {
   buildRingPicker();
   buildBiomePicker();
   document.getElementById("username").value = profile.username;
-  if (document.getElementById("bio")) { bioInput.value = profile.bio || ""; UI.refreshLimits(); }
+  if (document.getElementById("bio")) {
+    bioInput.value = profile.bio || "";
+    // (a new bio still waiting for a moderator shows instead)
+    const held = await supabaseClient.from("held_bios").select("bio").eq("user_id", me).maybeSingle();
+    if (!held.error && held.data) {
+      heldBio = held.data.bio;
+      bioInput.value = heldBio;
+      showHeldBio(await UI.heldForCrisis(me));
+    }
+    UI.refreshLimits();
+  }
   buildChoices("skin-type", "skin-type", PROFILES.SKIN_TYPES, "radio", profile.skin_type);
   buildChoices("skin-concerns", "skin-concerns", PROFILES.SKIN_CONCERNS, "checkbox", profile.skin_concerns);
   buildChoices("hair-type", "hair-type", PROFILES.HAIR_TYPES, "radio", profile.hair_type);

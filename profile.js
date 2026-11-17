@@ -60,9 +60,7 @@ function metaRow(createdAt, editedAt) {
 // ---------- Editing your own posts and reviews from your profile ----------
 // Same forms as the feed and reviews pages (edit-forms.js).
 
-function heldNotice() {
-  return el("p", "held-notice", "Waiting for a moderator to review. Only you and moderators can see this for now.");
-}
+// (the held note: UI.heldNotice, which is gentler for a possible crisis)
 
 // Edit / Delete buttons. `parts` are the bits of the card hidden while editing.
 function ownerActions(article, parts, table, id, label, makeForm, reload, extraButtons) {
@@ -117,7 +115,7 @@ function reviewUpdateBox(u, r, isMe, reload) {
   label.append(el("strong", null, "Update"),
     document.createTextNode(" \u00b7 " + describeGap(r.created_at, u.created_at) + " \u00b7 " + formatDate(u.created_at)));
   box.appendChild(label);
-  if (u.held_at) box.appendChild(heldNotice());
+  if (u.held_at) box.appendChild(UI.heldNotice(u.id));
   const newRating = EDIT_FORMS.updateRating(u);
   if (newRating) box.appendChild(newRating);
   box.appendChild(UI.linkify(el("p", "review-update-body", u.body), contentByModerator));
@@ -201,7 +199,7 @@ function buildPostCard(p, isMe, reload) {
   const parts = [];
   if (p.title) parts.push(el("h2", "post-title", p.title));
   parts.push(metaRow(p.created_at, p.edited_at));
-  if (p.held_at) parts.push(heldNotice());
+  if (p.held_at) parts.push(UI.heldNotice(p.id));
   if (p.body) parts.push(...UI.readMore(UI.linkify(el("p", "post-body", p.body), contentByModerator)));
   // A poll: its options in one line (voting happens on Community)
   const poll = Array.isArray(p.polls) ? p.polls[0] : p.polls;
@@ -265,7 +263,7 @@ function buildReviewCard(r, isMe, reload) {
   if (tags.children.length) article.appendChild(tags);
 
   article.appendChild(metaRow(r.created_at, r.edited_at));
-  if (r.held_at) article.appendChild(heldNotice());
+  if (r.held_at) article.appendChild(UI.heldNotice(r.id));
   article.append(...UI.readMore(UI.linkify(el("p", "post-body", r.body), contentByModerator)));
   (r.review_updates || []).slice().sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
     .forEach((u) => article.appendChild(reviewUpdateBox(u, r, isMe, reload)));

@@ -1459,5 +1459,47 @@ const UI = (function () {
     if (document.body.dataset.biome) setBiome(document.body.dataset.biome);
   });
 
-  return { liveEvent, eventBanner, centralTime, starterChecklist, linkify, readMore, giftedTag, iconOrLabel, reviewIcons, openAccessibility, REMOVAL_REASONS, removalReasonLabel, friendlyDate, timeTag, emptyState, celebrate, checkAchievements, sparkles, itemArt, soilImage, sizeName, sizeBadge, setBiome, biomeSymbol, memberBadge, biomeSwatch, biomeLook, biomePreview, openBiomePreview, previewOnHover, previewButton, startModSession, refreshLimits, variationForm, LEVELS, levelInfo, levelBadge };
+  // ---------- Held by automod ----------
+  // The note on something of yours that automod is holding. If it was held
+  // because it sounded like you might be in crisis, a gentler note instead
+  // (database/2026-12-30-crisis-support.sql).
+  const HELD_TEXT = "Waiting for a moderator to review. Only you and moderators can see this for now.";
+  const CRISIS_HELD_TEXT = "Paused while a moderator checks in. You're not in trouble.";
+  let myCrisisRefs = null;
+  let crisisRefsAt = 0;
+  function crisisRefs(refresh) {
+    if (!myCrisisRefs || refresh) {
+      crisisRefsAt = Date.now();
+      myCrisisRefs = supabaseClient.from("crisis_alerts").select("ref_id")
+        .then((res) => new Set((res.data || []).map((r) => r.ref_id)))
+        .catch(() => new Set());
+    }
+    return myCrisisRefs;
+  }
+  // Whether one of your things was held as a possible crisis
+  async function heldForCrisis(id) {
+    return (await crisisRefs(true)).has(id);
+  }
+  // Just after posting something held as a possible crisis
+  function crisisPostedText(what) {
+    return "Your " + what + " is paused while a moderator checks in. You're not in trouble. " +
+      "We've sent you a message with some support, in case you need it. You'll find it in Mod mail.";
+  }
+  function heldNotice(id) {
+    const note = document.createElement("p");
+    note.className = "held-notice";
+    note.textContent = HELD_TEXT;
+    if (id) {
+      // (something just posted may not be in the list yet: look again,
+      // at most every few seconds)
+      crisisRefs()
+        .then((refs) => (refs.has(id) || Date.now() - crisisRefsAt < 3000 ? refs : crisisRefs(true)))
+        .then((refs) => {
+          if (refs.has(id)) { note.textContent = CRISIS_HELD_TEXT; note.classList.add("is-gentle"); }
+        });
+    }
+    return note;
+  }
+
+  return { liveEvent, eventBanner, heldNotice, heldForCrisis, crisisPostedText, centralTime, starterChecklist, linkify, readMore, giftedTag, iconOrLabel, reviewIcons, openAccessibility, REMOVAL_REASONS, removalReasonLabel, friendlyDate, timeTag, emptyState, celebrate, checkAchievements, sparkles, itemArt, soilImage, sizeName, sizeBadge, setBiome, biomeSymbol, memberBadge, biomeSwatch, biomeLook, biomePreview, openBiomePreview, previewOnHover, previewButton, startModSession, refreshLimits, variationForm, LEVELS, levelInfo, levelBadge };
 })();

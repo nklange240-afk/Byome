@@ -9070,3 +9070,32 @@ dialog.daily-dialog {
 .update-rating .rating-leaf.on.is-current {
   opacity: 0.45;
 }
+
+/* A possible crisis: its own warning before moderators read it
+   (moderate-products.js, modmail.js) */
+.crisis-warning {
+  border: 1px solid var(--gold);
+  border-radius: 10px;
+  padding: 0.7rem 0.85rem;
+  margin: 0.5rem 0;
+  background-color: rgba(224, 168, 62, 0.08);
+}
+
+.crisis-warning p {
+  margin: 0 0 0.5rem;
+  font-size: 0.9rem;
+}
+
+.crisis-warning-title {
+  font-weight: 600;
+  color: var(--gold-text);
+}
+
+.review-tag.is-crisis {
+  background-color: var(--gold);
+  color: var(--forest-dark);
+}
+
+.held-notice.is-gentle {
+  color: var(--leaf-text);
+}

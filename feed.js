@@ -117,9 +117,7 @@ function buildMeta(profile, createdAt, editedAt) {
 }
 
 // Shown (to the author and moderators only) on anything automod is holding
-function heldNotice() {
-  return el("p", "held-notice", "Waiting for a moderator to review. Only you and moderators can see this for now.");
-}
+// (the held note: UI.heldNotice, which is gentler for a possible crisis)
 
 function actionButton(label) {
   const btn = el("button", "action-btn", label);
@@ -386,7 +384,7 @@ function buildPost(post, pollResult) {
     article.appendChild(categoryTag(post.category));
   }
   article.appendChild(buildMeta(post.profiles, post.created_at, post.edited_at));
-  if (post.held_at) article.appendChild(heldNotice());
+  if (post.held_at) article.appendChild(UI.heldNotice(post.id));
   if (post.body) article.append(...UI.readMore(UI.linkify(el("p", "post-body", post.body), byModerator(post.profiles))));
   let pollVotes = pollResult ? pollResult.total : 0;
   if (poll) {
@@ -546,7 +544,7 @@ function buildComment(comment, depth, postId, refresh) {
   wrap.dataset.commentId = comment.id;
 
   wrap.appendChild(buildMeta(comment.profiles, comment.created_at, comment.edited_at));
-  if (comment.held_at) wrap.appendChild(heldNotice());
+  if (comment.held_at) wrap.appendChild(UI.heldNotice(comment.id));
   const bodyEl = UI.linkify(el("p", "comment-body", comment.body), byModerator(comment.profiles));
   wrap.appendChild(bodyEl);
 
@@ -731,7 +729,7 @@ postForm.addEventListener("submit", async (event) => {
       p_options: pollComposer.options(), p_days: pollComposer.days(),
     });
     error = res.error;
-    saved = res.data ? { held_at: res.data.held } : null;
+    saved = res.data ? { id: res.data.id, held_at: res.data.held } : null;
     // a poll joins the event straight after it's made
     if (!error && res.data && eventChosen()) {
       await supabaseClient.from("posts").update({ event_key: liveEvent.key }).eq("id", res.data.id);
@@ -741,7 +739,7 @@ postForm.addEventListener("submit", async (event) => {
       .from("posts")
       .insert(Object.assign({ title: title, body: body, category: category, user_id: currentUser.id },
         eventChosen() ? { event_key: liveEvent.key } : {}))
-      .select("held_at")
+      .select("id, held_at")
       .single();
     error = res.error;
     saved = res.data;
@@ -754,7 +752,9 @@ postForm.addEventListener("submit", async (event) => {
   }
 
   if (saved && saved.held_at) {
-    postMessage.textContent = "Thanks! Your post is waiting for a quick check by a moderator before everyone can see it.";
+    postMessage.textContent = saved.id && await UI.heldForCrisis(saved.id)
+      ? UI.crisisPostedText("post")
+      : "Thanks! Your post is waiting for a quick check by a moderator before everyone can see it.";
     postMessage.style.color = "var(--gold)";
   } else {
     postMessage.textContent = "";

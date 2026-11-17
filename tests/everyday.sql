@@ -68,6 +68,7 @@ select pg_temp.try('daily surprise', $q$select claim_daily_gift()$q$);
 select pg_temp.try('catch a falling leaf', $q$select drifter_catch((drifter_appear() ->> 'id')::uuid)$q$);
 select pg_temp.try('answer quick questions', $q$select save_quick_answers('00000000-0000-4000-9000-000000000002', '{"mk-apply": true, "mk-wear": true, "mk-scent": true, "mk-scent-like": false, "mk-value": true}')$q$);
 select pg_temp.try('see quick question totals', $q$select quick_answer_stats('00000000-0000-4000-9000-000000000002')$q$);
+select pg_temp.try('post that may need support', $q$insert into posts (title, body, category, user_id) values ('A hard day', 'Honestly I don''t want to be here anymore.', 'Skincare', auth.uid())$q$);
 select pg_temp.try('mod mail', $q$select modmail_start('message', 'A question', 'How do I change my shelf?')$q$);
 select pg_temp.try('feedback', $q$select modmail_start('feedback', 'An idea', 'It would be lovely to sort reviews by rating.')$q$);
 reset role;
@@ -85,7 +86,7 @@ declare refused text;
 begin
   select string_agg(label || ' (' || outcome || ')', '; ') into refused from results where outcome <> 'ok';
   if refused is not null then raise exception 'Some everyday actions were refused: %', refused; end if;
-  if (select count(*) from results) < 20 then raise exception 'Some actions didn''t run'; end if;
+  if (select count(*) from results) < 21 then raise exception 'Some actions didn''t run'; end if;
   -- (the falling leaf really paid out: points, or an item, for member one)
   if not exists (select 1 from drifter_sightings where user_id = '00000000-0000-4000-8000-000000000001' and caught_at is not null
                  and (item_key is not null or exists (select 1 from point_ledger l where l.action = 'drifter_catch'
@@ -97,6 +98,12 @@ begin
      or not exists (select 1 from point_ledger where user_id = '00000000-0000-4000-8000-000000000001'
                     and action = 'quick_answers' and revoked_at is null) then
     raise exception 'The quick answers weren''t saved';
+  end if;
+  -- (a post that may be someone in crisis is held, and support is sent in mod mail)
+  if not exists (select 1 from posts where title = 'A hard day' and held_at is not null)
+     or not exists (select 1 from crisis_alerts a join modmail_messages m on m.thread_id = a.thread_id and m.from_mods
+                    where a.user_id = '00000000-0000-4000-8000-000000000001' and a.message_sent) then
+    raise exception 'The crisis support message wasn''t sent';
   end if;
   -- (a refused update changes nothing without an error, so check the result)
   if not exists (select 1 from products where name = 'Test Cleanser' and status = 'approved') then

@@ -58,6 +58,7 @@ const FLAG_MEANINGS = {
   explicit: "sexual words",
   offensive: "slurs or hateful words",
   harmful: "threats, self-harm or abuse",
+  crisis: "words that can mean someone is in crisis",
 };
 
 // {offensive,strong} -> "may contain offensive and strong language
@@ -72,6 +73,21 @@ function flagPhrase(flags) {
 // reminded they can leave it for someone else.
 function hiddenBehind(content, what, flags, buttonText, forMods) {
   const wrap = el("div", "flagged-hidden");
+  // A possible crisis has its own warning (database/2026-12-30-crisis-support.sql)
+  if (forMods && flags && flags.includes("crisis")) {
+    wrap.classList.add("crisis-warning");
+    wrap.appendChild(el("p", "crisis-warning-title", "Possible crisis: read only if you're prepared to"));
+    wrap.appendChild(el("p", "flagged-note", "Automod caught words that can mean someone is in a mental health crisis. " +
+      "The filter is broad, so this is often a false alarm, but it may be someone who is really struggling. " +
+      "They've already been sent support resources in this conversation."));
+    wrap.appendChild(el("p", "flagged-kind", "Only open it if you feel ready to read something like that. " +
+      "It's completely fine to leave it for another moderator."));
+    const showIt = el("button", "btn btn-ghost flagged-show", buttonText);
+    showIt.type = "button";
+    showIt.addEventListener("click", () => { wrap.replaceWith(content); });
+    wrap.appendChild(showIt);
+    return wrap;
+  }
   const note = el("p", "flagged-note", what + " " + flagPhrase(flags) + ".");
   wrap.appendChild(note);
   if (forMods) {
