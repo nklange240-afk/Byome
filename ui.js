@@ -1583,7 +1583,7 @@ const UI = (function () {
     ],
     direct: [
       ["crisis-warning-title", "\u26A0\uFE0F Serious: possible crisis. Read only if you\u2019re prepared to"],
-      [null, "Automod caught direct language about suicide or self-harm, or a specific method. Treat this as serious: " +
+      [null, "Automod caught direct language about suicide, self-harm or hurting others, or a specific method. Treat this as serious: " +
         "it may be someone in real danger."],
       [null, "They\u2019ve already been sent support resources and emergency numbers in mod mail. " +
         "Check whether they\u2019ve replied, and reply yourself if you feel able to."],

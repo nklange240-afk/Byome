@@ -115,6 +115,11 @@ begin
   if not text_is_flagged('f*ck') or not text_is_flagged('eff you') or text_is_flagged('effortless glow') then
     raise exception 'Automod''s star and new-word matching is off';
   end if;
+  -- (threats are held; urges to hurt others are a serious crisis; beauty talk isn't caught)
+  if not text_is_flagged('I''ll hurt you') or text_crisis_level('I want to hurt somebody') is distinct from 'direct'
+     or text_is_flagged('this could hurt someone with sensitive skin') then
+    raise exception 'Automod''s threat matching is off';
+  end if;
   -- (tricks: "!" for i, spaced letters, accents, hidden characters; but not
   -- two ordinary words that happen to spell one, or beauty words)
   if not text_is_flagged('sh!t') or not text_is_flagged('c u n t') or not text_is_flagged('fück')
