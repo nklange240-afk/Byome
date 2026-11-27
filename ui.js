@@ -1574,5 +1574,26 @@ const UI = (function () {
     return note;
   }
 
+  // ---------- Gifts for every member ----------
+  // Something given to everyone (the Christmas tree): the first page a
+  // member opens while it's on gives it to them, with a pop-up. Asked at
+  // most every few minutes per device (database/2027-01-03-christmas-tree.sql).
+  const GIFT_KEY = "byome-gifts-checked";
+  async function claimGifts() {
+    if (typeof supabaseClient === "undefined") return;
+    try {
+      if (Date.now() - Number(localStorage.getItem(GIFT_KEY) || 0) < 5 * 60000) return;
+    } catch (e) { /* fine */ }
+    let session = null;
+    try { session = (await supabaseClient.auth.getSession()).data.session; } catch (e) { return; }
+    if (!session) return;
+    const { data, error } = await supabaseClient.rpc("claim_gifts");
+    if (error) return; // (not set up yet)
+    try { localStorage.setItem(GIFT_KEY, String(Date.now())); } catch (e) { /* fine */ }
+    (data || []).forEach((g) => celebrate({ label: "A gift for you", heading: g.name, text: g.message, item: g }));
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => setTimeout(claimGifts, 800));
+  else setTimeout(claimGifts, 800);
+
   return { liveEvent, eventBanner, heldNotice, heldForCrisis, crisisPostedText, CRISIS_WARNING, automodWatch, centralTime, starterChecklist, linkify, readMore, giftedTag, iconOrLabel, reviewIcons, openAccessibility, REMOVAL_REASONS, removalReasonLabel, friendlyDate, timeTag, emptyState, celebrate, checkAchievements, sparkles, itemArt, soilImage, sizeName, sizeBadge, setBiome, biomeSymbol, memberBadge, biomeSwatch, biomeLook, biomePreview, openBiomePreview, previewOnHover, previewButton, startModSession, refreshLimits, variationForm, LEVELS, levelInfo, levelBadge };
 })();

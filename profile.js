@@ -438,6 +438,9 @@ async function showPoints(userId, isModerator) {
 // companion column comes from database/2026-10-23-referral-rewards.sql;
 // until that's run, load without it.
 async function loadSlots(profileId) {
+  // (themes come from database/2027-01-03-christmas-tree.sql)
+  const withTheme = await supabaseClient.from("biome_slots").select("slot, pot_key, plant_key, companion_key, theme").eq("user_id", profileId);
+  if (!withTheme.error || !/theme/.test(withTheme.error.message)) return withTheme;
   const res = await supabaseClient.from("biome_slots").select("slot, pot_key, plant_key, companion_key").eq("user_id", profileId);
   if (!res.error || !/companion/.test(res.error.message)) return res;
   return supabaseClient.from("biome_slots").select("slot, pot_key, plant_key").eq("user_id", profileId);
@@ -445,7 +448,7 @@ async function loadSlots(profileId) {
 
 function slotsByNumber(rows) {
   const placed = {};
-  (rows || []).forEach((row) => { placed[row.slot] = { pot: row.pot_key, plant: row.plant_key, companion: row.companion_key || null }; });
+  (rows || []).forEach((row) => { placed[row.slot] = { pot: row.pot_key, plant: row.plant_key, companion: row.companion_key || null, theme: row.theme || null }; });
   return placed;
 }
 
@@ -457,8 +460,11 @@ async function showBiome(profileId, isMe) {
   const arrangeBtn = document.getElementById("biome-arrange");
   const waitingEl = document.getElementById("biome-waiting");
 
-  const [itemsRes, slotsRes, shelfRes, ownedRes, rewardsRes] = await Promise.all([
-    supabaseClient.from("biome_items").select("key, kind, size, name, description, rarity, image, starter, sort_order, over_pot").order("sort_order"),
+  const itemColumns = "key, kind, size, name, description, rarity, image, starter, sort_order, over_pot";
+  const [itemsRes, slotsRes, shelfRes, ownedRes, rewardsRes, themesRes] = await Promise.all([
+    // (holds_plant and tall come from database/2027-01-03-christmas-tree.sql)
+    supabaseClient.from("biome_items").select(itemColumns + ", holds_plant, tall").order("sort_order")
+      .then((res) => (res.error ? supabaseClient.from("biome_items").select(itemColumns).order("sort_order") : res)),
     loadSlots(profileId),
     // (the shelf decoration comes from database/2026-10-29-events-halloween.sql)
     supabaseClient.from("profiles").select("biome_shelf, shelf_overlay").eq("id", profileId).single()
@@ -467,6 +473,8 @@ async function showBiome(profileId, isMe) {
     isMe ? supabaseClient.from("biome_inventory").select("item_key").eq("user_id", profileId).order("acquired_at", { ascending: false })
       : Promise.resolve({ data: [] }),
     supabaseClient.from("achievements").select("name, reward_item").not("reward_item", "is", null),
+    supabaseClient.from("item_themes").select("item_key, key, name, color, image, sort_order, is_default").order("sort_order")
+      .then((res) => res, () => ({ data: [] })),
   ]);
   if (itemsRes.error || slotsRes.error || shelfRes.error) return; // biome isn't set up in the database yet
 
@@ -474,6 +482,11 @@ async function showBiome(profileId, isMe) {
   itemsRes.data.forEach((it) => { items[it.key] = it; });
   // Items that come from an achievement say so in their info box
   (rewardsRes.data || []).forEach((a) => { if (items[a.reward_item]) items[a.reward_item].earnedWith = a.name; });
+  // Decorations an item can wear (the Christmas tree's Bare, Classic...)
+  (themesRes && !themesRes.error ? themesRes.data || [] : []).forEach((t) => {
+    if (!items[t.item_key]) return;
+    (items[t.item_key].themes = items[t.item_key].themes || []).push(t);
+  });
   const placed = slotsByNumber(slotsRes.data);
   let shelfKey = shelfRes.data.biome_shelf;
   let overlayKey = shelfRes.data.shelf_overlay || null;
@@ -666,6 +679,9 @@ async function showBiome(profileId, isMe) {
 
       // Large things need the bottom shelf; a plant matches its pot's size
       const plantFits = (it) => {
+        if (pot && pot.holds_plant === false) {
+          return "The " + pot.name.replace(/^Mini /, "") + " fills this spot, so there's no room for a plant.";
+        }
         if (it.size === "medium" && spotSize === "small") {
           return "That's a large plant and needs extra space. Place it on the bottom shelf, where it has room to grow.";
         }
@@ -676,6 +692,9 @@ async function showBiome(profileId, isMe) {
         return true;
       };
       const potFits = (it) => {
+        if (plant && it.holds_plant === false) {
+          return "The " + it.name.replace(/^Mini /, "") + " needs a spot to itself. Choose \u201cNo plant\u201d here first, then pick it.";
+        }
         if (it.size === "medium" && spotSize === "small") {
           return "That's a large pot and needs extra space. Place it on the bottom shelf, where it has room to stretch out.";
         }
@@ -686,10 +705,37 @@ async function showBiome(profileId, isMe) {
         return true;
       };
 
+      // A pot that comes with its own plant (the Christmas tree): its
+      // decorations instead of a plant
+      if (pot && pot.themes && pot.themes.length) {
+        editorEl.appendChild(el("h3", null, "Decorations"));
+        const current = (pot.themes.find((t) => t.key === here.theme) || pot.themes.find((t) => t.is_default) || {}).key;
+        const row = el("div", "theme-picker");
+        row.setAttribute("role", "group");
+        row.setAttribute("aria-label", "Decorations for the " + pot.name.toLowerCase());
+        pot.themes.forEach((t) => {
+          const b = el("button", "theme-choice");
+          b.type = "button";
+          b.setAttribute("aria-pressed", String(t.key === current));
+          const dot = el("span", "theme-dot");
+          dot.style.backgroundColor = t.color;
+          b.append(dot, el("span", null, t.name));
+          b.addEventListener("click", async () => {
+            if (t.key === current) return;
+            if (await save("set_biome_theme", { p_slot: selected, p_theme: t.key })) await reloadSlots();
+            render();
+          });
+          row.appendChild(b);
+        });
+        editorEl.appendChild(row);
+      }
+
       // Plant first: plants come in a terra cotta pot, which can be swapped below
       editorEl.appendChild(el("h3", null, "Plant"));
       const plants = itemTiles("plant", selected, here.plant, plantFits, (key) => setSlot(selected, here.pot || null, key));
-      if (plants.children.length === 0) {
+      if (pot && pot.holds_plant === false) {
+        editorEl.appendChild(el("p", "feed-empty", "The " + pot.name.replace(/^Mini /, "") + " fills this spot, so it doesn't need a plant."));
+      } else if (plants.children.length === 0) {
         editorEl.appendChild(el("p", "feed-empty", "No spare plants. To move a plant here, empty its current spot first."));
       } else {
         if (here.pot) plants.prepend(tile("No plant", null, null, !here.plant, () => setSlot(selected, here.pot, null)));

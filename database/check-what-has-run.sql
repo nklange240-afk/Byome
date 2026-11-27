@@ -117,5 +117,6 @@ from (values
   ('2026-12-30-crisis-support.sql',       exists (select 1 from fn where name = 'crisis_respond')),
   ('2026-12-31-automod-stars-and-preview.sql', exists (select 1 from fn where name = 'automod_check')),
   ('2027-01-01-automod-sweep.sql',        exists (select 1 from fn where name = 'automod_normalize')),
-  ('2027-01-02-black-friday-sale.sql',    exists (select 1 from fn where name = 'shop_sale'))
+  ('2027-01-02-black-friday-sale.sql',    exists (select 1 from fn where name = 'shop_sale')),
+  ('2027-01-03-christmas-tree.sql',       exists (select 1 from fn where name = 'claim_gifts'))
 ) as checks(file, ok);
