@@ -43,6 +43,9 @@ const BIOME = (function () {
   // the pot opening.
   const PLANT_BASE_Y = 462;
   const POT_SEAT_Y = 110;
+  // How far a tall pot's art (640 x 1024) reaches above its spot's square
+  // canvas, as a share of the canvas width (matches .biome-pot.is-tall)
+  const TALL_RISE = 0.73125;
 
   function frontOf(image) {
     return image.replace(/\.png$/, "-front.png");
@@ -99,8 +102,13 @@ const BIOME = (function () {
       const artWidth = ART_WIDTH[row.size];
       const scale = artWidth / ART.width;
       const gap = (w - row.count * artWidth) / (row.count + 1);
-      // Room above the plank for the tallest plants
-      const headroom = (ART.bottom + (PLANT_BASE_Y - POT_SEAT_Y)) * scale * 0.85;
+      // Room above the plank for the tallest plants. A Large row also fits
+      // a tall pot (the Christmas tree, its star at the top of its canvas),
+      // so nothing reaches the plank above.
+      let headroom = (ART.bottom + (PLANT_BASE_Y - POT_SEAT_Y)) * scale * 0.85;
+      if (row.size === "medium") {
+        headroom = Math.max(headroom, (ART.bottom + TALL_RISE * ART.canvas) * scale + 20);
+      }
       const h = headroom + plankH;
       const floor = headroom + plankH * PLANK.floor;
       const slots = [];
