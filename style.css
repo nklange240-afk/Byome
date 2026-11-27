@@ -9211,7 +9211,7 @@ dialog.daily-dialog {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
-  margin-bottom: 0.75rem;
+  margin: 0.75rem 0;
 }
 
 .theme-choice {
