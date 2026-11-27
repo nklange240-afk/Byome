@@ -114,5 +114,8 @@ from (values
   ('2026-12-27-leaf-pots-repeat.sql',     exists (select 1 from fn where name = 'drifter_catch' and body like '%max_per_member%')),
   ('2026-12-28-quick-questions.sql',      exists (select 1 from fn where name = 'save_quick_answers')),
   ('2026-12-29-quick-answers-save-fix.sql', exists (select 1 from fn where name = 'save_quick_answers' and body not like '%pg_temp%')),
-  ('2026-12-30-crisis-support.sql',       exists (select 1 from fn where name = 'crisis_respond'))
+  ('2026-12-30-crisis-support.sql',       exists (select 1 from fn where name = 'crisis_respond')),
+  ('2026-12-31-automod-stars-and-preview.sql', exists (select 1 from fn where name = 'automod_check')),
+  ('2027-01-01-automod-sweep.sql',        exists (select 1 from fn where name = 'automod_normalize')),
+  ('2027-01-02-black-friday-sale.sql',    exists (select 1 from fn where name = 'shop_sale'))
 ) as checks(file, ok);

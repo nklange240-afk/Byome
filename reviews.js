@@ -1432,6 +1432,7 @@ function buildUpdateForm(r, onSaved, onCancel) {
   // "Want to update your quick answers?" (closed unless tapped)
   const quick = typeof QUICK !== "undefined" && r.product_id ? QUICK.updatePrompt(r.product_id) : null;
   form.append(textarea, picker.el, ...(quick ? [quick.node] : []), footer);
+  UI.automodWatch([textarea], { what: "update", verb: "post" });
 
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -1675,6 +1676,8 @@ form.addEventListener("submit", async (event) => {
 });
 
 const brandSearch = buildBrandSearch();
+// A heads-up while writing if automod will flag any words (ui.js)
+UI.automodWatch([titleInput, bodyInput], { what: "review", verb: "post" });
 const productDropdown = enhanceSelect(productSelect);
 const variationDropdown = enhanceSelect(variationSelect);
 const npCategoryDropdown = enhanceSelect(npCategory);

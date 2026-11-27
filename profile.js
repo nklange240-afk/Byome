@@ -157,6 +157,7 @@ function reviewUpdateForm(r, onSaved, onCancel) {
   // "Want to update your quick answers?" (closed unless tapped)
   const quick = typeof QUICK !== "undefined" && r.product_id ? QUICK.updatePrompt(r.product_id) : null;
   form.append(textarea, picker.el, ...(quick ? [quick.node] : []), footer);
+  UI.automodWatch([textarea], { what: "update", verb: "post" });
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
     const body = textarea.value.trim();
