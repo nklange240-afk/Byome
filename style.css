@@ -2235,6 +2235,28 @@ button.biome-slot {
   z-index: 1;
 }
 
+/* A tall pot (the Christmas tree, 640 x 1024): it reaches up above its
+   spot, with its bottom where a pot's bottom sits. Its decorations (a
+   theme) are drawn over it on the same canvas. */
+.biome-pot.is-tall {
+  height: auto;
+  margin-top: -73.125%;
+}
+
+.biome-pot-theme {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: auto;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.biome-pot-theme.is-tall {
+  margin-top: -73.125%;
+}
+
 .biome-pot-front {
   position: absolute;
   left: 0;
@@ -9182,4 +9204,38 @@ dialog.daily-dialog {
 .shop-price-now {
   color: var(--gold-text);
   font-size: 1.1rem;
+}
+
+/* Choosing decorations (the Christmas tree's themes) in the shelf editor */
+.theme-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.75rem 0;
+}
+
+.theme-choice {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.35rem 0.8rem 0.35rem 0.4rem;
+  border: 1px solid var(--moss);
+  border-radius: 999px;
+  background: none;
+  color: var(--cream);
+  font: inherit;
+  font-size: 0.88rem;
+  cursor: pointer;
+}
+
+.theme-choice[aria-pressed="true"] {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 2px var(--gold);
+}
+
+.theme-dot {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.6);
 }

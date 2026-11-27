@@ -9,7 +9,7 @@ const BIOME = (function () {
   // Bump this whenever you replace a picture in biome-assets/ with a new
   // drawing under the same name. Browsers keep old pictures for a while;
   // a new number makes every browser fetch the new ones straight away.
-  const ART_VERSION = "9";
+  const ART_VERSION = "10";
 
   function src(path) {
     return path + (path.indexOf("?") === -1 ? "?" : "&") + "v=" + ART_VERSION;
@@ -171,7 +171,10 @@ const BIOME = (function () {
         if (!shelf) return null;
         return overlay ? [describe(shelf), describe(overlay)] : [describe(shelf)];
       }
-      const pot = target._pot, plant = target._plant, companion = target._companion;
+      let pot = target._pot;
+      const plant = target._plant, companion = target._companion;
+      // "Mini Christmas tree, Classic"
+      if (target._theme && target._theme.image) pot = Object.assign({}, pot, { name: pot.name + ", " + target._theme.name });
       const parts = plant ? [describe(plant), describe(pot, "In a ")] : [describe(pot)];
       if (companion) parts.push(describe(companion));
       return parts;
@@ -346,7 +349,12 @@ const BIOME = (function () {
       spot.style.width = width.toFixed(3) + "%";
       spot.dataset.slot = String(s.slot);
 
+      // A pot's decorations (the Christmas tree's themes), if it has any:
+      // the one chosen for this spot, or the default
+      const themes = pot && pot.themes ? pot.themes : null;
+      const theme = themes ? (themes.find((t) => t.key === here.theme) || themes.find((t) => t.is_default) || null) : null;
       let description = pot ? (plant ? plant.name + " in a " + pot.name.toLowerCase() : pot.name) : "empty";
+      if (theme && theme.image) description += ", " + theme.name;
       if (companion) description += ", with a " + companion.name.toLowerCase();
       if (opts.editable) {
         spot.type = "button";
@@ -360,12 +368,16 @@ const BIOME = (function () {
         spot.setAttribute("role", "img");
         spot.setAttribute("aria-label", description);
         spot._pot = pot;
+        spot._theme = theme;
         spot._plant = plant;
         spot._companion = companion;
       }
 
-      if (pot) spot.appendChild(img("biome-pot pot-" + here.pot, pot.image, ""));
-      if (pot && plant) {
+      // (a tall pot, like the Christmas tree, reaches up above its spot;
+      // one that comes with its own plant never holds another)
+      if (pot) spot.appendChild(img("biome-pot pot-" + here.pot + (pot.tall ? " is-tall" : ""), pot.image, ""));
+      if (theme && theme.image) spot.appendChild(img("biome-pot-theme" + (pot.tall ? " is-tall" : ""), theme.image, ""));
+      if (pot && plant && pot.holds_plant !== false) {
         // Most plants sit inside the pot (pot, plant, pot front). Plants whose
         // leaves spill over the rim, like the African violet, are marked
         // over_pot and drawn on top of the whole pot instead.
