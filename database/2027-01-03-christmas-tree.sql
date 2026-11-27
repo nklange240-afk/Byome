@@ -7,6 +7,7 @@
 --   - Decorations are themes, drawn as a layer over the tree. It comes
 --     with Bare and Classic (Classic shows unless the member picks Bare);
 --     more can be added later with one line each (see below).
+--   - Also adds the Present pot to the shop (small and large, common).
 --   - Every member gets one tree the first time they open Byome from
 --     midnight Central on Friday, November 27, with a pop-up and a
 --     notification. Members who join later get one too, until the gift
@@ -182,6 +183,16 @@ begin
 end $$;
 revoke execute on function public.claim_gifts() from public, anon;
 grant execute on function public.claim_gifts() to authenticated;
+
+-- ---------- The Present pot (small and large, common) ----------
+insert into public.biome_items (key, kind, size, name, description, rarity, price, image, sort_order) values
+  ('present', 'pot', 'small', 'Present pot',
+   'A red pot wrapped up like a present, with a golden ribbon and bow.',
+   'common', 40, 'biome-assets/pot-present.png', 15),
+  ('present-medium', 'pot', 'medium', 'Large present pot',
+   'A red pot wrapped up like a present, with a golden ribbon and bow, with room for something bigger.',
+   'common', 50, 'biome-assets/pot-present-medium.png', 16)
+on conflict (key) do nothing;
 
 -- Tell the API about the new tables and functions straight away
 notify pgrst, 'reload schema';
