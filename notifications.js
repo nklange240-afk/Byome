@@ -152,8 +152,9 @@ function updateBadges(change) {
     article.appendChild(typeIcon(n.type, n.tone));
     const textBox = el("div", "notification-main");
     article.appendChild(textBox);
-    // only ever link to our own pages
-    const safe = n.link && /^[a-z-]+\.html$/.test(n.link);
+    // only ever link to our own pages, with simple details on the end
+    // (modmail.html?thread=..., profile.html?shelf=edit)
+    const safe = n.link && /^[a-z-]+\.html(\?[a-z_]+=[A-Za-z0-9_-]+(&[a-z_]+=[A-Za-z0-9_-]+)*)?$/.test(n.link);
     if (safe) {
       const a = el("a", "notification-text", n.message);
       a.href = exact.get(n.id) || n.link;

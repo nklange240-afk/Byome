@@ -9265,3 +9265,10 @@ dialog.daily-dialog {
 .sale-site-banner .inline-link {
   text-decoration: underline;
 }
+
+/* "Don't show this again" under the "Waiting for your shelf" tray */
+.biome-waiting-never {
+  margin-top: 0.6rem;
+  font-size: 0.85rem;
+  opacity: 0.85;
+}
