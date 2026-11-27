@@ -518,13 +518,17 @@ async function showBiome(profileId, isMe) {
     return list;
   }
 
-  // "Hide" remembers exactly what was waiting, so anything new shows the tray again
+  // "Hide" remembers exactly what was waiting, so anything new shows the tray again.
+  // "Don't show this again" hides it for good on this device (things still
+  // wait in Edit my shelf).
   const hideKey = "byome-shelf-waiting-hidden";
+  const neverKey = "byome-shelf-waiting-never";
+  function neverShow() { try { return localStorage.getItem(neverKey) === "1"; } catch (e) { return false; } }
   function hiddenList() { try { return localStorage.getItem(hideKey); } catch (e) { return null; } }
   function waitingId(list) { return list.map((w) => w.item.key + ":" + w.count).sort().join(","); }
 
   function renderWaiting() {
-    const list = isMe && !editing ? waiting() : [];
+    const list = isMe && !editing && !neverShow() ? waiting() : [];
     waitingEl.replaceChildren();
     waitingEl.hidden = !list.length || hiddenList() === waitingId(list);
     if (waitingEl.hidden) return;
@@ -549,6 +553,16 @@ async function showBiome(profileId, isMe) {
     hide.addEventListener("click", () => { try { localStorage.setItem(hideKey, waitingId(list)); } catch (e) { /* fine */ } renderWaiting(); });
     actions.append(go, hide);
     waitingEl.appendChild(actions);
+    const never = el("label", "check-row biome-waiting-never");
+    const box = el("input");
+    box.type = "checkbox";
+    box.addEventListener("change", () => {
+      if (!box.checked) return;
+      try { localStorage.setItem(neverKey, "1"); } catch (e) { /* fine */ }
+      renderWaiting();
+    });
+    never.append(box, document.createTextNode(" Don\u2019t show this again"));
+    waitingEl.appendChild(never);
   }
 
   // How many more of this item could go in this spot (Infinity for starter items)

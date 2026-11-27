@@ -71,13 +71,15 @@ insert into public.biome_items (key, kind, size, name, description, rarity, pric
    'common', 50, 'biome-assets/pot-blue-speckled-medium.png', 12)
 on conflict (key) do nothing;
 
--- (a doorbuster whose pot isn't in the shop is left out, rather than
--- stopping the file)
+-- (a doorbuster whose pot isn't in the shop, or that can only be owned
+-- once, is left out, rather than stopping the file; Sunday's is set in
+-- 2027-01-04-doorbuster-rules.sql)
 insert into public.shop_doorbusters (sale_key, day, item_key)
 select 'black-friday-2026', d.day::date, d.item_key
 from (values ('2026-11-27', 'painted-green'), ('2026-11-28', 'blue-speckled-medium'),
-             ('2026-11-29', 'terry'), ('2026-11-30', 'snowfall-medium')) d(day, item_key)
-where exists (select 1 from public.biome_items i where i.key = d.item_key)
+             ('2026-11-30', 'snowfall-medium')) d(day, item_key)
+where exists (select 1 from public.biome_items i where i.key = d.item_key
+              and coalesce(i.max_per_member, 0) <> 1 and i.kind not in ('shelf', 'shelf_overlay'))
 on conflict (sale_key, day) do nothing;
 
 -- What an item costs right now: its price, the price after any sale or

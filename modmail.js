@@ -59,7 +59,7 @@ const FLAG_MEANINGS = {
   offensive: "slurs or hateful words",
   harmful: "threats, self-harm or abuse",
   crisis: "words that can mean someone is in crisis",
-  crisis_serious: "direct language about suicide or self-harm",
+  crisis_serious: "direct language about suicide, self-harm or hurting others",
 };
 
 // {offensive,strong} -> "may contain offensive and strong language

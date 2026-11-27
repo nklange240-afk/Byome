@@ -3,6 +3,7 @@
 (async function () {
   // While an event is on, everyone sees a banner for it at the top
   if (typeof UI !== "undefined") UI.eventBanner(document.querySelector("main"));
+  if (typeof UI !== "undefined" && UI.saleBanner) UI.saleBanner(document.querySelector("main"));
   const { data } = await supabaseClient.auth.getSession();
   if (!data.session) return;
   const { data: me } = await supabaseClient.from("profiles")

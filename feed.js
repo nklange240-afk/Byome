@@ -204,6 +204,7 @@ async function init() {
   isModerator = Boolean(me && me.is_moderator);
 
   UI.eventBanner(document.querySelector("main"), document.querySelector("main > h1"));
+  UI.saleBanner(document.querySelector("main"), document.querySelector("main > h1"));
   DAILY.card(document.querySelector("main"), document.querySelector("main > h1"));
   // The starter checklist, just above "Start a post…" (new members)
   UI.starterChecklist((card) => {
