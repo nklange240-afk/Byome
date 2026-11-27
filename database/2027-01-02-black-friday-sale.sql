@@ -8,7 +8,7 @@
 --     time), switching at midnight.
 --   - Black Friday 2026: 25% off every pot from Friday, November 27 to
 --     Monday, November 30 (midnight Central), plus a 50% doorbuster each
---     day.
+--     day. Also adds the new Snowfall pot (small and large).
 --
 -- Changing things later (SQL Editor):
 --   Today's or another day's doorbuster (for example, a new pot):
@@ -56,11 +56,28 @@ values ('black-friday-2026', 'Black Friday sale', '2026-11-27 00:00 America/Chic
         '2026-12-01 00:00 America/Chicago', 25, '{pot}')
 on conflict (key) do nothing;
 
-insert into public.shop_doorbusters (sale_key, day, item_key) values
-  ('black-friday-2026', '2026-11-27', 'painted-green'),
-  ('black-friday-2026', '2026-11-28', 'blue-speckled-medium'),
-  ('black-friday-2026', '2026-11-29', 'terry'),
-  ('black-friday-2026', '2026-11-30', 'lilac-medium')
+-- New pots for the sale: the Snowfall pot (small and large, common), and
+-- the large Blue speckled pot from 2026-12-21-large-blue-speckled-pot.sql
+-- in case that file hasn't been run
+insert into public.biome_items (key, kind, size, name, description, rarity, price, image, sort_order) values
+  ('snowfall', 'pot', 'small', 'Snowfall pot',
+   'A wintry blue pot with snow falling and drifting at the bottom.',
+   'common', 40, 'biome-assets/pot-snowfall.png', 13),
+  ('snowfall-medium', 'pot', 'medium', 'Large snowfall pot',
+   'A wintry blue pot with snow falling and drifting at the bottom, with room for something bigger.',
+   'common', 50, 'biome-assets/pot-snowfall-medium.png', 14),
+  ('blue-speckled-medium', 'pot', 'medium', 'Large blue speckled pot',
+   'A cool blue pot with a speckled glaze, with room for something bigger.',
+   'common', 50, 'biome-assets/pot-blue-speckled-medium.png', 12)
+on conflict (key) do nothing;
+
+-- (a doorbuster whose pot isn't in the shop is left out, rather than
+-- stopping the file)
+insert into public.shop_doorbusters (sale_key, day, item_key)
+select 'black-friday-2026', d.day::date, d.item_key
+from (values ('2026-11-27', 'painted-green'), ('2026-11-28', 'blue-speckled-medium'),
+             ('2026-11-29', 'terry'), ('2026-11-30', 'snowfall-medium')) d(day, item_key)
+where exists (select 1 from public.biome_items i where i.key = d.item_key)
 on conflict (sale_key, day) do nothing;
 
 -- What an item costs right now: its price, the price after any sale or
