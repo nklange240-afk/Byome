@@ -794,7 +794,10 @@ const UI = (function () {
     const kinds = (sale.kinds || []).join(" and ");
     const text = el("span");
     text.append(el("strong", null, sale.name + ": "), sale.percent_off + "% off every " + kinds + " until " + until + "");
-    if (sale.doorbuster) text.append(", and today\u2019s doorbuster is the " + sale.doorbuster.name.toLowerCase() + " at " + sale.doorbuster.percent_off + "% off");
+    if (sale.doorbuster) {
+      text.append(", and today\u2019s doorbuster is the ", el("strong", null, sale.doorbuster.name.toLowerCase()),
+        " at " + sale.doorbuster.percent_off + "% off");
+    }
     text.append(". Plus, every member gets a free Mini Christmas tree! ",
       el("span", "inline-link", member ? "Visit the shop" : "Join Byome"));
     banner.appendChild(text);

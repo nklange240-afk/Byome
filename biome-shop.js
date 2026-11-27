@@ -144,8 +144,8 @@ function saleBanner(sale) {
   if (sale.doorbuster) {
     const d = sale.doorbuster;
     const line = el("p", "sale-banner-door");
-    line.append(el("strong", null, "Today\u2019s doorbuster: "),
-      document.createTextNode(d.name + ", " + d.percent_off + "% off. A new one every day at midnight Central."));
+    line.append(el("strong", null, "Today\u2019s doorbuster: "), el("strong", null, d.name),
+      document.createTextNode(", " + d.percent_off + "% off. A new one every day at midnight Central."));
     box.appendChild(line);
   }
   return box;
