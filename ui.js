@@ -766,6 +766,41 @@ const UI = (function () {
     if (after) after.after(banner); else container.prepend(banner);
   }
 
+  // A banner while a shop sale is on (database/2027-01-02-black-friday-sale.sql),
+  // also saying every member gets the free Christmas tree. The picture is
+  // the owner's hand-drawn tree with its Classic ornaments. Disappears by
+  // itself when the sale ends.
+  async function saleBanner(container, after) {
+    if (!container || typeof supabaseClient === "undefined") return;
+    let sale = null;
+    let member = false;
+    try {
+      const [res, session] = await Promise.all([supabaseClient.rpc("shop_sale"), supabaseClient.auth.getSession()]);
+      sale = res && !res.error ? res.data : null;
+      member = Boolean(session && session.data && session.data.session);
+    } catch (e) { return; }
+    if (!sale) return;
+    const banner = el("a", "event-banner sale-site-banner");
+    banner.href = member ? "byome-shop.html" : "signup.html";
+    const pic = el("span", "sale-site-art");
+    ["biome-assets/pot-christmas-tree.png", "biome-assets/tree-classic.png"].forEach((path) => {
+      const i = document.createElement("img");
+      i.src = art(path);
+      i.alt = "";
+      pic.appendChild(i);
+    });
+    banner.appendChild(pic);
+    const until = new Date(new Date(sale.ends_at).getTime() - 1).toLocaleDateString("en-US", { timeZone: "America/Chicago", weekday: "long" });
+    const kinds = (sale.kinds || []).join(" and ");
+    const text = el("span");
+    text.append(el("strong", null, sale.name + ": "), sale.percent_off + "% off every " + kinds + " until " + until + "");
+    if (sale.doorbuster) text.append(", and today\u2019s doorbuster is the " + sale.doorbuster.name.toLowerCase() + " at " + sale.doorbuster.percent_off + "% off");
+    text.append(". Plus, every member gets a free Mini Christmas tree! ",
+      el("span", "inline-link", member ? "Visit the shop" : "Join Byome"));
+    banner.appendChild(text);
+    if (after) after.after(banner); else container.prepend(banner);
+  }
+
   // The little icons by a review's heading: a cobweb for "no longer using
   // this", a leaf for a fall favorite (words until the icons' art is in)
   function reviewIcons(r) {
@@ -1595,5 +1630,5 @@ const UI = (function () {
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => setTimeout(claimGifts, 800));
   else setTimeout(claimGifts, 800);
 
-  return { liveEvent, eventBanner, heldNotice, heldForCrisis, crisisPostedText, CRISIS_WARNING, automodWatch, centralTime, starterChecklist, linkify, readMore, giftedTag, iconOrLabel, reviewIcons, openAccessibility, REMOVAL_REASONS, removalReasonLabel, friendlyDate, timeTag, emptyState, celebrate, checkAchievements, sparkles, itemArt, soilImage, sizeName, sizeBadge, setBiome, biomeSymbol, memberBadge, biomeSwatch, biomeLook, biomePreview, openBiomePreview, previewOnHover, previewButton, startModSession, refreshLimits, variationForm, LEVELS, levelInfo, levelBadge };
+  return { liveEvent, eventBanner, heldNotice, heldForCrisis, crisisPostedText, CRISIS_WARNING, automodWatch, saleBanner, centralTime, starterChecklist, linkify, readMore, giftedTag, iconOrLabel, reviewIcons, openAccessibility, REMOVAL_REASONS, removalReasonLabel, friendlyDate, timeTag, emptyState, celebrate, checkAchievements, sparkles, itemArt, soilImage, sizeName, sizeBadge, setBiome, biomeSymbol, memberBadge, biomeSwatch, biomeLook, biomePreview, openBiomePreview, previewOnHover, previewButton, startModSession, refreshLimits, variationForm, LEVELS, levelInfo, levelBadge };
 })();

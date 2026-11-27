@@ -128,6 +128,8 @@ function prefillProductPage() {
   return true;
 }
 writeToggle.addEventListener("click", () => setWriting(form.hidden));
+// The sale banner on the main Reviews page (not on a product's page)
+if (!productParam) UI.saleBanner(document.querySelector("main"), document.querySelector(".page-head"));
 // reviews.html?write=1 (from the starter checklist) opens the form
 if (new URLSearchParams(window.location.search).get("write") === "1") setWriting(true);
 
