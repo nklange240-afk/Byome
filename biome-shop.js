@@ -70,7 +70,7 @@ function inWindow(item) {
 }
 
 async function loadShop() {
-  const [pointsRes, itemsRes, ownedRes, eventsRes] = await Promise.all([
+  const [pointsRes, itemsRes, ownedRes, eventsRes, saleRes] = await Promise.all([
     supabaseClient.from("user_points").select("biome, pending_biome").eq("user_id", currentUser.id).maybeSingle(),
     // (limited-time windows come from database/2026-10-29-events-halloween.sql)
     shopItems("available_from, available_until, ").then((res) => (res.error ? shopItems("") : res)),
@@ -78,7 +78,10 @@ async function loadShop() {
     // (events come from database/2026-10-29-events-halloween.sql; fine without)
     supabaseClient.from("events").select("key, name, badge_image, starts_at, ends_at, beta_only")
       .then((res) => (res.error ? supabaseClient.from("events").select("key, name, badge_image, starts_at, ends_at") : res)),
+    // (sales come from database/2027-01-02-black-friday-sale.sql; fine without)
+    supabaseClient.rpc("shop_sale").then((res) => res, () => ({ data: null })),
   ]);
+  const sale = saleRes && !saleRes.error ? saleRes.data : null;
   // (the beta event never labels shop items: database/2026-12-08-beta-event.sql)
   const events = eventsRes.error ? [] : (eventsRes.data || []).filter((ev) => !ev.beta_only);
 
@@ -97,9 +100,13 @@ async function loadShop() {
 
   const owned = {};
   (ownedRes.data || []).forEach((row) => { owned[row.item_key] = (owned[row.item_key] || 0) + 1; });
+  if (sale) shopEl.appendChild(saleBanner(sale));
+  const doorbusterKey = sale && sale.doorbuster ? sale.doorbuster.item_key : null;
 
   SECTIONS.forEach((section) => {
-    const items = itemsRes.data.filter((it) => it.kind === section.kind && inWindow(it)).sort(shopOrder);
+    const items = itemsRes.data.filter((it) => it.kind === section.kind && inWindow(it)).sort(shopOrder)
+      // (today's doorbuster comes first)
+      .sort((a, b) => (b.key === doorbusterKey) - (a.key === doorbusterKey));
     if (!items.length && !section.empty) return;
     const into = section.lower ? shopMoreEl : shopEl;
     into.appendChild(el("h2", "section-title", section.title));
@@ -108,7 +115,8 @@ async function loadShop() {
       return;
     }
     const grid = el("div", "shop-grid");
-    items.forEach((it) => grid.appendChild(buildCard(it, balance, owned[it.key] || 0, eventFor(it, events))));
+    items.forEach((it) => grid.appendChild(buildCard(it, balance, owned[it.key] || 0, eventFor(it, events),
+      sale && sale.prices ? sale.prices[it.key] : null)));
     into.appendChild(grid);
   });
 }
@@ -122,8 +130,34 @@ function eventFor(item, events) {
   return events.find((ev) => new Date(ev.starts_at).getTime() <= from && until <= new Date(ev.ends_at).getTime()) || null;
 }
 
-function buildCard(item, balance, ownedCount, event) {
-  const card = el("article", "shop-card rarity-edge-" + item.rarity);
+// The sale that's on: what it is, until when, and today's doorbuster
+function saleDay(iso) {
+  return new Date(iso - 1).toLocaleDateString("en-US", { timeZone: "America/Chicago", weekday: "long", month: "long", day: "numeric" });
+}
+function saleBanner(sale) {
+  const box = el("section", "sale-banner");
+  box.setAttribute("aria-label", sale.name);
+  box.appendChild(el("p", "sale-banner-title", sale.name));
+  const kinds = (sale.kinds || []).map((k) => (k === "pot" ? "pot" : k)).join(" and ");
+  box.appendChild(el("p", null, sale.percent_off + "% off every " + kinds + " in the shop, until the end of " +
+    saleDay(new Date(sale.ends_at).getTime()) + " (Central time)."));
+  if (sale.doorbuster) {
+    const d = sale.doorbuster;
+    const line = el("p", "sale-banner-door");
+    line.append(el("strong", null, "Today\u2019s doorbuster: "),
+      document.createTextNode(d.name + ", " + d.percent_off + "% off. A new one every day at midnight Central."));
+    box.appendChild(line);
+  }
+  return box;
+}
+
+function buildCard(item, balance, ownedCount, event, deal) {
+  // deal: the sale price right now, if this item is on sale
+  // ({ price, now_price, percent_off, doorbuster })
+  const cost = deal ? deal.now_price : item.price;
+  const card = el("article", "shop-card rarity-edge-" + item.rarity + (deal && deal.doorbuster ? " is-doorbuster" : ""));
+  if (deal) card.appendChild(el("span", "sale-tag" + (deal.doorbuster ? " is-doorbuster" : ""),
+    deal.doorbuster ? "Doorbuster: " + deal.percent_off + "% off" : deal.percent_off + "% off"));
 
   // Plants are shown in the starter pot; rare things sparkle
   const pic = UI.itemArt(item, "shop-art");
@@ -163,7 +197,13 @@ function buildCard(item, balance, ownedCount, event) {
   if (item.kind === "biome") card.appendChild(el("p", "shop-meta", "Sets the scene on your profile. Choose it on Edit profile."));
 
   const price = el("p", "shop-price");
-  price.append(leafIcon(), el("span", null, String(item.price)));
+  if (deal) {
+    const was = el("s", "shop-price-was", String(item.price));
+    was.setAttribute("aria-label", "was " + item.price);
+    price.append(leafIcon(), was, el("span", "shop-price-now", String(cost)));
+  } else {
+    price.append(leafIcon(), el("span", null, String(item.price)));
+  }
   card.appendChild(price);
 
   const left = item.max_supply ? item.max_supply - item.sold : null;
@@ -179,10 +219,10 @@ function buildCard(item, balance, ownedCount, event) {
   if (left !== null && left <= 0) { buy.disabled = true; buy.textContent = "Sold out"; }
   else if (item.kind === "shelf" && ownedCount) { buy.disabled = true; buy.textContent = "Owned"; }
   else if (item.max_per_member && ownedCount >= item.max_per_member) { buy.disabled = true; buy.textContent = "Owned"; }
-  else if (balance < item.price) { buy.disabled = true; buy.textContent = "Need " + (item.price - balance) + " more"; }
+  else if (balance < cost) { buy.disabled = true; buy.textContent = "Need " + (cost - balance) + " more"; }
 
   buy.addEventListener("click", async () => {
-    if (!confirm("Buy the " + item.name.toLowerCase() + " for " + item.price + " Byome points?")) return;
+    if (!confirm("Buy the " + item.name.toLowerCase() + " for " + cost + " Byome points?")) return;
     buy.disabled = true;
     const { data, error } = await supabaseClient.rpc("buy_biome_item", { p_key: item.key });
     if (error) {

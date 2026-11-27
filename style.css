@@ -9133,3 +9133,53 @@ dialog.daily-dialog {
   font-size: 0.85rem;
   line-height: 1.4;
 }
+
+/* Shop sales (biome-shop.js, database/2027-01-02-black-friday-sale.sql) */
+.sale-banner {
+  margin: 0 0 1.25rem;
+  padding: 0.85rem 1rem;
+  border: 2px solid var(--gold);
+  border-radius: 12px;
+  background-color: rgba(224, 168, 62, 0.1);
+}
+
+.sale-banner p {
+  margin: 0 0 0.35rem;
+}
+
+.sale-banner p:last-child {
+  margin-bottom: 0;
+}
+
+.sale-banner-title {
+  font-family: var(--font-heading);
+  font-size: 1.3rem;
+  color: var(--gold-text);
+}
+
+.sale-tag {
+  position: absolute;
+  top: 0.6rem;
+  left: 0.6rem;
+  z-index: 5;
+  padding: 0.1rem 0.55rem;
+  border-radius: 999px;
+  background-color: var(--gold);
+  color: var(--forest-dark);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.shop-card.is-doorbuster {
+  box-shadow: 0 0 0 2px var(--gold);
+}
+
+.shop-price-was {
+  opacity: 0.6;
+  font-weight: 400;
+}
+
+.shop-price-now {
+  color: var(--gold-text);
+  font-size: 1.1rem;
+}
