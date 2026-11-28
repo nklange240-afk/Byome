@@ -235,27 +235,19 @@ const DAILY = (function () {
   }
 
   // ---------- The event calendar ----------
-  // Seven stamps; days don't need to be in a row
+  // (drawn by UI.calendarCard; a new card every 7 stamps)
   function calendarBox(gift) {
     const cal = gift.calendar;
-    const box = el("div", "daily-calendar");
-    box.appendChild(el("p", "daily-calendar-title", cal.name + " calendar"));
-    const days = el("ol", "daily-calendar-days");
-    for (let n = 1; n <= cal.total; n++) {
-      const li = el("li", "daily-stamp" + (n <= cal.stamps ? " is-done" : "") + (n === gift.calendar_stamp ? " is-today" : "")
-        + ([2, 4, 6].indexOf(n) !== -1 ? " is-treat" : "") + (n === cal.total ? " is-final" : ""), String(n));
-      li.setAttribute("aria-label", "Stamp " + n + (n <= cal.stamps ? ", collected" : ""));
-      days.appendChild(li);
-    }
-    box.appendChild(days);
-
+    const box = UI.calendarCard(cal, gift.calendar_stamp);
+    const card = gift.calendar_card || cal.card || 1;
     let note;
-    if (gift.calendar_item) note = "Stamp 7! You've earned the calendar's exclusive: " + gift.calendar_item.name + ".";
+    if (gift.calendar_item) note = "Stamp 7! You've earned the calendar's prize: " + gift.calendar_item.name + ".";
+    else if (gift.calendar_points && gift.calendar_stamp === cal.total) note = "Stamp 7: " + pointsText(gift.calendar_points) + "! Card " + card + " is full, and a new one starts tomorrow.";
     else if (gift.calendar_points) note = "Stamp " + gift.calendar_stamp + ": " + pointsText(gift.calendar_points) + " from the calendar!";
-    else if (cal.stamps >= cal.total) note = "You've filled the calendar. Well done!";
+    else if (cal.stamps >= cal.total) note = "Card " + card + " is full. A new one starts with your next stamp.";
     else {
       const left = cal.total - cal.stamps;
-      note = left + (left === 1 ? " stamp" : " stamps") + " to go. Days don't need to be in a row.";
+      note = left + (left === 1 ? " stamp" : " stamps") + " to go on this card. Days don't need to be in a row.";
     }
     box.appendChild(el("p", "daily-calendar-note", note));
     return box;

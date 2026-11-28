@@ -3824,8 +3824,10 @@ dialog.celebrate h2 {
     animation: companion-drift 6s ease-in-out infinite;
   }
 
-  /* Companions that sit on a pot (the ladybug, the beetle) keep still */
-  .biome-companion.is-resting {
+  /* Companions that sit on a pot (the ladybug, the beetle, the cardinal
+     perched on the rim) keep still */
+  .biome-companion.is-resting,
+  .biome-companion.companion-cardinal {
     animation: none;
   }
 
@@ -6605,6 +6607,53 @@ dialog.a11y-dialog {
   margin: 2rem 0 0.75rem;
 }
 
+/* Weekly challenges: the next drop, and each week's group */
+.event-next-drop {
+  margin: 1rem 0 0;
+  padding: 0.6rem 0.85rem;
+  border: 1px dashed var(--gold);
+  border-radius: 10px;
+  color: var(--gold);
+  font-weight: 600;
+  text-align: center;
+}
+
+.event-week-title {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  margin: 1.4rem 0 0.2rem;
+  font-family: var(--font-heading);
+  font-size: 1.25rem;
+}
+
+.event-week-when {
+  font-family: var(--font-body, inherit);
+  font-size: 0.85rem;
+  font-weight: 400;
+  opacity: 0.8;
+}
+
+/* Your calendar on the Events page */
+.event-calendar {
+  margin-top: 1rem;
+}
+
+.event-calendar .daily-calendar {
+  border-color: var(--gold);
+}
+
+.daily-calendar-note.is-small {
+  margin-top: 0.35rem;
+  font-size: 0.8rem;
+  opacity: 0.8;
+}
+
+.event-calendar-go {
+  display: inline-block;
+  margin-top: 0.7rem;
+}
+
 /* A past event, folded away under its name */
 .event-past {
   margin-bottom: 0.75rem;
@@ -8138,6 +8187,61 @@ dialog.daily-dialog {
 
 .daily-stamp.is-treat::after { content: "\1F381"; }
 .daily-stamp.is-final::after { content: "\2B50"; }
+
+/* A stamped window with the event's stamp drawing, and the prize in
+   window 7 (faded until it's earned) */
+.daily-stamp.has-art {
+  background-color: transparent;
+}
+
+.daily-stamp-art {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.daily-stamp.has-prize {
+  border-style: solid;
+  border-color: var(--gold);
+}
+
+.daily-stamp-prize {
+  width: 86%;
+  height: 86%;
+  object-fit: contain;
+  opacity: 0.4;
+  filter: grayscale(0.5);
+}
+
+.daily-stamp.has-prize.is-done {
+  background-color: transparent;
+}
+
+.daily-stamp.has-prize.is-done .daily-stamp-prize {
+  opacity: 1;
+  filter: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .daily-stamp.is-today {
+    animation: stamp-in 0.5s ease-out both;
+  }
+
+  @keyframes stamp-in {
+    0% { transform: scale(1.6); opacity: 0; }
+    70% { transform: scale(0.92); opacity: 1; }
+    100% { transform: scale(1); }
+  }
+}
+
+/* Phones: 4 windows, then 3 */
+@media (max-width: 420px) {
+  .daily-calendar-days {
+    grid-template-columns: repeat(4, 1fr);
+    max-width: 16rem;
+    margin: 0 auto;
+  }
+}
 
 .daily-calendar-note {
   margin: 0.7rem 0 0;

@@ -23,6 +23,11 @@ const ACTION_LINKS = {
   "hh-friendly-ghost": { href: "invite.html", text: "Invite friends" },
   "hh-bait-the-trap": { href: "feed.html", text: "Start a poll" },
   "hh-back-from-the-dead": { href: "profile.html", text: "Find your older reviews" },
+  "cc-trim-the-tree": { href: "profile.html?shelf=edit", text: "Arrange your shelf" },
+  "cc-winter-rescue": { href: "reviews.html", text: "Write a review" },
+  "cc-spread-cheer": { href: "feed.html", text: "Go to the Community" },
+  "cc-secret-santa": { href: "invite.html", text: "Invite a friend" },
+  "cc-advent-stamps": { href: "feed.html", text: "Find today's surprise" },
   "beta-make-it-yours": { href: "edit-profile.html", text: "Edit profile" },
   "beta-first-impressions": { href: "reviews.html", text: "Write a review" },
   "beta-say-hello": { href: "feed.html", text: "Go to the Community" },
@@ -57,7 +62,10 @@ function achievementCard(a, ev, loggedIn) {
   if (loggedIn) {
     let status = null;
     if (a.earned) status = el("p", "event-status is-earned", "✓ Earned");
-    else if (a.qualified) status = el("p", "event-status is-qualified", "✓ Done! Your reward is on its way.");
+    else if (a.qualified) {
+      // (weekly events pay the points straight away; the prize follows)
+      status = el("p", "event-status is-qualified", a.week ? "✓ Done! Your points are in, and your prize is on its way." : "✓ Done! Your reward is on its way.");
+    }
     else if (a.progress) status = el("p", "event-status", Math.min(a.progress.have, a.progress.need) + " of " + a.progress.need);
     if (status) body.appendChild(status);
   }
@@ -65,7 +73,7 @@ function achievementCard(a, ev, loggedIn) {
   // How to get started (only while it can still be earned)
   if (ev.status === "live" && !a.earned && !a.qualified) {
     let link = ACTION_LINKS[a.key];
-    if (a.key === "hh-horror-story" && ev.story_post_id) {
+    if ((a.key === "hh-horror-story" || a.key === "cc-dear-santa") && ev.story_post_id) {
       link = { href: "feed.html?post=" + encodeURIComponent(ev.story_post_id), text: "Go to the post" };
     }
     if (link) {
@@ -76,6 +84,28 @@ function achievementCard(a, ev, loggedIn) {
   }
   card.appendChild(body);
   return card;
+}
+
+// Your calendar card on the event, with a way to today's surprise
+function calendarPanel(cal) {
+  const panel = el("div", "event-calendar");
+  panel.appendChild(UI.calendarCard(cal));
+  const note = el("p", "daily-calendar-note");
+  const card = cal.card || 1;
+  if (!cal.all_stamps) note.append("Open the daily surprise to collect your first stamp. Start whenever you like, and days don't need to be in a row.");
+  else if (cal.stamps >= cal.total) note.append("Card " + card + " is full! A new one starts with your next stamp.");
+  else note.append("Card " + card + " \u00b7 " + cal.stamps + " of " + cal.total + ". Days don't need to be in a row.");
+  panel.appendChild(note);
+  const prize = card === 1 && cal.item ? "the " + cal.item.name : "75 Byome points";
+  panel.appendChild(el("p", "daily-calendar-note is-small", "Stamps 2, 4 and 6: 15 Byome points. Stamp 7: " + prize + "."));
+  if (!cal.opened_today) {
+    const go = el("a", "btn btn-solid event-calendar-go", "Open today's surprise");
+    go.href = "feed.html";
+    panel.appendChild(go);
+  } else {
+    panel.appendChild(el("p", "daily-calendar-note is-small", "Today's stamp is in. See you tomorrow!"));
+  }
+  return panel;
 }
 
 // A list of the event's posts; each opens in the Community with its comments
@@ -141,7 +171,7 @@ function eventSection(ev, loggedIn, shopItems) {
     note.textContent = "On until " + UI.centralTime(ev.ends_at) + ". Each achievement can be earned once.";
   } else if (ev.status === "finishing") {
     note.textContent = "This event has ended, but things started during it still count until " + UI.centralTime(ev.grace_until) +
-      ": friends finishing their first post and review, poll votes and product approvals.";
+      (ev.key === "halloween-2026" ? ": friends finishing their first post and review, poll votes and product approvals." : ".");
   } else {
     note.textContent = "This event has ended. Thanks to everyone who took part!";
   }
@@ -156,9 +186,40 @@ function eventSection(ev, loggedIn, shopItems) {
 
   if (ev.featured && ev.featured.length) section.appendChild(postList(ev.featured, "Featured", "is-featured"));
 
-  const list = el("ul", "event-achievements");
-  (ev.achievements || []).forEach((a) => list.appendChild(achievementCard(a, ev, loggedIn)));
-  section.appendChild(list);
+  // Your calendar (events with one, while they're on)
+  if (ev.calendar) section.appendChild(calendarPanel(ev.calendar));
+
+  const achievements = ev.achievements || [];
+  if (achievements.some((a) => a.week)) {
+    // Weekly drops: the next one, then each week's challenges, newest first
+    const weeks = [...new Set(achievements.map((a) => a.week))].sort((x, y) => y - x);
+    if (ev.status === "live") {
+      const next = new Date(new Date(ev.starts_at).getTime() + weeks[0] * 7 * 864e5);
+      if (next > new Date() && next < new Date(ev.ends_at)) {
+        const day = next.toLocaleDateString("en-US", { timeZone: "America/Chicago", weekday: "long", month: "long", day: "numeric" });
+        section.appendChild(el("p", "event-next-drop", "Week " + (weeks[0] + 1) + " drops " + day.replace(",", "") + "."));
+      }
+    }
+    weeks.forEach((w) => {
+      const group = el("div", "event-week");
+      const first = achievements.find((a) => a.week === w);
+      const head = el("h3", "event-week-title", "Week " + w);
+      if (first && first.drops_at) {
+        head.appendChild(el("span", "event-week-when",
+          new Date(first.drops_at).toLocaleDateString("en-US", { timeZone: "America/Chicago", month: "short", day: "numeric" })));
+      }
+      group.appendChild(head);
+      const list = el("ul", "event-achievements");
+      achievements.filter((a) => a.week === w).forEach((a) => list.appendChild(achievementCard(a, ev, loggedIn)));
+      group.appendChild(list);
+      section.appendChild(group);
+    });
+    if (ev.status === "live") section.appendChild(el("p", "event-note", "Every week's challenges stay open until the event ends."));
+  } else {
+    const list = el("ul", "event-achievements");
+    achievements.forEach((a) => list.appendChild(achievementCard(a, ev, loggedIn)));
+    section.appendChild(list);
+  }
 
   if (ev.posts && ev.posts.length) {
     section.appendChild(postList(ev.posts, "From the community"));

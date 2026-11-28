@@ -90,16 +90,29 @@ UI.liveEvent().then((event) => {
   const legend = document.getElementById("event-review-legend");
   if (!event || !legend) return;
   legend.textContent = event.name + " (optional)";
+  // Each event says which boxes it shows and how the seasonal one reads
+  // (older databases: both boxes, as written in reviews.html)
+  if (event.seasonal_label !== undefined) {
+    const seasonal = document.getElementById("review-seasonal");
+    seasonal.closest("label").hidden = !event.seasonal_label;
+    if (event.seasonal_label) seasonal.closest("label").lastChild.textContent = " " + event.seasonal_label;
+    document.getElementById("review-no-longer-using").closest("label").hidden = !event.no_longer_using_box;
+    if (!event.seasonal_label && !event.no_longer_using_box) return;
+  }
   eventField.hidden = false;
 });
 function eventChoices() {
   if (eventField.hidden) return {};
+  const ticked = (id) => !document.getElementById(id).closest("label").hidden && document.getElementById(id).checked;
   return {
-    no_longer_using: document.getElementById("review-no-longer-using").checked,
-    seasonal: document.getElementById("review-seasonal").checked,
+    no_longer_using: ticked("review-no-longer-using"),
+    seasonal: ticked("review-seasonal"),
   };
 }
 
+// (declared up here because ?write=1 opens the form straight away, before
+// the quick-questions code further down has run)
+let closeQuickPanel = null;
 function setWriting(open) {
   if (open && closeQuickPanel) closeQuickPanel();
   form.hidden = !open;
@@ -909,7 +922,6 @@ async function showQuickInForm() {
 
 // On a product page: "Answer quick questions" on their own, without writing
 // a review
-let closeQuickPanel = null;
 async function addQuickButton(product) {
   closeQuickPanel = () => {};
   let { questions, mine } = await QUICK.load(product.id);
