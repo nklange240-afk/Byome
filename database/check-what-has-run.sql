@@ -121,5 +121,6 @@ from (values
   ('2027-01-03-christmas-tree.sql',       exists (select 1 from fn where name = 'claim_gifts')),
   ('2027-01-04-doorbuster-rules.sql',     exists (select 1 from fn where name = 'owned_once')),
   ('2027-01-05-threats.sql',              exists (select 1 from public.crisis_phrases where phrase = 'want to hurt somebody')),
-  ('2027-01-06-cozy-christmas.sql',       exists (select 1 from fn where name = 'cc_qualify'))
+  ('2027-01-06-cozy-christmas.sql',       exists (select 1 from fn where name = 'cc_qualify')),
+  ('2027-01-07-calendar-21.sql',          exists (select 1 from information_schema.tables where table_schema = 'public' and table_name = 'calendar_prizes'))
 ) as checks(file, ok);

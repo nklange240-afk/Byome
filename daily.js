@@ -235,20 +235,17 @@ const DAILY = (function () {
   }
 
   // ---------- The event calendar ----------
-  // (drawn by UI.calendarCard; a new card every 7 stamps)
+  // (drawn by UI.calendarCard: 21 stamps, a prize every 7th)
   function calendarBox(gift) {
     const cal = gift.calendar;
     const box = UI.calendarCard(cal, gift.calendar_stamp);
-    const card = gift.calendar_card || cal.card || 1;
+    const n = gift.calendar_stamp;
     let note;
-    if (gift.calendar_item) note = "Stamp 7! You've earned the calendar's prize: " + gift.calendar_item.name + ".";
-    else if (gift.calendar_points && gift.calendar_stamp === cal.total) note = "Stamp 7: " + pointsText(gift.calendar_points) + "! Card " + card + " is full, and a new one starts tomorrow.";
-    else if (gift.calendar_points) note = "Stamp " + gift.calendar_stamp + ": " + pointsText(gift.calendar_points) + " from the calendar!";
-    else if (cal.stamps >= cal.total) note = "Card " + card + " is full. A new one starts with your next stamp.";
-    else {
-      const left = cal.total - cal.stamps;
-      note = left + (left === 1 ? " stamp" : " stamps") + " to go on this card. Days don't need to be in a row.";
-    }
+    if (gift.calendar_item) note = "Stamp " + n + "! You've earned a calendar prize: the " + gift.calendar_item.name + ".";
+    else if (gift.calendar_points && n % 7 === 0) note = "Stamp " + n + ": " + pointsText(gift.calendar_points) + "! Its prize is still being made, and it'll be yours as soon as it's ready.";
+    else if (gift.calendar_points) note = "Stamp " + n + ": " + pointsText(gift.calendar_points) + " from the calendar! " + UI.calendarProgress(cal);
+    else if (n && n >= cal.total) note = "Stamp 21! " + UI.calendarProgress(cal);
+    else note = (n ? "Stamp " + n + ". " : "") + UI.calendarProgress(cal);
     box.appendChild(el("p", "daily-calendar-note", note));
     return box;
   }

@@ -25,10 +25,8 @@
 --   Cozy Week (50)      any 4 of the 6 above
 --
 --  THE CALENDAR. Opening the daily surprise adds a stamp (one a day; days
---  don't need to be in a row, and each member starts whenever they like).
---  Seven stamps fill a card; stamps 2, 4 and 6 give 15 Byome points and
---  stamp 7 gives 75. The first card's stamp 7 gives the calendar prize
---  instead, once it exists. A full card starts a new one the next day.
+--  don't need to be in a row). It's a 21-day check-in with a prize every
+--  7 stamps: see 2027-01-07-calendar-21.sql.
 --
 --  The review checkbox reads "This is a winter or holiday product." during
 --  Cozy Christmas ("I no longer use this" is Haunted Harvest's only).
@@ -43,9 +41,7 @@
 --      select public.set_event_story_post('christmas-2026', 'paste the post link here');
 --  * When a prize's art is in (I'll add the item; this hands it out):
 --      select public.release_event_reward('cc-trim-the-tree', 'item-key');
---  * When the calendar prize is in (this also gives it to anyone who
---    has already filled their first card):
---      select public.release_calendar_item('christmas-2026', 'item-key');
+--  * Calendar prizes: see 2027-01-07-calendar-21.sql.
 -- =========================================================
 
 
@@ -326,7 +322,7 @@ create trigger cc_after_daily_gift after insert on public.daily_gifts
   for each row execute function public.cc_on_daily_gift();
 
 
--- ---------- The calendar: a new card every 7 stamps ----------
+-- ---------- The calendar ----------
 alter table public.daily_gifts add column if not exists calendar_card int;
 
 -- (the same as in 2026-11-26-daily-surprise.sql, plus the card number)
@@ -344,136 +340,8 @@ language sql stable security definer set search_path to public as $$
 $$;
 revoke execute on function public.daily_gift_json(daily_gifts) from public, anon, authenticated;
 
--- The calendar of whichever event is on: which card you're on and how many
--- stamps it has (a full card stays showing until the next stamp starts a
--- new one). Null if no event with a calendar is on.
-create or replace function public.daily_calendar(p_user uuid) returns jsonb
-language sql stable security definer set search_path to public as $$
-  select jsonb_build_object(
-    'event_key', e.key, 'name', e.name, 'ends_at', e.ends_at, 'total', 7,
-    'all_stamps', n.all_stamps,
-    'card', case when n.all_stamps = 0 then 1 else (n.all_stamps - 1) / 7 + 1 end,
-    'stamps', case when n.all_stamps = 0 then 0 else (n.all_stamps - 1) % 7 + 1 end,
-    'item', (select jsonb_build_object('key', i.key, 'name', i.name, 'image', i.image, 'kind', i.kind,
-                                       'size', i.size, 'rarity', i.rarity, 'over_pot', i.over_pot)
-             from biome_items i where i.key = e.calendar_item))
-  from events e,
-       lateral (select count(*)::int as all_stamps from daily_gifts g where g.user_id = p_user and g.event_key = e.key) n
-  where e.calendar and now() >= e.starts_at and now() < e.ends_at
-  order by e.starts_at desc limit 1
-$$;
-revoke execute on function public.daily_calendar(uuid) from public, anon, authenticated;
-
--- Open today's packet (the same as in 2026-11-26-daily-surprise.sql, except
--- the calendar: every stamp counts, a new card every 7)
-create or replace function public.claim_daily_gift() returns jsonb
-language plpgsql security definer set search_path to public as $$
-declare
-  me uuid := auth.uid();
-  today date := byome_today();
-  roll numeric;
-  g daily_gifts%rowtype;
-  ev events%rowtype;
-  stamp int;
-begin
-  if me is null then raise exception 'Please log in first'; end if;
-  if not exists (select 1 from profiles where id = me and deleted_at is null) then raise exception 'Please log in first'; end if;
-  -- one at a time per member, so a double tap can't open two packets
-  perform pg_advisory_xact_lock(hashtext('daily-gift'), hashtext(me::text));
-  if exists (select 1 from daily_gifts where user_id = me and day = today) then
-    raise exception 'You''ve already opened today''s surprise. Come back tomorrow!';
-  end if;
-
-  g.id := gen_random_uuid();
-  g.user_id := me;
-  g.day := today;
-  g.points := 0;
-  g.duplicate := false;
-  g.calendar_points := 0;
-  g.created_at := now();
-
-  roll := floor(random() * 10000);
-  if roll < 2050 then g.tier := 'small'; g.points := 2 + floor(random() * 2);
-  elsif roll < 6750 then g.tier := 'small'; g.points := 4 + floor(random() * 3);
-  elsif roll < 7750 then g.tier := 'good'; g.points := 10;
-  elsif roll < 8250 then g.tier := 'good'; g.points := 20;
-  elsif roll < 8500 then g.tier := 'great'; g.points := 30;
-  elsif roll < 8650 then g.tier := 'great'; g.points := 50;
-  elsif roll < 8750 then g.tier := 'lucky'; g.points := 100;
-  elsif roll < 8775 then g.tier := 'jackpot'; g.points := 200;
-  elsif roll < 9775 then g.tier := 'item'; g.item_key := daily_pick_item(me, 'common', false);
-    if g.item_key is null then g.tier := 'good'; g.points := 10; end if;
-  elsif roll < 9975 then g.tier := 'rare'; g.item_key := daily_pick_item(me, 'rare', true);
-    if g.item_key is null then g.points := 50; end if;
-  else g.tier := 'heirloom'; g.item_key := daily_pick_item(me, 'heirloom', true);
-    if g.item_key is null then g.points := 150; end if;
-  end if;
-  if g.item_key is not null then
-    g.duplicate := exists (select 1 from biome_inventory where user_id = me and item_key = g.item_key);
-  end if;
-
-  -- The event calendar: the stamp's place on its card (1 to 7) and the card
-  select * into ev from events where calendar and now() >= starts_at and now() < ends_at order by starts_at desc limit 1;
-  if found then
-    g.event_key := ev.key;
-    stamp := (select count(*) from daily_gifts where user_id = me and event_key = ev.key) + 1;
-    g.calendar_card := (stamp - 1) / 7 + 1;
-    g.calendar_stamp := (stamp - 1) % 7 + 1;
-    if g.calendar_stamp in (2, 4, 6) then g.calendar_points := 15;
-    elsif g.calendar_stamp = 7 then
-      if g.calendar_card = 1 and ev.calendar_item is not null then g.calendar_item := ev.calendar_item;
-      else g.calendar_points := 75; end if;
-    end if;
-  end if;
-
-  insert into daily_gifts values (g.*);
-  if g.points > 0 then
-    insert into point_ledger (user_id, action, community_points, biome_points, ref_type, ref_id)
-    values (me, 'daily_gift', 0, g.points, 'daily_gift', g.id);
-  end if;
-  if g.item_key is not null then
-    insert into biome_inventory (user_id, item_key, source) values (me, g.item_key, 'daily');
-  end if;
-  if g.calendar_points > 0 then
-    insert into point_ledger (user_id, action, community_points, biome_points, ref_type, ref_id)
-    values (me, 'event_calendar', 0, g.calendar_points, 'daily_gift', g.id);
-  end if;
-  if g.calendar_item is not null then
-    insert into biome_inventory (user_id, item_key, source) values (me, g.calendar_item, 'daily');
-  end if;
-
-  return daily_gift_json(g) || jsonb_build_object('calendar', daily_calendar(me));
-end $$;
-revoke execute on function public.claim_daily_gift() from public, anon;
-grant execute on function public.claim_daily_gift() to authenticated;
-
--- When the calendar prize's art is ready: set it, and give it to everyone
--- who already filled their first card (they got 75 points then; they keep
--- those). SQL Editor only.
-create or replace function public.release_calendar_item(p_event text, p_item text) returns text
-language plpgsql security definer set search_path to public as $$
-declare
-  r record;
-  n int := 0;
-  item_name text;
-begin
-  select name into item_name from biome_items where key = p_item;
-  if item_name is null then return 'There''s no item "' || p_item || '" yet.'; end if;
-  update events set calendar_item = p_item where key = p_event;
-  if not found then return 'There''s no event "' || p_event || '".'; end if;
-  for r in
-    select g.id, g.user_id from daily_gifts g
-    where g.event_key = p_event and g.calendar_card = 1 and g.calendar_stamp = 7 and g.calendar_item is null
-  loop
-    update daily_gifts set calendar_item = p_item where id = r.id;
-    insert into biome_inventory (user_id, item_key, source) values (r.user_id, p_item, 'daily');
-    perform create_notification(r.user_id, null, 'gift', null,
-      'Your calendar prize is here: the ' || item_name || '! Thanks for filling your first card.', 'profile.html?shelf=edit');
-    n := n + 1;
-  end loop;
-  return 'Done: ' || n || ' member' || case when n = 1 then '' else 's' end || ' who already filled their first card got it.';
-end $$;
-revoke execute on function public.release_calendar_item(text, text) from public, anon, authenticated;
+-- (The calendar's stamps, prizes and the daily surprise itself are in
+-- 2027-01-07-calendar-21.sql: a 21-day check-in.)
 
 
 -- The event's pinned thread (Dear Santa's wish-list post): paste the post's

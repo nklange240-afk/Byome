@@ -8162,7 +8162,7 @@ dialog.daily-dialog {
 
 .daily-calendar-days {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 0.35rem;
   margin: 0;
   padding: 0;
@@ -8204,8 +8204,11 @@ dialog.daily-dialog {
 
 /* A stamped window with the event's stamp drawing, and the prize in
    window 7 (faded until it's earned) */
+/* (stamped like ink on a card: cream paper behind the drawing) */
 .daily-stamp.has-art {
-  background-color: transparent;
+  border-color: #F3EDE0;
+  background-color: #F3EDE0;
+  padding: 2px;
 }
 
 .daily-stamp-art {
@@ -8220,11 +8223,23 @@ dialog.daily-dialog {
 }
 
 .daily-stamp-prize {
-  width: 86%;
-  height: 86%;
-  object-fit: contain;
+  position: relative;
+  width: 80%;
+  height: 80%;
   opacity: 0.4;
   filter: grayscale(0.5);
+}
+
+.daily-stamp-prize > img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.daily-stamp-prize.is-theme > img.item-theme-layer {
+  position: absolute;
+  left: 0;
+  top: 0;
 }
 
 .daily-stamp.has-prize.is-done {
@@ -8248,12 +8263,22 @@ dialog.daily-dialog {
   }
 }
 
-/* Phones: 4 windows, then 3 */
+/* Phones: smaller numbers and markers, so 7 windows fit a row */
 @media (max-width: 420px) {
   .daily-calendar-days {
-    grid-template-columns: repeat(4, 1fr);
-    max-width: 16rem;
-    margin: 0 auto;
+    gap: 0.25rem;
+  }
+
+  .daily-stamp {
+    font-size: 0.7rem;
+    border-width: 1.5px;
+  }
+
+  .daily-stamp.is-treat::after,
+  .daily-stamp.is-final::after {
+    right: -4px;
+    bottom: -6px;
+    font-size: 0.65rem;
   }
 }
 
