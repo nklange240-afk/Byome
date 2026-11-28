@@ -6605,6 +6605,61 @@ dialog.a11y-dialog {
   margin: 2rem 0 0.75rem;
 }
 
+/* A past event, folded away under its name */
+.event-past {
+  margin-bottom: 0.75rem;
+  border: 1px solid var(--moss);
+  border-radius: 12px;
+  background-color: var(--forest-mid);
+}
+
+.event-past-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.75rem;
+  padding: 0.85rem 1.1rem;
+  cursor: pointer;
+  list-style: none;
+}
+
+.event-past-summary::-webkit-details-marker {
+  display: none;
+}
+
+.event-past-summary::before {
+  content: "▸";
+  color: var(--gold);
+  transition: transform 0.15s;
+}
+
+.event-past[open] > .event-past-summary::before {
+  transform: rotate(90deg);
+}
+
+.event-past-name {
+  font-weight: 600;
+  font-size: 1.05rem;
+}
+
+.event-past-when {
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+
+.event-past-summary:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+  border-radius: 12px;
+}
+
+.event-past > .event-card {
+  margin: 0;
+  border: none;
+  border-top: 1px solid var(--moss);
+  border-radius: 0 0 12px 12px;
+}
+
 /* The "an event is on" banner on the Community and home pages */
 .event-banner {
   display: flex;

@@ -352,6 +352,16 @@ function teaserCard(next) {
   if (!current.length && !teaser) box.appendChild(el("p", "feed-empty", "No events on right now. Check back soon!"));
   if (past.length) {
     box.appendChild(el("h2", "section-title events-past-title", "Past events"));
-    past.forEach((ev) => box.appendChild(eventSection(ev, loggedIn, [])));
+    // Each past event is folded away: tap its name to open it
+    past.forEach((ev) => {
+      const fold = el("details", "event-past");
+      const summary = el("summary", "event-past-summary");
+      summary.appendChild(el("span", "event-past-name", ev.name));
+      summary.appendChild(el("span", "event-past-when",
+        new Date(ev.starts_at).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "America/Chicago" }) + " – " +
+        new Date(ev.ends_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "America/Chicago" })));
+      fold.append(summary, eventSection(ev, loggedIn, []));
+      box.appendChild(fold);
+    });
   }
 })();
