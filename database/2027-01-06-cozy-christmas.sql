@@ -14,6 +14,7 @@
 --
 --  Week 1 (25 Byome points each):
 --   Trim the Tree       put your Mini Christmas tree on your shelf
+--                       (prize: the Snowflake decorations for the tree)
 --   Dear Santa          a comment (50+ characters) on the pinned wish-list post
 --   Winter Rescue       a review ticked "This is a winter or holiday product"
 --   Spread Some Cheer   comments on 5 different posts by other members
@@ -71,7 +72,55 @@ alter table public.achievements add column if not exists drops_at timestamptz;
 alter table public.achievements add column if not exists bonus_need int;
 
 
+-- ---------- Decorations you unlock ----------
+-- A theme can be a prize: members see it once they own its unlock item (a
+-- "theme" item, which isn't placed on the shelf itself). Themes without
+-- one are for everyone who has the item.
+alter table public.biome_items drop constraint if exists biome_items_kind_check;
+alter table public.biome_items add constraint biome_items_kind_check
+  check (kind in ('pot', 'plant', 'shelf', 'biome', 'companion', 'shelf_overlay', 'theme'));
+alter table public.biome_items drop constraint if exists biome_items_check;
+alter table public.biome_items add constraint biome_items_check check (
+  (kind in ('shelf', 'biome', 'shelf_overlay', 'theme') and size is null)
+  or (kind in ('pot', 'plant') and size is not null)
+  or kind = 'companion');
+alter table public.item_themes add column if not exists unlock_item text references public.biome_items(key);
+
+-- Choose the decorations for the pot in a spot (the same as in
+-- 2027-01-03-christmas-tree.sql, plus: a prize theme needs its unlock item)
+create or replace function public.set_biome_theme(p_slot int, p_theme text) returns void
+language plpgsql security definer set search_path to public as $$
+declare
+  me uuid := auth.uid();
+  pot text;
+  t item_themes%rowtype;
+begin
+  if me is null then raise exception 'Please log in first'; end if;
+  select pot_key into pot from biome_slots where user_id = me and slot = p_slot;
+  if pot is null then raise exception 'There''s nothing in that spot'; end if;
+  if p_theme is not null then
+    select * into t from item_themes where item_key = pot and key = p_theme;
+    if not found then raise exception 'That decoration isn''t for this one'; end if;
+    if t.unlock_item is not null and not exists (select 1 from biome_inventory where user_id = me and item_key = t.unlock_item) then
+      raise exception 'You haven''t unlocked the % decorations yet', t.name;
+    end if;
+  end if;
+  update biome_slots set theme = p_theme, updated_at = now() where user_id = me and slot = p_slot;
+end $$;
+revoke execute on function public.set_biome_theme(int, text) from public, anon;
+grant execute on function public.set_biome_theme(int, text) to authenticated;
+
+
 -- ---------- Prizes ready so far ----------
+insert into public.biome_items (key, kind, size, name, description, rarity, price, image, sort_order, max_per_member)
+values ('tree-snowflake', 'theme', null, 'Snowflake decorations',
+        'Icy blue baubles and drifting snowflakes for your Mini Christmas tree. Choose them when you arrange your shelf. For trimming the tree during Cozy Christmas 2026.',
+        'uncommon', null, 'biome-assets/tree-snowflake.png', 1, 1)
+on conflict (key) do nothing;
+insert into public.item_themes (item_key, key, name, color, image, sort_order, is_default, unlock_item)
+values ('christmas-tree', 'snowflake', 'Snowflake', '#9fd3f0', 'biome-assets/tree-snowflake.png', 2, false, 'tree-snowflake')
+on conflict (item_key, key) do update set unlock_item = excluded.unlock_item, image = excluded.image;
+
 insert into public.biome_items (key, kind, size, name, description, rarity, price, image, sort_order, max_per_member)
 values ('cardinal', 'companion', null, 'Cardinal',
         'A flash of red on a snowy day, perched and full of cheer. For spreading some cheer during Cozy Christmas 2026.',
@@ -84,7 +133,7 @@ insert into public.achievements (key, name, description, how_to, reward_item, ev
   ('cc-trim-the-tree', 'Trim the Tree',
    'Put up a Christmas tree, during Cozy Christmas 2026.',
    'Put your Mini Christmas tree on your shelf. Every member gets one: find it under "Edit my shelf."',
-   null, 'christmas-2026', 25, 50, 1, '2026-11-28 00:00 America/Chicago', null),
+   'tree-snowflake', 'christmas-2026', 25, 50, 1, '2026-11-28 00:00 America/Chicago', null),
   ('cc-dear-santa', 'Dear Santa',
    'Shared a beauty wish list, during Cozy Christmas 2026.',
    'What''s on your beauty wish list this year? Tell us in the pinned post. At least 50 characters.',
@@ -545,6 +594,12 @@ begin
     perform cc_check_secret_santa(r.referred_id);
   end loop;
 end $$;
+
+-- Prizes added since this file was first run go to everyone who already
+-- did the challenge
+select public.release_event_reward(key, reward_item) from public.achievements
+where event_key = 'christmas-2026' and reward_item is not null
+  and exists (select 1 from public.event_qualifications q where q.achievement_key = achievements.key);
 
 -- Tell the API about the changes straight away
 notify pgrst, 'reload schema';

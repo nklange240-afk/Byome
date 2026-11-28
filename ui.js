@@ -358,6 +358,16 @@ const UI = (function () {
       deco.src = art(item.image);
       deco.alt = "";
       box.append(shelf, deco);
+    } else if (item.kind === "theme") {
+      // Decorations for the Christmas tree, shown on the tree (same canvas)
+      box.classList.add("is-theme");
+      const tree = el("img", className ? "" : "celebrate-grow");
+      tree.src = art("biome-assets/pot-christmas-tree.png");
+      tree.alt = "";
+      const deco = el("img", "item-theme-layer");
+      deco.src = art(item.image);
+      deco.alt = "";
+      box.append(tree, deco);
     } else if (item.kind === "companion") {
       // A companion's canvas is mostly empty space above the pot, so show
       // its close-up (saved next to it with "-icon" added to the name).

@@ -3749,6 +3749,20 @@ dialog.celebrate::backdrop {
   object-fit: contain;
 }
 
+/* Decorations for the tree sit exactly over it (same canvas) */
+.is-theme > img.item-theme-layer {
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+/* A decoration you haven't won yet, under the decoration choices */
+.theme-locked {
+  margin: 0.35rem 0 0;
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+
 /* A shelf decoration sits exactly over the shelf (same canvas shape) */
 .celebrate-art.is-decorated-shelf > .celebrate-decoration,
 .shop-art.is-decorated-shelf > .celebrate-decoration {
