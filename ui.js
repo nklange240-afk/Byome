@@ -358,6 +358,16 @@ const UI = (function () {
       deco.src = art(item.image);
       deco.alt = "";
       box.append(shelf, deco);
+    } else if (item.kind === "theme") {
+      // Decorations for the Christmas tree, shown on the tree (same canvas)
+      box.classList.add("is-theme");
+      const tree = el("img", className ? "" : "celebrate-grow");
+      tree.src = art("biome-assets/pot-christmas-tree.png");
+      tree.alt = "";
+      const deco = el("img", "item-theme-layer");
+      deco.src = art(item.image);
+      deco.alt = "";
+      box.append(tree, deco);
     } else if (item.kind === "companion") {
       // A companion's canvas is mostly empty space above the pot, so show
       // its close-up (saved next to it with "-icon" added to the name).
@@ -557,14 +567,17 @@ const UI = (function () {
       const now = new Date().toISOString();
       // (never the beta event, which beta testers can also see:
       // database/2026-12-08-beta-event.sql; until that's run, any event)
-      const find = (publicOnly) => {
-        let q = supabaseClient.from("events").select("key, name, tagline, starts_at, ends_at, grace_until, badge_image, story_post_id")
+      // (each event's review checkboxes come from
+      // database/2027-01-06-cozy-christmas.sql; fine without)
+      const COLUMNS = "key, name, tagline, starts_at, ends_at, grace_until, badge_image, story_post_id";
+      const find = (publicOnly, extra) => {
+        let q = supabaseClient.from("events").select(COLUMNS + (extra ? ", seasonal_label, no_longer_using_box" : ""))
           .lte("starts_at", now).gte("ends_at", now);
         if (publicOnly) q = q.eq("beta_only", false);
-        return q.order("starts_at").limit(1);
+        return q.order("starts_at", { ascending: false }).limit(1);
       };
       liveEventPromise = typeof supabaseClient === "undefined" ? Promise.resolve(null)
-        : find(true).then((res) => (res.error ? find(false) : res))
+        : find(true, true).then((res) => (res.error ? find(true) : res)).then((res) => (res.error ? find(false) : res))
           .then(({ data, error }) => (error || !data || !data.length ? null : data[0]), () => null);
     }
     return liveEventPromise;
@@ -766,6 +779,45 @@ const UI = (function () {
     if (after) after.after(banner); else container.prepend(banner);
   }
 
+  // ---------- The event calendar ----------
+  // (database/2027-01-06-cozy-christmas.sql) Seven windows a card, like an
+  // advent calendar; days don't need to be in a row and a full card starts
+  // a new one. Windows 2, 4 and 6 hold a treat; window 7 shows the card's
+  // prize (faded until it's earned). A stamped window shows the event's
+  // stamp drawing (biome-assets/stamp-<event>.png) once there is one.
+  // today: the window stamped just now, if any.
+  function calendarCard(cal, today) {
+    const box = el("div", "daily-calendar");
+    const card = cal.card || 1;
+    box.appendChild(el("p", "daily-calendar-title", cal.name + " calendar" + (card > 1 ? " \u00b7 card " + card : "")));
+    const days = el("ol", "daily-calendar-days");
+    for (let n = 1; n <= cal.total; n++) {
+      const done = n <= cal.stamps;
+      const prize = n === cal.total && card === 1 && cal.item;
+      const li = el("li", "daily-stamp" + (done ? " is-done" : "") + (n === today ? " is-today" : "")
+        + ([2, 4, 6].indexOf(n) !== -1 ? " is-treat" : "") + (n === cal.total && !prize ? " is-final" : "") + (prize ? " has-prize" : ""));
+      li.setAttribute("aria-label", "Window " + n + (done ? ", stamped" : "") + (prize ? ", the " + cal.item.name : ""));
+      if (prize) {
+        const pic = itemArt(cal.item, "daily-stamp-prize");
+        pic.setAttribute("aria-hidden", "true");
+        li.appendChild(pic);
+      } else if (done && cal.event_key) {
+        const stamp = document.createElement("img");
+        stamp.className = "daily-stamp-art";
+        stamp.src = art("biome-assets/stamp-" + cal.event_key + ".png");
+        stamp.alt = "";
+        stamp.addEventListener("load", () => li.classList.add("has-art"));
+        stamp.addEventListener("error", () => { stamp.remove(); li.prepend(String(n)); });
+        li.appendChild(stamp);
+      } else {
+        li.textContent = String(n);
+      }
+      days.appendChild(li);
+    }
+    box.appendChild(days);
+    return box;
+  }
+
   // A banner while a shop sale is on (database/2027-01-02-black-friday-sale.sql),
   // also saying every member gets the free Christmas tree. The picture is
   // the owner's hand-drawn tree with its Classic ornaments. Disappears by
@@ -805,11 +857,24 @@ const UI = (function () {
   }
 
   // The little icons by a review's heading: a cobweb for "no longer using
-  // this", a leaf for a fall favorite (words until the icons' art is in)
+  // this", a leaf for a fall favorite, and for a winter favorite (ticked
+  // during the Christmas event, late November to February) words until its
+  // icon's art is in
+  function isWinter(iso) {
+    const d = iso ? new Date(iso) : null;
+    if (!d || isNaN(d)) return false;
+    const month = Number(d.toLocaleDateString("en-US", { timeZone: "America/Chicago", month: "numeric" }));
+    const day = Number(d.toLocaleDateString("en-US", { timeZone: "America/Chicago", day: "numeric" }));
+    return month === 12 || month <= 2 || (month === 11 && day >= 20);
+  }
   function reviewIcons(r) {
     const icons = [];
     if (r.no_longer_using) icons.push(iconOrLabel("biome-assets/icon-no-longer-using.png", "No longer using this product", "review-icon", "No longer using"));
-    if (r.seasonal) icons.push(iconOrLabel("biome-assets/icon-fall-favorite.png", "Fall favorite", "review-icon"));
+    if (r.seasonal) {
+      icons.push(isWinter(r.created_at)
+        ? iconOrLabel("biome-assets/icon-winter-favorite.png", "Winter favorite", "review-icon")
+        : iconOrLabel("biome-assets/icon-fall-favorite.png", "Fall favorite", "review-icon"));
+    }
     return icons;
   }
 
@@ -1633,5 +1698,5 @@ const UI = (function () {
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => setTimeout(claimGifts, 800));
   else setTimeout(claimGifts, 800);
 
-  return { liveEvent, eventBanner, heldNotice, heldForCrisis, crisisPostedText, CRISIS_WARNING, automodWatch, saleBanner, centralTime, starterChecklist, linkify, readMore, giftedTag, iconOrLabel, reviewIcons, openAccessibility, REMOVAL_REASONS, removalReasonLabel, friendlyDate, timeTag, emptyState, celebrate, checkAchievements, sparkles, itemArt, soilImage, sizeName, sizeBadge, setBiome, biomeSymbol, memberBadge, biomeSwatch, biomeLook, biomePreview, openBiomePreview, previewOnHover, previewButton, startModSession, refreshLimits, variationForm, LEVELS, levelInfo, levelBadge };
+  return { liveEvent, eventBanner, calendarCard, heldNotice, heldForCrisis, crisisPostedText, CRISIS_WARNING, automodWatch, saleBanner, centralTime, starterChecklist, linkify, readMore, giftedTag, iconOrLabel, reviewIcons, openAccessibility, REMOVAL_REASONS, removalReasonLabel, friendlyDate, timeTag, emptyState, celebrate, checkAchievements, sparkles, itemArt, soilImage, sizeName, sizeBadge, setBiome, biomeSymbol, memberBadge, biomeSwatch, biomeLook, biomePreview, openBiomePreview, previewOnHover, previewButton, startModSession, refreshLimits, variationForm, LEVELS, levelInfo, levelBadge };
 })();

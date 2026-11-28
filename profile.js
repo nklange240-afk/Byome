@@ -473,7 +473,9 @@ async function showBiome(profileId, isMe) {
     isMe ? supabaseClient.from("biome_inventory").select("item_key").eq("user_id", profileId).order("acquired_at", { ascending: false })
       : Promise.resolve({ data: [] }),
     supabaseClient.from("achievements").select("name, reward_item").not("reward_item", "is", null),
-    supabaseClient.from("item_themes").select("item_key, key, name, color, image, sort_order, is_default").order("sort_order")
+    // (unlock_item, for prize decorations, comes from database/2027-01-06-cozy-christmas.sql)
+    supabaseClient.from("item_themes").select("item_key, key, name, color, image, sort_order, is_default, unlock_item").order("sort_order")
+      .then((res) => (res.error ? supabaseClient.from("item_themes").select("item_key, key, name, color, image, sort_order, is_default").order("sort_order") : res))
       .then((res) => res, () => ({ data: [] })),
   ]);
   if (itemsRes.error || slotsRes.error || shelfRes.error) return; // biome isn't set up in the database yet
@@ -509,7 +511,8 @@ async function showBiome(profileId, isMe) {
     const list = [];
     Object.keys(owned).forEach((key) => {
       const it = items[key];
-      if (!it || it.starter || it.kind === "biome") return;
+      // (a decoration prize isn't placed itself: it's chosen on its item)
+      if (!it || it.starter || it.kind === "biome" || it.kind === "theme") return;
       const count = it.kind === "shelf" ? (key === shelfKey ? 0 : 1)
         : it.kind === "shelf_overlay" ? (key === overlayKey ? 0 : 1)
         : owned[key] - (used[key] || 0);
@@ -752,7 +755,14 @@ async function showBiome(profileId, isMe) {
           const row = el("div", "theme-picker");
           row.setAttribute("role", "group");
           row.setAttribute("aria-label", "How the " + decorHere.name.toLowerCase() + " is decorated");
+          const locked = [];
           decorHere.themes.forEach((t) => {
+            // a prize decoration shows once you've won it (until then, a
+            // note says how)
+            if (t.unlock_item && !owned[t.unlock_item]) {
+              if (items[t.unlock_item]) locked.push(t);
+              return;
+            }
             const b = el("button", "theme-choice");
             b.type = "button";
             b.setAttribute("aria-pressed", String(t.key === current));
@@ -767,6 +777,11 @@ async function showBiome(profileId, isMe) {
             row.appendChild(b);
           });
           editorEl.appendChild(row);
+          locked.forEach((t) => {
+            const how = items[t.unlock_item].earnedWith;
+            editorEl.appendChild(el("p", "theme-locked",
+              "\u2744 " + t.name + " decorations: " + (how ? "earn \u201c" + how + "\u201d to unlock them." : "coming soon.")));
+          });
         }
       }
 
