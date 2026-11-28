@@ -50,7 +50,12 @@ function achievementCard(a, ev, loggedIn) {
   card.appendChild(art);
 
   const body = el("div", "event-achievement-body");
-  body.appendChild(el("h3", "event-achievement-name", a.name));
+  const title = el("h3", "event-achievement-name", a.name);
+  // A challenge that needs the event's pinned post, before it's up
+  const needsPost = a.key === "hh-horror-story" || a.key === "cc-dear-santa";
+  const waitingForPost = needsPost && !ev.story_post_id && ev.status === "live";
+  if (waitingForPost) title.append(" ", el("span", "event-pill is-soon", "Coming soon"));
+  body.appendChild(title);
   if (a.how_to) body.appendChild(el("p", "event-achievement-how", a.how_to));
 
   const meta = el("p", "event-achievement-meta");
@@ -71,7 +76,9 @@ function achievementCard(a, ev, loggedIn) {
   }
 
   // How to get started (only while it can still be earned)
-  if (ev.status === "live" && !a.earned && !a.qualified) {
+  if (waitingForPost) {
+    body.appendChild(el("p", "event-note", "The post isn't up yet. Check back soon!"));
+  } else if (ev.status === "live" && !a.earned && !a.qualified) {
     let link = ACTION_LINKS[a.key];
     if ((a.key === "hh-horror-story" || a.key === "cc-dear-santa") && ev.story_post_id) {
       link = { href: "feed.html?post=" + encodeURIComponent(ev.story_post_id), text: "Go to the post" };

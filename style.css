@@ -6617,6 +6617,12 @@ dialog.a11y-dialog {
   font-size: 0.88rem;
 }
 
+.event-pill.is-soon {
+  font-family: var(--font-body);
+  font-size: 0.7rem;
+  vertical-align: middle;
+}
+
 .events-past-title {
   margin: 2rem 0 0.75rem;
 }
