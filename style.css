@@ -8204,8 +8204,11 @@ dialog.daily-dialog {
 
 /* A stamped window with the event's stamp drawing, and the prize in
    window 7 (faded until it's earned) */
+/* (stamped like ink on a card: cream paper behind the drawing) */
 .daily-stamp.has-art {
-  background-color: transparent;
+  border-color: #F3EDE0;
+  background-color: #F3EDE0;
+  padding: 2px;
 }
 
 .daily-stamp-art {
