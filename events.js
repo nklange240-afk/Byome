@@ -336,7 +336,6 @@ function teaserCard(next) {
     .not("available_until", "is", null).lte("available_from", now).gte("available_until", now);
 
   box.replaceChildren();
-  betas.filter((ev) => ev.status !== "ended").forEach((ev) => box.appendChild(betaSection(ev)));
   const current = overviews.filter((ev) => ev.status !== "ended");
   const past = overviews.filter((ev) => ev.status === "ended");
   // Between events (nothing on or coming soon): "New event coming ..." in
@@ -348,7 +347,11 @@ function teaserCard(next) {
   if (teaser && teaser.biome && !current.length) UI.setBiome(teaser.biome);
   else if (lead && lead.biome) UI.setBiome(lead.biome);
   if (teaser) box.appendChild(teaserCard(teaser));
-  current.forEach((ev) => box.appendChild(eventSection(ev, loggedIn, shopItems || [])));
+  // Events that are on (beta testers see the beta event too), newest first
+  current.map((ev) => ({ ev, node: () => eventSection(ev, loggedIn, shopItems || []) }))
+    .concat(betas.filter((ev) => ev.status !== "ended").map((ev) => ({ ev, node: () => betaSection(ev) })))
+    .sort((a, b) => new Date(b.ev.starts_at) - new Date(a.ev.starts_at))
+    .forEach((x) => box.appendChild(x.node()));
   if (!current.length && !teaser) box.appendChild(el("p", "feed-empty", "No events on right now. Check back soon!"));
   if (past.length) {
     box.appendChild(el("h2", "section-title events-past-title", "Past events"));
