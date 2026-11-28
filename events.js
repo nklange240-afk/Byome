@@ -86,18 +86,18 @@ function achievementCard(a, ev, loggedIn) {
   return card;
 }
 
-// Your calendar card on the event, with a way to today's surprise
+// Your calendar on the event (a 21-day check-in), with a way to today's surprise
 function calendarPanel(cal) {
   const panel = el("div", "event-calendar");
   panel.appendChild(UI.calendarCard(cal));
-  const note = el("p", "daily-calendar-note");
-  const card = cal.card || 1;
-  if (!cal.all_stamps) note.append("Open the daily surprise to collect your first stamp. Start whenever you like, and days don't need to be in a row.");
-  else if (cal.stamps >= cal.total) note.append("Card " + card + " is full! A new one starts with your next stamp.");
-  else note.append("Card " + card + " \u00b7 " + cal.stamps + " of " + cal.total + ". Days don't need to be in a row.");
-  panel.appendChild(note);
-  const prize = card === 1 && cal.item ? "the " + cal.item.name : "75 Byome points";
-  panel.appendChild(el("p", "daily-calendar-note is-small", "Stamps 2, 4 and 6: 15 Byome points. Stamp 7: " + prize + "."));
+  const full = cal.stamps >= cal.total;
+  panel.appendChild(el("p", "daily-calendar-note", !cal.stamps
+    ? "Open the daily surprise to collect your first stamp. Start whenever you like, and days don't need to be in a row."
+    : cal.stamps + " of " + cal.total + " stamps. " + UI.calendarProgress(cal)));
+  const names = (cal.prizes || []).filter((p) => p.item).map((p) => "stamp " + p.stamp + ": the " + p.item.name);
+  panel.appendChild(el("p", "daily-calendar-note is-small",
+    "On each row, stamps 2, 4 and 6 give 15 Byome points and the 7th gives a prize" + (names.length ? " (" + names.join(", ") + ")" : "") + "."));
+  if (full) return panel;
   if (!cal.opened_today) {
     const go = el("a", "btn btn-solid event-calendar-go", "Open today's surprise");
     go.href = "feed.html";

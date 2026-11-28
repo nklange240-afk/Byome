@@ -780,25 +780,28 @@ const UI = (function () {
   }
 
   // ---------- The event calendar ----------
-  // (database/2027-01-06-cozy-christmas.sql) Seven windows a card, like an
-  // advent calendar; days don't need to be in a row and a full card starts
-  // a new one. Windows 2, 4 and 6 hold a treat; window 7 shows the card's
-  // prize (faded until it's earned). A stamped window shows the event's
-  // stamp drawing (biome-assets/stamp-<event>.png) once there is one.
-  // today: the window stamped just now, if any.
+  // (database/2027-01-07-calendar-21.sql) A 21-day check-in: 21 windows in
+  // rows of 7, like an advent calendar. Days don't need to be in a row.
+  // Stamps 2, 4 and 6 of each row hold a treat; the 7th (7, 14, 21) holds
+  // a prize, shown faded until it's earned. A stamped window shows the
+  // event's stamp drawing (biome-assets/stamp-<event>.png).
+  // today: the stamp collected just now, if any.
+  function calendarPrize(cal, n) {
+    const p = (cal.prizes || []).find((x) => x.stamp === n);
+    return p && p.item ? p.item : null;
+  }
   function calendarCard(cal, today) {
     const box = el("div", "daily-calendar");
-    const card = cal.card || 1;
-    box.appendChild(el("p", "daily-calendar-title", cal.name + " calendar" + (card > 1 ? " \u00b7 card " + card : "")));
+    box.appendChild(el("p", "daily-calendar-title", cal.name + " calendar"));
     const days = el("ol", "daily-calendar-days");
     for (let n = 1; n <= cal.total; n++) {
       const done = n <= cal.stamps;
-      const prize = n === cal.total && card === 1 && cal.item;
+      const prize = n % 7 === 0 ? calendarPrize(cal, n) : null;
       const li = el("li", "daily-stamp" + (done ? " is-done" : "") + (n === today ? " is-today" : "")
-        + ([2, 4, 6].indexOf(n) !== -1 ? " is-treat" : "") + (n === cal.total && !prize ? " is-final" : "") + (prize ? " has-prize" : ""));
-      li.setAttribute("aria-label", "Window " + n + (done ? ", stamped" : "") + (prize ? ", the " + cal.item.name : ""));
+        + ([2, 4, 6].indexOf(n % 7) !== -1 ? " is-treat" : "") + (n % 7 === 0 && !prize ? " is-final" : "") + (prize ? " has-prize" : ""));
+      li.setAttribute("aria-label", "Stamp " + n + (done ? ", collected" : "") + (prize ? ": the " + prize.name : n % 7 === 0 ? ": a prize" : ""));
       if (prize) {
-        const pic = itemArt(cal.item, "daily-stamp-prize");
+        const pic = itemArt(prize, "daily-stamp-prize");
         pic.setAttribute("aria-hidden", "true");
         li.appendChild(pic);
       } else if (done && cal.event_key) {
@@ -816,6 +819,14 @@ const UI = (function () {
     }
     box.appendChild(days);
     return box;
+  }
+
+  // "4 more stamps to your next prize." (or that it's full)
+  function calendarProgress(cal) {
+    if (cal.stamps >= cal.total) return "Your calendar is full. Well done!";
+    const next = (Math.floor(cal.stamps / 7) + 1) * 7;
+    const left = next - cal.stamps;
+    return left + (left === 1 ? " more stamp" : " more stamps") + " to your next prize. Days don't need to be in a row.";
   }
 
   // A banner while a shop sale is on (database/2027-01-02-black-friday-sale.sql),
@@ -1698,5 +1709,5 @@ const UI = (function () {
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => setTimeout(claimGifts, 800));
   else setTimeout(claimGifts, 800);
 
-  return { liveEvent, eventBanner, calendarCard, heldNotice, heldForCrisis, crisisPostedText, CRISIS_WARNING, automodWatch, saleBanner, centralTime, starterChecklist, linkify, readMore, giftedTag, iconOrLabel, reviewIcons, openAccessibility, REMOVAL_REASONS, removalReasonLabel, friendlyDate, timeTag, emptyState, celebrate, checkAchievements, sparkles, itemArt, soilImage, sizeName, sizeBadge, setBiome, biomeSymbol, memberBadge, biomeSwatch, biomeLook, biomePreview, openBiomePreview, previewOnHover, previewButton, startModSession, refreshLimits, variationForm, LEVELS, levelInfo, levelBadge };
+  return { liveEvent, eventBanner, calendarCard, calendarProgress, heldNotice, heldForCrisis, crisisPostedText, CRISIS_WARNING, automodWatch, saleBanner, centralTime, starterChecklist, linkify, readMore, giftedTag, iconOrLabel, reviewIcons, openAccessibility, REMOVAL_REASONS, removalReasonLabel, friendlyDate, timeTag, emptyState, celebrate, checkAchievements, sparkles, itemArt, soilImage, sizeName, sizeBadge, setBiome, biomeSymbol, memberBadge, biomeSwatch, biomeLook, biomePreview, openBiomePreview, previewOnHover, previewButton, startModSession, refreshLimits, variationForm, LEVELS, levelInfo, levelBadge };
 })();
